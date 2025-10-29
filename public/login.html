@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar sesión - My Store</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <title>Iniciar sesión - Mi Store</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -15,6 +13,7 @@
     }
 
     body {
+      margin: 0;
       font-family: "Poppins", sans-serif;
       background: #ffffff;
       overflow: hidden;
@@ -22,13 +21,12 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
-      position: relative;
     }
 
-    /* 🌊 Burbujas animadas */
+    /* Fondo animado de burbujas */
     .bubbles {
       position: absolute;
+      top: 0; left: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
@@ -37,39 +35,45 @@
 
     .bubble {
       position: absolute;
-      bottom: -50px;
-      background: rgba(0, 255, 179, 0.3);
+      bottom: -150px;
+      background: radial-gradient(circle at 30% 30%, #c084fc, #7e22ce);
       border-radius: 50%;
-      animation: rise 10s infinite ease-in;
+      opacity: 0.5;
+      animation: rise 12s infinite ease-in;
     }
 
     @keyframes rise {
-      0% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(-120vh) scale(1.3);
-        opacity: 0;
-      }
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
     }
 
-    /* 💾 Caja de login */
+    /* Contenedor del login */
     .login-container {
-      background: rgba(255, 255, 255, 0.95);
+      position: relative;
+      z-index: 1;
+      background: #ffffff;
       border-radius: 20px;
       padding: 40px 30px;
-      width: 90%;
+      width: 100%;
       max-width: 400px;
       box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
       text-align: center;
-      position: relative;
-      z-index: 10;
+      animation: fadeIn 1.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo {
+      width: 100px;
+      margin-bottom: 20px;
     }
 
     h2 {
-      color: #00bfa6;
       margin-bottom: 20px;
+      color: #7e22ce;
       font-weight: 600;
     }
 
@@ -77,38 +81,39 @@
       width: 100%;
       padding: 12px;
       margin: 10px 0;
-      border: 1px solid #ccc;
+      border: 2px solid #e5e7eb;
       border-radius: 10px;
       font-size: 15px;
       outline: none;
-      transition: 0.2s;
+      transition: border 0.2s;
     }
 
     input:focus {
-      border-color: #00bfa6;
-      box-shadow: 0 0 5px rgba(0, 191, 166, 0.5);
+      border-color: #a855f7;
     }
 
     button {
       width: 100%;
       padding: 12px;
-      background: #00bfa6;
-      color: white;
       border: none;
       border-radius: 10px;
-      cursor: pointer;
+      background: linear-gradient(90deg, #a855f7, #7e22ce);
+      color: #fff;
       font-weight: 600;
       font-size: 16px;
-      transition: 0.3s;
+      margin-top: 10px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
 
     button:hover {
-      background: #009f8a;
+      transform: scale(1.03);
+      box-shadow: 0 8px 20px rgba(126, 34, 206, 0.3);
     }
 
     .divider {
       margin: 20px 0;
-      border-bottom: 1px solid #ddd;
+      border-bottom: 1px solid #e5e7eb;
       position: relative;
     }
 
@@ -117,9 +122,9 @@
       top: -12px;
       left: 50%;
       transform: translateX(-50%);
-      background: white;
+      background: #fff;
       padding: 0 10px;
-      color: #999;
+      color: #9ca3af;
       font-size: 14px;
     }
 
@@ -130,58 +135,61 @@
     }
 
     p {
-      margin-top: 10px;
-      color: #666;
+      margin-top: 15px;
+      color: #6b7280;
       font-size: 14px;
     }
 
     a {
-      color: #00bfa6;
+      color: #7e22ce;
       text-decoration: none;
+      font-weight: 500;
     }
 
     a:hover {
       text-decoration: underline;
     }
 
-    /* ✨ Mensaje animado de bienvenida */
-    .welcome {
-      display: none;
-      font-size: 22px;
-      font-weight: 600;
-      color: #00bfa6;
-      animation: fadeIn 1s ease forwards, floatUp 1.5s ease-in-out infinite alternate;
+    /* Mensaje animado de bienvenida */
+    .welcome-message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: linear-gradient(90deg, #a855f7, #7e22ce);
+      color: white;
+      font-size: 1.8rem;
+      padding: 20px 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(126, 34, 206, 0.4);
+      opacity: 0;
+      z-index: 9999;
+      animation: showWelcome 1.5s ease forwards;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes showWelcome {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+      40% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
     }
 
-    @keyframes floatUp {
-      from { transform: translateY(0); }
-      to { transform: translateY(-8px); }
-    }
-
-    /* 📱 Responsivo */
     @media (max-width: 480px) {
       .login-container {
         padding: 30px 20px;
       }
       h2 {
-        font-size: 20px;
+        font-size: 1.3rem;
       }
     }
   </style>
 </head>
 <body>
-  <!-- 🌊 Fondo de burbujas -->
+
   <div class="bubbles"></div>
 
   <div class="login-container">
-    <h2>Inicia sesión en My Store</h2>
-
-    <div class="welcome" id="welcomeMsg">¡Bienvenido a My Store! 🎉</div>
+    <img src="/logo.png" alt="Mi Store Logo" class="logo" />
+    <h2>Inicia sesión en Mi Store</h2>
 
     <form id="loginForm">
       <input type="text" id="username" placeholder="Usuario" required />
@@ -191,12 +199,11 @@
 
     <div class="divider"><span>o</span></div>
 
-    <!-- Google Sign-In -->
+    <!-- Google Login -->
     <div id="g_id_onload"
       data-client_id="247418735725-covi4d76annrdemdgc7laecqnjbf9g5f.apps.googleusercontent.com"
       data-callback="handleCredentialResponse"
-      data-auto_prompt="false">
-    </div>
+      data-auto_prompt="false"></div>
     <div class="g_id_signin" data-type="standard"></div>
 
     <p>¿No tienes cuenta? <a href="#" id="registerLink">Regístrate</a></p>
@@ -211,8 +218,8 @@
   </div>
 
   <script>
-    // 🫧 Crear burbujas aleatorias
-    const bubbleContainer = document.querySelector(".bubbles");
+    // Crear burbujas dinámicamente
+    const bubblesContainer = document.querySelector(".bubbles");
     for (let i = 0; i < 15; i++) {
       const bubble = document.createElement("div");
       bubble.classList.add("bubble");
@@ -220,29 +227,26 @@
       bubble.style.width = `${size}px`;
       bubble.style.height = `${size}px`;
       bubble.style.left = `${Math.random() * 100}%`;
-      bubble.style.animationDuration = `${6 + Math.random() * 6}s`;
-      bubble.style.animationDelay = `${Math.random() * 5}s`;
-      bubbleContainer.appendChild(bubble);
+      bubble.style.animationDelay = `${Math.random() * 10}s`;
+      bubblesContainer.appendChild(bubble);
     }
 
-    // 🔄 Alternar formularios
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
     const registerLink = document.getElementById("registerLink");
     const loginLink = document.getElementById("loginLink");
-    const welcomeMsg = document.getElementById("welcomeMsg");
 
     registerLink.addEventListener("click", () => {
       loginForm.style.display = "none";
       registerForm.style.display = "block";
     });
 
-    loginLink?.addEventListener("click", () => {
+    loginLink.addEventListener("click", () => {
       registerForm.style.display = "none";
       loginForm.style.display = "block";
     });
 
-    // 🧠 LOGIN LOCAL
+    // Login normal
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const username = document.getElementById("username").value;
@@ -256,14 +260,14 @@
       const data = await res.json();
 
       if (data.success) {
-        showWelcome();
-        setTimeout(() => window.location.href = "/", 1800);
+        showWelcomeMessage(data.username);
+        setTimeout(() => (window.location.href = "/"), 2000);
       } else {
         alert("❌ " + data.message);
       }
     });
 
-    // 🧠 REGISTRO LOCAL
+    // Registro
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const username = document.getElementById("regUsername").value;
@@ -284,7 +288,7 @@
       }
     });
 
-    // 🧠 LOGIN CON GOOGLE
+    // Google Login
     async function handleCredentialResponse(response) {
       const res = await fetch("/api/google-login", {
         method: "POST",
@@ -294,18 +298,22 @@
       const data = await res.json();
 
       if (data.success) {
-        showWelcome();
-        setTimeout(() => window.location.href = "/", 1800);
+        showWelcomeMessage(data.username);
+        setTimeout(() => (window.location.href = "/"), 2000);
       } else {
         alert("❌ Error con Google: " + data.message);
       }
     }
 
-    // ✨ Mostrar mensaje de bienvenida
-    function showWelcome() {
-      loginForm.style.display = "none";
-      registerForm.style.display = "none";
-      welcomeMsg.style.display = "block";
+    window.handleCredentialResponse = handleCredentialResponse;
+
+    // Animación bienvenida
+    function showWelcomeMessage(name) {
+      const msg = document.createElement("div");
+      msg.className = "welcome-message";
+      msg.textContent = `🎉 Bienvenido a Mi Store, ${name}!`;
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 2000);
     }
   </script>
 </body>
