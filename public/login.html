@@ -4,69 +4,111 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Iniciar sesión - Mi Store</title>
-  <link rel="stylesheet" href="/styles.css" />
-
-  <!-- Cargar librería de Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
+    * {
+      box-sizing: border-box;
     }
 
-    .login-container {
-      background: #1e293b;
-      border-radius: 16px;
-      padding: 40px;
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #ffffff;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      position: relative;
+    }
+
+    /* 🌊 Burbujas animadas */
+    .bubbles {
+      position: absolute;
       width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .bubble {
+      position: absolute;
+      bottom: -50px;
+      background: rgba(0, 255, 179, 0.3);
+      border-radius: 50%;
+      animation: rise 10s infinite ease-in;
+    }
+
+    @keyframes rise {
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-120vh) scale(1.3);
+        opacity: 0;
+      }
+    }
+
+    /* 💾 Caja de login */
+    .login-container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 90%;
       max-width: 400px;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
       text-align: center;
+      position: relative;
+      z-index: 10;
     }
 
     h2 {
+      color: #00bfa6;
       margin-bottom: 20px;
-      color: #38bdf8;
+      font-weight: 600;
     }
 
     input {
       width: 100%;
       padding: 12px;
       margin: 10px 0;
-      border: none;
-      border-radius: 8px;
-      background: #0f172a;
-      color: #fff;
-      outline: none;
+      border: 1px solid #ccc;
+      border-radius: 10px;
       font-size: 15px;
+      outline: none;
+      transition: 0.2s;
+    }
+
+    input:focus {
+      border-color: #00bfa6;
+      box-shadow: 0 0 5px rgba(0, 191, 166, 0.5);
     }
 
     button {
       width: 100%;
       padding: 12px;
+      background: #00bfa6;
+      color: white;
       border: none;
-      border-radius: 8px;
-      background: #38bdf8;
-      color: #0f172a;
-      font-weight: bold;
+      border-radius: 10px;
       cursor: pointer;
+      font-weight: 600;
       font-size: 16px;
-      margin-top: 10px;
+      transition: 0.3s;
     }
 
     button:hover {
-      background: #0ea5e9;
+      background: #009f8a;
     }
 
     .divider {
       margin: 20px 0;
-      border-bottom: 1px solid #334155;
+      border-bottom: 1px solid #ddd;
       position: relative;
     }
 
@@ -75,13 +117,13 @@
       top: -12px;
       left: 50%;
       transform: translateX(-50%);
-      background: #1e293b;
+      background: white;
       padding: 0 10px;
-      color: #94a3b8;
+      color: #999;
       font-size: 14px;
     }
 
-    #g_id_onload, #googleSignInDiv {
+    #g_id_onload, .g_id_signin {
       display: flex;
       justify-content: center;
       margin-top: 10px;
@@ -89,23 +131,57 @@
 
     p {
       margin-top: 10px;
-      color: #94a3b8;
+      color: #666;
       font-size: 14px;
     }
 
     a {
-      color: #38bdf8;
+      color: #00bfa6;
       text-decoration: none;
     }
 
     a:hover {
       text-decoration: underline;
     }
+
+    /* ✨ Mensaje animado de bienvenida */
+    .welcome {
+      display: none;
+      font-size: 22px;
+      font-weight: 600;
+      color: #00bfa6;
+      animation: fadeIn 1s ease forwards, floatUp 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatUp {
+      from { transform: translateY(0); }
+      to { transform: translateY(-8px); }
+    }
+
+    /* 📱 Responsivo */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- 🌊 Fondo de burbujas -->
+  <div class="bubbles"></div>
+
   <div class="login-container">
     <h2>Inicia sesión en Mi Store</h2>
+
+    <div class="welcome" id="welcomeMsg">¡Bienvenido a Mi Store! 🎉</div>
 
     <form id="loginForm">
       <input type="text" id="username" placeholder="Usuario" required />
@@ -115,9 +191,9 @@
 
     <div class="divider"><span>o</span></div>
 
-    <!-- 🔹 Google Sign-In -->
+    <!-- Google Sign-In -->
     <div id="g_id_onload"
-      data-client_id="247418735725-covi4d76annrdemdgc7laecqnjbf9g5f.apps.googleusercontent.com"
+      data-client_id="TU_CLIENT_ID_DE_GOOGLE"
       data-callback="handleCredentialResponse"
       data-auto_prompt="false">
     </div>
@@ -135,22 +211,38 @@
   </div>
 
   <script>
+    // 🫧 Crear burbujas aleatorias
+    const bubbleContainer = document.querySelector(".bubbles");
+    for (let i = 0; i < 15; i++) {
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      const size = Math.random() * 60 + 20;
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${Math.random() * 100}%`;
+      bubble.style.animationDuration = `${6 + Math.random() * 6}s`;
+      bubble.style.animationDelay = `${Math.random() * 5}s`;
+      bubbleContainer.appendChild(bubble);
+    }
+
+    // 🔄 Alternar formularios
     const loginForm = document.getElementById("loginForm");
     const registerForm = document.getElementById("registerForm");
     const registerLink = document.getElementById("registerLink");
     const loginLink = document.getElementById("loginLink");
+    const welcomeMsg = document.getElementById("welcomeMsg");
 
     registerLink.addEventListener("click", () => {
       loginForm.style.display = "none";
       registerForm.style.display = "block";
     });
 
-    loginLink.addEventListener("click", () => {
+    loginLink?.addEventListener("click", () => {
       registerForm.style.display = "none";
       loginForm.style.display = "block";
     });
 
-    // 🔹 LOGIN LOCAL
+    // 🧠 LOGIN LOCAL
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const username = document.getElementById("username").value;
@@ -164,14 +256,14 @@
       const data = await res.json();
 
       if (data.success) {
-        alert("✅ Bienvenido " + data.username);
-        window.location.href = "/";
+        showWelcome();
+        setTimeout(() => window.location.href = "/", 1800);
       } else {
         alert("❌ " + data.message);
       }
     });
 
-    // 🔹 REGISTRO LOCAL
+    // 🧠 REGISTRO LOCAL
     registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const username = document.getElementById("regUsername").value;
@@ -192,7 +284,7 @@
       }
     });
 
-    // 🔹 LOGIN CON GOOGLE
+    // 🧠 LOGIN CON GOOGLE
     async function handleCredentialResponse(response) {
       const res = await fetch("/api/google-login", {
         method: "POST",
@@ -202,11 +294,18 @@
       const data = await res.json();
 
       if (data.success) {
-        alert("✅ Bienvenido " + data.username);
-        window.location.href = "/";
+        showWelcome();
+        setTimeout(() => window.location.href = "/", 1800);
       } else {
         alert("❌ Error con Google: " + data.message);
       }
+    }
+
+    // ✨ Mostrar mensaje de bienvenida
+    function showWelcome() {
+      loginForm.style.display = "none";
+      registerForm.style.display = "none";
+      welcomeMsg.style.display = "block";
     }
   </script>
 </body>
