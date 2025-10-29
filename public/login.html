@@ -1,405 +1,311 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Iniciar sesión - Mi Store</title>
-
-  <!-- Google Identity -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iniciar sesión - My Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <style>
-    /* ---------- Reset / Base ---------- */
-    * { box-sizing: border-box; }
-    html,body { height: 100%; margin: 0; }
-    body {
-      font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: #ffffff;
-      color: #0b1220;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      padding: 20px;
+    * {
+      box-sizing: border-box;
     }
 
-    /* ---------- Burbujas (fondo) ---------- */
-    .bubbles {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #ffffff;
       overflow: hidden;
-      background: linear-gradient(180deg, rgba(224,255,247,0.7) 0%, rgba(255,255,255,0.9) 50%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      position: relative;
     }
+
+    /* 🌊 Burbujas animadas */
+    .bubbles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+
     .bubble {
       position: absolute;
-      bottom: -120px;
-      background: rgba(0,191,166,0.18);
+      bottom: -50px;
+      background: rgba(0, 255, 179, 0.3);
       border-radius: 50%;
-      box-shadow: 0 6px 18px rgba(0,191,166,0.08);
-      animation: rise linear infinite;
-      will-change: transform, opacity;
-      backdrop-filter: blur(0.5px);
-      border: 1px solid rgba(0,191,166,0.12);
+      animation: rise 10s infinite ease-in;
     }
+
     @keyframes rise {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(-140vh) scale(1.25); opacity: 0; }
+      0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-120vh) scale(1.3);
+        opacity: 0;
+      }
     }
 
-    /* ---------- Card / Layout ---------- */
-    .wrap {
-      position: relative;
-      width: 100%;
-      max-width: 440px;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 480px;
-    }
-
-    .card {
-      width: 100%;
-      background: #ffffff;
+    /* 💾 Caja de login */
+    .login-container {
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 20px;
-      padding: 34px 28px;
-      box-shadow: 0 18px 45px rgba(8,20,40,0.07);
+      padding: 40px 30px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
       text-align: center;
       position: relative;
-      overflow: hidden;
-      transform-origin: center;
+      z-index: 10;
     }
 
-    /* ---------- Animated Logo (center) ---------- */
-    .logo-plate {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, rgba(0,191,166,0.03), rgba(0,191,166,0.02));
-      z-index: 15;
-      transition: opacity 550ms cubic-bezier(.2,.9,.2,1), transform 550ms cubic-bezier(.2,.9,.2,1);
-    }
-    .logo-plate.hidden {
-      opacity: 0;
-      transform: translateY(-30px) scale(.98);
-      pointer-events: none;
-    }
-
-    .logo {
-      width: 110px;
-      height: 110px;
-      border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), rgba(255,255,255,0.2)), rgba(0,191,166,0.12);
-      animation: float 3.6s ease-in-out infinite;
-      box-shadow: 0 8px 30px rgba(0,191,166,0.12), inset 0 -6px 18px rgba(0,0,0,0.03);
-      border: 1px solid rgba(0,191,166,0.18);
-    }
-    .logo img {
-      width: 62%;
-      height: auto;
-      display: block;
-    }
-    @keyframes float {
-      0% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-      100% { transform: translateY(0); }
-    }
-
-    /* ---------- Form styles ---------- */
-    h1 {
-      font-size: 20px;
-      margin: 6px 0 18px;
-      color: #043240;
+    h2 {
+      color: #00bfa6;
+      margin-bottom: 20px;
       font-weight: 600;
     }
-    .sub {
-      font-size: 13px;
-      color: #5b6770;
-      margin-bottom: 18px;
-    }
-    .field {
-      width: 100%;
-      margin-bottom: 12px;
-    }
-    input[type="text"], input[type="password"], input[type="email"] {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 10px;
-      border: 1px solid #e6eef0;
-      font-size: 15px;
-      color: #043240;
-      background: #fff;
-      transition: box-shadow .18s, border-color .18s;
-    }
-    input:focus {
-      outline: none;
-      border-color: rgba(0,191,166,0.9);
-      box-shadow: 0 6px 18px rgba(0,191,166,0.06);
-    }
-    .btn {
+
+    input {
       width: 100%;
       padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
       border-radius: 10px;
-      background: linear-gradient(90deg,#00bfa6,#00a68f);
-      color: #fff;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
       font-size: 15px;
-      margin-top: 6px;
-      box-shadow: 0 8px 20px rgba(0,191,166,0.12);
-      transition: transform .14s ease, box-shadow .14s ease;
+      outline: none;
+      transition: 0.2s;
     }
-    .btn:active { transform: translateY(1px); }
-    .or {
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin:18px 0;
-      color:#7d8a8d;
-      font-size:13px;
-      justify-content:center;
+
+    input:focus {
+      border-color: #00bfa6;
+      box-shadow: 0 0 5px rgba(0, 191, 166, 0.5);
     }
-    .google-btn {
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-      justify-content:center;
-      width:100%;
-      padding:10px 14px;
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #00bfa6;
+      color: white;
+      border: none;
       border-radius: 10px;
-      border:1px solid #e5f7f0;
-      cursor:pointer;
-      background:#fff;
-      box-shadow: 0 6px 18px rgba(3,41,36,0.03);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 16px;
+      transition: 0.3s;
     }
-    .google-btn img { width:18px; height:18px; display:block; }
 
-    .links {
-      margin-top:14px;
-      font-size:13px;
-      color:#6d7b7a;
+    button:hover {
+      background: #009f8a;
     }
-    .links a { color:#007f74; text-decoration:none; font-weight:600; }
-    .links a:hover { text-decoration:underline; }
 
-    /* ---------- Welcome animated message (after login) ---------- */
+    .divider {
+      margin: 20px 0;
+      border-bottom: 1px solid #ddd;
+      position: relative;
+    }
+
+    .divider span {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 0 10px;
+      color: #999;
+      font-size: 14px;
+    }
+
+    #g_id_onload, .g_id_signin {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    p {
+      margin-top: 10px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    a {
+      color: #00bfa6;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ✨ Mensaje animado de bienvenida */
     .welcome {
-      display:none;
-      margin-top: 18px;
-      font-size: 18px;
-      color: #007f74;
-      font-weight: 700;
-      animation: welcomeIn .6s ease forwards;
-    }
-    @keyframes welcomeIn {
-      from { opacity:0; transform: translateY(16px); }
-      to { opacity:1; transform: translateY(0); }
+      display: none;
+      font-size: 22px;
+      font-weight: 600;
+      color: #00bfa6;
+      animation: fadeIn 1s ease forwards, floatUp 1.5s ease-in-out infinite alternate;
     }
 
-    /* ---------- Responsive ---------- */
-    @media (max-width: 520px) {
-      .logo { width: 92px; height:92px; }
-      .card { padding: 26px; border-radius: 16px; min-height: 420px; }
-      .wrap { min-height: 520px; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatUp {
+      from { transform: translateY(0); }
+      to { transform: translateY(-8px); }
+    }
+
+    /* 📱 Responsivo */
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 30px 20px;
+      }
+      h2 {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Burbujas -->
-  <div class="bubbles" aria-hidden="true"></div>
+  <!-- 🌊 Fondo de burbujas -->
+  <div class="bubbles"></div>
 
-  <div class="wrap">
-    <div class="card" role="main" aria-labelledby="title">
-      <!-- Animated logo plate (transitions to reveal form) -->
-      <div class="logo-plate" id="logoPlate" aria-hidden="true">
-        <div class="logo" id="logoBubble">
-          <img src="/logo.png" alt="Mi Store logo" />
-        </div>
-      </div>
+  <div class="login-container">
+    <h2>Inicia sesión en My Store</h2>
 
-      <!-- Actual content (form) -->
-      <div id="content">
-        <h1 id="title">Bienvenido a Mi Store</h1>
-        <div class="sub">Entra con tu usuario o usa Google para acceder rápidamente</div>
+    <div class="welcome" id="welcomeMsg">¡Bienvenido a My Store! 🎉</div>
 
-        <!-- welcome message -->
-        <div class="welcome" id="welcomeMsg">¡Bienvenido a Mi Store! 🎉</div>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Usuario" required />
+      <input type="password" id="password" placeholder="Contraseña" required />
+      <button type="submit">Iniciar sesión</button>
+    </form>
 
-        <form id="loginForm" autocomplete="on" novalidate>
-          <div class="field">
-            <input id="username" name="username" type="text" placeholder="Usuario" required />
-          </div>
-          <div class="field">
-            <input id="password" name="password" type="password" placeholder="Contraseña" required />
-          </div>
-          <button type="submit" class="btn">Iniciar sesión</button>
-        </form>
+    <div class="divider"><span>o</span></div>
 
-        <div class="or" aria-hidden="true"><span>ó</span></div>
-
-        <!-- Google One-tap / Button block -->
-        <div id="g_id_onload"
-             data-client_id="TU_CLIENT_ID_DE_GOOGLE"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false"></div>
-
-        <!-- fallback/visual google button (styled) -->
-        <div style="margin-top:10px;">
-          <div id="gSign" class="google-btn" role="button" aria-label="Continuar con Google"></div>
-        </div>
-
-        <div class="links">
-          ¿No tienes cuenta? <a href="#" id="registerLink">Regístrate</a>
-        </div>
-      </div>
+    <!-- Google Sign-In -->
+    <div id="g_id_onload"
+      data-client_id="247418735725-covi4d76annrdemdgc7laecqnjbf9g5f.apps.googleusercontent.com"
+      data-callback="handleCredentialResponse"
+      data-auto_prompt="false">
     </div>
+    <div class="g_id_signin" data-type="standard"></div>
+
+    <p>¿No tienes cuenta? <a href="#" id="registerLink">Regístrate</a></p>
+
+    <form id="registerForm" style="display:none; margin-top:20px;">
+      <input type="text" id="regUsername" placeholder="Usuario" required />
+      <input type="email" id="regEmail" placeholder="Correo electrónico" required />
+      <input type="password" id="regPassword" placeholder="Contraseña" required />
+      <button type="submit">Crear cuenta</button>
+      <p><a href="#" id="loginLink">¿Ya tienes cuenta? Inicia sesión</a></p>
+    </form>
   </div>
 
   <script>
-    /***********************
-     * Generate bubbles
-     ***********************/
-    (function createBubbles(){
-      const container = document.querySelector('.bubbles');
-      const count = 16;
-      for (let i=0;i<count;i++){
-        const b = document.createElement('div');
-        b.className = 'bubble';
-        const size = Math.round(Math.random()*70) + 30; // 30-100px
-        b.style.width = size + 'px';
-        b.style.height = size + 'px';
-        b.style.left = (Math.random()*100) + '%';
-        b.style.background = `rgba(0,191,166,${0.08 + Math.random()*0.22})`;
-        b.style.animationDuration = (8 + Math.random()*10) + 's';
-        b.style.animationDelay = (Math.random()*5) + 's';
-        container.appendChild(b);
-      }
-    })();
-
-    /***********************
-     * Logo -> reveal form
-     ***********************/
-    const logoPlate = document.getElementById('logoPlate');
-    // Hide logo plate after small delay (or on click)
-    const revealDelayMs = 950; // short intro
-    setTimeout(() => {
-      logoPlate.classList.add('hidden');
-    }, revealDelayMs);
-
-    // Also allow click on logo to skip instantly
-    const logoBubble = document.getElementById('logoBubble');
-    logoBubble.addEventListener('click', () => {
-      logoPlate.classList.add('hidden');
-    });
-
-    /***********************
-     * Toggle register (minimal)
-     ***********************/
-    const registerLink = document.getElementById('registerLink');
-    registerLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      alert('Registro rápido: utiliza el formulario de registro en la tienda (o podemos añadirlo aquí si lo deseas).');
-    });
-
-    /***********************
-     * Login / Welcome flow
-     ***********************/
-    const loginForm = document.getElementById('loginForm');
-    const welcomeMsg = document.getElementById('welcomeMsg');
-
-    function showWelcomeAndRedirect(username, redirectTo = '/'){
-      welcomeMsg.textContent = `¡Bienvenido, ${username || 'a Mi Store'}! 🎉`;
-      welcomeMsg.style.display = 'block';
-      // short pulse
-      welcomeMsg.animate([
-        { transform: 'translateY(6px)', opacity: 0 },
-        { transform: 'translateY(0)', opacity: 1 }
-      ], { duration: 500, easing: 'ease-out' });
-      setTimeout(() => { window.location.href = redirectTo; }, 1400);
+    // 🫧 Crear burbujas aleatorias
+    const bubbleContainer = document.querySelector(".bubbles");
+    for (let i = 0; i < 15; i++) {
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      const size = Math.random() * 60 + 20;
+      bubble.style.width = `${size}px`;
+      bubble.style.height = `${size}px`;
+      bubble.style.left = `${Math.random() * 100}%`;
+      bubble.style.animationDuration = `${6 + Math.random() * 6}s`;
+      bubble.style.animationDelay = `${Math.random() * 5}s`;
+      bubbleContainer.appendChild(bubble);
     }
 
-    loginForm.addEventListener('submit', async (ev) => {
-      ev.preventDefault();
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value.trim();
-      if (!username || !password) {
-        alert('Completa usuario y contraseña');
-        return;
-      }
-      try {
-        const res = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (data.success) {
-          // Optionally store username
-          try { sessionStorage.setItem('username', data.username || username); } catch(e){}
-          showWelcomeAndRedirect(data.username || username, data.role === 'admin' ? '/admin.html' : '/');
-        } else {
-          alert(data.message || 'Credenciales inválidas');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Error conectando con el servidor');
+    // 🔄 Alternar formularios
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const registerLink = document.getElementById("registerLink");
+    const loginLink = document.getElementById("loginLink");
+    const welcomeMsg = document.getElementById("welcomeMsg");
+
+    registerLink.addEventListener("click", () => {
+      loginForm.style.display = "none";
+      registerForm.style.display = "block";
+    });
+
+    loginLink?.addEventListener("click", () => {
+      registerForm.style.display = "none";
+      loginForm.style.display = "block";
+    });
+
+    // 🧠 LOGIN LOCAL
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showWelcome();
+        setTimeout(() => window.location.href = "/", 1800);
+      } else {
+        alert("❌ " + data.message);
       }
     });
 
-    /***********************
-     * Google Sign-In init
-     ***********************/
-    // Render the visual button ourselves for better styling and fallback
-    window.onload = function(){
-      // init the GSI client (button will render into #gSign)
-      try {
-        google.accounts.id.initialize({
-          client_id: 'TU_CLIENT_ID_DE_GOOGLE',
-          callback: handleCredentialResponse,
-          ux_mode: 'popup'
-        });
+    // 🧠 REGISTRO LOCAL
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("regUsername").value;
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
 
-        // render Google's button into our #gSign (use default attributes)
-        google.accounts.id.renderButton(
-          document.getElementById('gSign'),
-          { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
-        );
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
+      });
 
-        // optionally display One Tap (disabled by default)
-        // google.accounts.id.prompt();
-      } catch (e) {
-        console.warn('Google Sign-in not initialized', e);
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) {
+        registerForm.style.display = "none";
+        loginForm.style.display = "block";
       }
-    };
+    });
 
-    async function handleCredentialResponse(resp) {
-      if (!resp?.credential) {
-        alert('No se recibió credencial de Google');
-        return;
+    // 🧠 LOGIN CON GOOGLE
+    async function handleCredentialResponse(response) {
+      const res = await fetch("/api/google-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showWelcome();
+        setTimeout(() => window.location.href = "/", 1800);
+      } else {
+        alert("❌ Error con Google: " + data.message);
       }
-      try {
-        const r = await fetch('/api/google-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential: resp.credential })
-        });
-        const data = await r.json();
-        if (data.success) {
-          try { sessionStorage.setItem('username', data.username); sessionStorage.setItem('role', data.role); } catch(e){}
-          showWelcomeAndRedirect(data.username, data.role === 'admin' ? '/admin.html' : '/');
-        } else {
-          alert('Error al autenticar con Google: ' + (data.message || 'intenta otra cuenta'));
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Error conectando con el servidor');
-      }
+    }
+
+    // ✨ Mostrar mensaje de bienvenida
+    function showWelcome() {
+      loginForm.style.display = "none";
+      registerForm.style.display = "none";
+      welcomeMsg.style.display = "block";
     }
   </script>
 </body>
