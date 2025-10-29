@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - My Store</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-box {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      color: #4f46e5;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 0.4rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 0.8rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .login-btn:hover {
+      background: #3730a3;
+    }
+
+    .error {
+      margin-top: 1rem;
+      color: #dc2626;
+      background: #fee2e2;
+      border-radius: 10px;
+      padding: 0.5rem;
+      display: none;
+    }
+
+    .back {
+      margin-top: 1rem;
+      display: inline-block;
+      color: #4f46e5;
+      text-decoration: none;
+    }
+
+    .back:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2><i class="fa-solid fa-store"></i> My Store</h2>
+    <div class="input-group">
+      <label for="username">Usuario</label>
+      <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+    </div>
+    <div class="input-group">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" placeholder="••••••••" required>
+    </div>
+    <button class="login-btn" onclick="login()">Iniciar sesión</button>
+    <div class="error" id="errorBox"></div>
+    <a href="index.html" class="back"><i class="fa-solid fa-arrow-left"></i> Volver a la tienda</a>
+  </div>
+
+  <script>
+    async function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorBox = document.getElementById("errorBox");
+      errorBox.style.display = "none";
+
+      if (!username || !password) {
+        showError("Por favor ingresa usuario y contraseña.");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          showError(data.message || "Credenciales inválidas.");
+          return;
+        }
+
+        // Guardar en sessionStorage
+        sessionStorage.setItem("username", username);
+        sessionStorage.setItem("role", data.role);
+
+        // Redirigir según rol
+        if (data.role === "admin") {
+          window.location.href = "admin.html";
+        } else {
+          window.location.href = "index.html";
+        }
+
+      } catch (err) {
+        showError("Error de conexión con el servidor.");
+        console.error(err);
+      }
+    }
+
+    function showError(msg) {
+      const errorBox = document.getElementById("errorBox");
+      errorBox.textContent = msg;
+      errorBox.style.display = "block";
+    }
+  </script>
+</body>
+</html>

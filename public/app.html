@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Detalles</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.6/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="bg-gray-50">
+  <header class="bg-blue-600 text-white p-4">
+    <div class="container flex items-center justify-between">
+      <h1 id="nombreApp" class="text-lg font-bold">Cargando...</h1>
+      <a href="/" class="text-sm bg-white text-blue-600 px-3 py-1 rounded">Volver</a>
+    </div>
+  </header>
+
+  <main class="container py-6">
+    <div class="bg-white rounded-lg shadow p-6 max-w-xl mx-auto text-center">
+      <img id="imagenApp" class="w-32 h-32 object-contain mx-auto" src="/img/default.png" alt="">
+      <p id="descripcionApp" class="mt-4 text-gray-700"></p>
+      <div class="mt-6 flex justify-center gap-3">
+        <button id="buyBtn" class="bg-green-600 text-white px-4 py-2 rounded">Comprar</button>
+        <a id="downloadDirect" class="bg-gray-600 text-white px-4 py-2 rounded hidden">Descargar</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) document.body.innerHTML = '<h2>ID no proporcionada</h2>';
+    else {
+      fetch('/api/apps/' + id).then(r => r.json()).then(app => {
+        document.getElementById('nombreApp').textContent = app.nombre;
+        document.getElementById('descripcionApp').textContent = app.descripcion;
+        document.getElementById('imagenApp').src = app.imagen || '/img/default.png';
+        document.getElementById('buyBtn').addEventListener('click', async () => {
+          const res = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ appId: id })
+          });
+          const data = await res.json();
+          if (data.url) window.location = data.url;
+          else alert('Error iniciando pago');
+        });
+
+        // If you want a direct download button (public files), enable this:
+        const dl = document.getElementById('downloadDirect');
+        if (app.archivo) {
+          dl.href = app.archivo;
+          dl.classList.remove('hidden');
+          dl.setAttribute('download', app.nombre + '.apk');
+        }
+      }).catch(() => document.body.innerHTML = '<h2>App no encontrada</h2>')
+    }
+  </script>
+</body>
+</html>

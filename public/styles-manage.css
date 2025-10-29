@@ -1,0 +1,214 @@
+:root {
+  --primary: #007bff;
+  --danger: #ff4757;
+  --danger-hover: #e84118;
+  --bg-light: #f8f9fa;
+  --text-dark: #333;
+  --card-bg: #ffffffcc;
+}
+
+/* Fondo animado con burbujas */
+.background {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  background: linear-gradient(135deg, #e0f7ff, #ffffff);
+}
+
+.bubble {
+  position: absolute;
+  bottom: -100px;
+  background: rgba(0, 123, 255, 0.2);
+  border-radius: 50%;
+  animation: rise 20s infinite ease-in;
+}
+.bubble:nth-child(1) { left: 10%; width: 80px; height: 80px; animation-duration: 16s; }
+.bubble:nth-child(2) { left: 30%; width: 40px; height: 40px; animation-duration: 18s; }
+.bubble:nth-child(3) { left: 50%; width: 60px; height: 60px; animation-duration: 14s; }
+.bubble:nth-child(4) { left: 70%; width: 100px; height: 100px; animation-duration: 22s; }
+.bubble:nth-child(5) { left: 90%; width: 50px; height: 50px; animation-duration: 20s; }
+
+@keyframes rise {
+  0% { transform: translateY(0) scale(1); opacity: 0.8; }
+  100% { transform: translateY(-120vh) scale(1.2); opacity: 0; }
+}
+
+/* Pantalla de carga */
+#splash {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 0.8s ease;
+  z-index: 999;
+}
+
+#splash.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#splash img {
+  width: 80px;
+  animation: float 2s ease-in-out infinite;
+}
+
+#splash h2 {
+  font-weight: 500;
+  margin-top: 1rem;
+  color: #007bff;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Panel principal */
+body {
+  font-family: system-ui, sans-serif;
+  color: var(--text-dark);
+  background: var(--bg-light);
+  margin: 0;
+}
+
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 1rem 2rem;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header-logo {
+  height: 40px;
+  margin-right: 10px;
+  animation: pop 1s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+h1 {
+  color: var(--primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.header-buttons button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 0.5rem;
+}
+
+.header-buttons button:hover {
+  transform: translateY(-2px);
+  background: #0056b3;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+
+section {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+  color: var(--primary);
+  margin-bottom: 1.5rem;
+  animation: fadeInDown 0.8s ease;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Cards de apps */
+.apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.app-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(6px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  transition: all 0.3s ease;
+  animation: fadeUp 0.5s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.app-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.app-card img {
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  border-radius: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.app-card h3 {
+  margin: 0.3rem 0;
+  font-size: 1rem;
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.app-card p {
+  color: #555;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.delete-btn {
+  background: var(--danger);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+  background: var(--danger-hover);
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3);
+}

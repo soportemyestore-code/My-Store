@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Administración - My Store</title>
+  <link rel="stylesheet" href="styles-admin.css" />
+</head>
+<body>
+  <!-- 🌈 Fondo animado de burbujas -->
+  <div class="bubble" style="left: 10%; width: 60px; height: 60px; animation-delay: 0s;"></div>
+  <div class="bubble" style="left: 30%; width: 40px; height: 40px; animation-delay: 2s;"></div>
+  <div class="bubble" style="left: 50%; width: 80px; height: 80px; animation-delay: 4s;"></div>
+  <div class="bubble" style="left: 70%; width: 50px; height: 50px; animation-delay: 6s;"></div>
+  <div class="bubble" style="left: 90%; width: 70px; height: 70px; animation-delay: 8s;"></div>
+
+  <!-- 🌀 Splash screen -->
+  <div class="splash-screen">
+    <img src="logo.png" alt="My Store Logo" class="splash-logo" />
+    <div class="splash-text">Cargando panel de administración...</div>
+  </div>
+
+  <!-- ⚡ Transición entre páginas -->
+  <div class="page-transition" id="pageTransition">
+    <div class="transition-text">Cargando...</div>
+  </div>
+
+  <!-- 🧩 Panel admin -->
+  <div class="admin-panel">
+    <header>
+      <div class="logo-section">
+        <img src="logo.png" alt="My Store Logo" class="header-logo" />
+        <h1>Panel de Administración - My Store</h1>
+      </div>
+      <button class="logout-btn" onclick="logout()">Cerrar sesión</button>
+    </header>
+
+    <main class="cards-container">
+      <div class="card" onclick="goTo('upload.html')">
+        <h3>📦 Subir nueva app</h3>
+        <p>Agrega una nueva aplicación a la tienda virtual.</p>
+      </div>
+
+      <div class="card" onclick="goTo('/')">
+        <h3>🛒 Ver tienda</h3>
+        <p>Visualiza cómo se muestran las apps al público.</p>
+      </div>
+
+      <div class="card" onclick="goTo('manage-apps.html')">
+        <h3>🗂️ Gestionar aplicaciones</h3>
+        <p>Visualiza, edita o elimina las apps publicadas en la tienda.</p>
+      </div>
+
+      <div class="card" onclick="alert('🛠️ Próximamente podrás gestionar usuarios y permisos.')">
+        <h3>👥 Gestionar usuarios</h3>
+        <p>Administra los usuarios registrados en la plataforma.</p>
+      </div>
+    </main>
+
+    <footer>
+      © 2025 My Store — Panel de control
+    </footer>
+  </div>
+
+  <script>
+    const transition = document.getElementById("pageTransition");
+
+    function goTo(url) {
+      transition.classList.add("active");
+      setTimeout(() => (window.location.href = url), 700);
+    }
+
+    function logout() {
+      if (confirm("¿Deseas cerrar sesión?")) {
+        transition.classList.add("active");
+        fetch("/logout", { method: "POST" })
+          .then(() => setTimeout(() => (window.location.href = "/login.html"), 700))
+          .catch(() => alert("Error al cerrar sesión."));
+      }
+    }
+  </script>
+</body>
+</html>

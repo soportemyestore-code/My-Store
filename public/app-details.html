@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detalles de la App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #ede9fe);
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #4f46e5;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .app-container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      padding: 2rem;
+    }
+
+    .app-header {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      align-items: flex-start;
+    }
+
+    .app-header img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .app-info {
+      flex: 1;
+    }
+
+    .app-info h2 {
+      margin-top: 0;
+      font-size: 1.8rem;
+      color: #111;
+    }
+
+    .stars {
+      color: #fbbf24;
+      margin: 0.5rem 0;
+    }
+
+    .download-btn {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .download-btn:hover {
+      background: #3730a3;
+    }
+
+    .reviews {
+      margin-top: 2rem;
+    }
+
+    .review-card {
+      border-top: 1px solid #ddd;
+      padding: 1rem 0;
+    }
+
+    .review-card:last-child {
+      border-bottom: none;
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .review-header strong {
+      font-size: 1rem;
+    }
+
+    .review-stars {
+      color: #fbbf24;
+    }
+
+    form {
+      margin-top: 2rem;
+      background: #f9fafb;
+      padding: 1.5rem;
+      border-radius: 15px;
+    }
+
+    form h3 {
+      margin-top: 0;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.7rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .stars-input i {
+      font-size: 1.5rem;
+      color: #ccc;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .stars-input i.active {
+      color: #fbbf24;
+    }
+
+    .submit-btn {
+      margin-top: 1rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .submit-btn:hover {
+      background: #3730a3;
+    }
+
+    .no-reviews {
+      color: #555;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back-btn" onclick="window.location.href='index.html'">
+      <i class="fa fa-arrow-left"></i> Volver
+    </button>
+    <h2>Detalles de la App</h2>
+  </header>
+
+  <main class="app-container">
+    <div class="app-header">
+      <img id="appImage" src="" alt="App Image">
+      <div class="app-info">
+        <h2 id="appName">Cargando...</h2>
+        <p id="appCategory"></p>
+        <div class="stars" id="appStars"></div>
+        <p id="appDescription"></p>
+        <button id="downloadBtn" class="download-btn">Descargar APK</button>
+      </div>
+    </div>
+
+    <section class="reviews">
+      <h3>Reseñas</h3>
+      <div id="reviewsList"></div>
+    </section>
+
+    <form id="reviewForm">
+      <h3>Deja tu reseña</h3>
+      <div class="stars-input" id="starsInput">
+        <i class="fa-regular fa-star" data-value="1"></i>
+        <i class="fa-regular fa-star" data-value="2"></i>
+        <i class="fa-regular fa-star" data-value="3"></i>
+        <i class="fa-regular fa-star" data-value="4"></i>
+        <i class="fa-regular fa-star" data-value="5"></i>
+      </div>
+      <textarea id="comment" placeholder="Escribe tu reseña..."></textarea>
+      <button type="submit" class="submit-btn">Enviar reseña</button>
+    </form>
+  </main>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const appId = urlParams.get("id");
+    const username = sessionStorage.getItem("username");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    let selectedRating = 0;
+
+    async function loadAppDetails() {
+      const res = await fetch("/api/apps");
+      const apps = await res.json();
+      const app = apps.find(a => a.id == appId);
+
+      if (!app) {
+        document.body.innerHTML = "<h2 style='text-align:center'>App no encontrada</h2>";
+        return;
+      }
+
+      document.getElementById("appImage").src = app.image;
+      document.getElementById("appName").textContent = app.name;
+      document.getElementById("appCategory").textContent = app.category || "Sin categoría";
+      document.getElementById("appDescription").textContent = app.description;
+      document.getElementById("appStars").innerHTML = renderStars(app.average_rating || 0);
+
+      // Descargar bloqueado si no está logueado
+      if (!username) {
+        downloadBtn.textContent = "Inicia sesión para descargar";
+        downloadBtn.disabled = true;
+        downloadBtn.style.background = "#ccc";
+        downloadBtn.style.cursor = "not-allowed";
+      } else {
+        downloadBtn.onclick = () => window.location.href = app.apk;
+      }
+
+      loadReviews();
+    }
+
+    async function loadReviews() {
+      const res = await fetch(`/api/apps/${appId}/reviews`);
+      const reviews = await res.json();
+      const container = document.getElementById("reviewsList");
+
+      container.innerHTML = "";
+      if (reviews.length === 0) {
+        container.innerHTML = "<p class='no-reviews'>No hay reseñas aún. ¡Sé el primero en opinar!</p>";
+        return;
+      }
+
+      reviews.forEach(r => {
+        const div = document.createElement("div");
+        div.classList.add("review-card");
+        div.innerHTML = `
+          <div class="review-header">
+            <strong>${r.username}</strong>
+            <div class="review-stars">${renderStars(r.rating)}</div>
+          </div>
+          <p>${r.comment || ""}</p>
+          <small>${new Date(r.created_at).toLocaleString()}</small>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function renderStars(rating) {
+      const rounded = Math.round(rating);
+      let starsHTML = "";
+      for (let i = 1; i <= 5; i++) {
+        starsHTML += `<i class="fa${i <= rounded ? 's' : 'r'} fa-star"></i>`;
+      }
+      return starsHTML;
+    }
+
+    // Control de estrellas interactivas
+    document.querySelectorAll("#starsInput i").forEach(star => {
+      star.addEventListener("click", () => {
+        selectedRating = parseInt(star.dataset.value);
+        document.querySelectorAll("#starsInput i").forEach(s => {
+          s.classList.toggle("active", parseInt(s.dataset.value) <= selectedRating);
+        });
+      });
+    });
+
+    // Enviar reseña
+    document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!username) {
+        alert("Debes iniciar sesión para dejar una reseña.");
+        return;
+      }
+      if (selectedRating === 0) {
+        alert("Selecciona una calificación con estrellas.");
+        return;
+      }
+
+      const comment = document.getElementById("comment").value.trim();
+      const payload = { username, rating: selectedRating, comment };
+
+      const res = await fetch(`/api/apps/${appId}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        alert("Reseña enviada con éxito ✅");
+        document.getElementById("comment").value = "";
+        selectedRating = 0;
+        document.querySelectorAll("#starsInput i").forEach(s => s.classList.remove("active"));
+        loadReviews();
+      } else {
+        const data = await res.json();
+        alert("Error: " + (data.message || "No se pudo enviar la reseña"));
+      }
+    });
+
+    loadAppDetails();
+  </script>
+</body>
+</html>

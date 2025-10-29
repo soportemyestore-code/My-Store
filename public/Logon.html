@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login / Registro - My Store</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .auth-box {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      padding: 2rem;
+      width: 90%;
+      max-width: 420px;
+      text-align: center;
+      transition: 0.4s ease;
+    }
+
+    h2 {
+      margin-bottom: 1rem;
+      color: #4f46e5;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab {
+      cursor: pointer;
+      font-weight: 600;
+      color: #4f46e5;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .tab.active {
+      background: #4f46e5;
+      color: white;
+    }
+
+    .input-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 0.4rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 0.8rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .auth-btn:hover {
+      background: #3730a3;
+    }
+
+    .error {
+      margin-top: 1rem;
+      color: #dc2626;
+      background: #fee2e2;
+      border-radius: 10px;
+      padding: 0.5rem;
+      display: none;
+    }
+
+    .google-btn {
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      background: white;
+      color: #444;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      padding: 0.6rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .google-btn:hover {
+      background: #f3f4f6;
+    }
+
+    .back {
+      margin-top: 1rem;
+      display: inline-block;
+      color: #4f46e5;
+      text-decoration: none;
+    }
+
+    .back:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-box">
+    <h2><i class="fa-solid fa-store"></i> My Store</h2>
+    <div class="tabs">
+      <div class="tab active" id="loginTab">Iniciar sesión</div>
+      <div class="tab" id="registerTab">Registrarse</div>
+    </div>
+
+    <div id="loginForm">
+      <div class="input-group">
+        <label for="loginUser">Usuario</label>
+        <input type="text" id="loginUser" placeholder="Ingresa tu usuario" required>
+      </div>
+      <div class="input-group">
+        <label for="loginPass">Contraseña</label>
+        <input type="password" id="loginPass" placeholder="••••••••" required>
+      </div>
+      <button class="auth-btn" onclick="login()">Iniciar sesión</button>
+    </div>
+
+    <div id="registerForm" style="display: none;">
+      <div class="input-group">
+        <label for="regUser">Usuario</label>
+        <input type="text" id="regUser" placeholder="Crea un nombre de usuario" required>
+      </div>
+      <div class="input-group">
+        <label for="regEmail">Correo electrónico</label>
+        <input type="email" id="regEmail" placeholder="tucorreo@ejemplo.com" required>
+      </div>
+      <div class="input-group">
+        <label for="regPass">Contraseña</label>
+        <input type="password" id="regPass" placeholder="••••••••" required>
+      </div>
+      <button class="auth-btn" onclick="register()">Registrarse</button>
+    </div>
+
+    <div class="google-btn" id="googleSignIn">
+      <i class="fa-brands fa-google"></i> Continuar con Google
+    </div>
+
+    <div class="error" id="errorBox"></div>
+
+    <a href="index.html" class="back"><i class="fa-solid fa-arrow-left"></i> Volver a la tienda</a>
+  </div>
+
+  <script>
+    // Alternar tabs
+    const loginTab = document.getElementById("loginTab");
+    const registerTab = document.getElementById("registerTab");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const errorBox = document.getElementById("errorBox");
+
+    loginTab.onclick = () => {
+      loginTab.classList.add("active");
+      registerTab.classList.remove("active");
+      loginForm.style.display = "block";
+      registerForm.style.display = "none";
+      errorBox.style.display = "none";
+    };
+
+    registerTab.onclick = () => {
+      registerTab.classList.add("active");
+      loginTab.classList.remove("active");
+      registerForm.style.display = "block";
+      loginForm.style.display = "none";
+      errorBox.style.display = "none";
+    };
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.style.display = "block";
+    }
+
+    async function login() {
+      const username = document.getElementById("loginUser").value.trim();
+      const password = document.getElementById("loginPass").value.trim();
+
+      if (!username || !password) return showError("Completa todos los campos.");
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (!data.success) return showError(data.message || "Credenciales inválidas.");
+
+        sessionStorage.setItem("username", username);
+        sessionStorage.setItem("role", data.role);
+        window.location.href = data.role === "admin" ? "admin.html" : "index.html";
+      } catch {
+        showError("Error de conexión con el servidor.");
+      }
+    }
+
+    async function register() {
+      const username = document.getElementById("regUser").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPass").value.trim();
+
+      if (!username || !email || !password)
+        return showError("Por favor completa todos los campos.");
+
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+
+        if (!data.success) return showError(data.message || "No se pudo registrar.");
+
+        alert("Registro exitoso. Ya puedes iniciar sesión.");
+        loginTab.click();
+      } catch {
+        showError("Error de conexión con el servidor.");
+      }
+    }
+
+    // Google Sign-In
+    window.onload = function() {
+      google.accounts.id.initialize({
+        client_id: "TU_CLIENT_ID_DE_GOOGLE_AQUI.apps.googleusercontent.com",
+        callback: handleGoogleResponse
+      });
+      google.accounts.id.renderButton(document.getElementById("googleSignIn"), {
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "pill"
+      });
+    };
+
+    async function handleGoogleResponse(response) {
+      try {
+        const res = await fetch("/api/google-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ credential: response.credential })
+        });
+
+        const data = await res.json();
+        if (!data.success) return showError(data.message || "Error con Google.");
+
+        sessionStorage.setItem("username", data.username);
+        sessionStorage.setItem("role", data.role);
+        window.location.href = data.role === "admin" ? "admin.html" : "index.html";
+      } catch {
+        showError("Error al autenticar con Google.");
+      }
+    }
+  </script>
+</body>
+</html>
