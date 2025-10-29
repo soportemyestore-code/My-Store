@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Restablecer contraseña | MyStore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(135deg,#7209b7,#3a0ca3); color:#fff; }
+    .card { width:90%; max-width:420px; background: rgba(255,255,255,0.06); padding:28px; border-radius:16px;
+      box-shadow:0 8px 30px rgba(0,0,0,0.25); text-align:center; backdrop-filter: blur(8px); }
+    h2 { margin-bottom:12px; color:#ffebff; }
+    p { color:#f0e6f9; margin-bottom:18px; font-size:14px; }
+    input { width:100%; padding:12px; border-radius:10px; border:none; margin-bottom:12px; font-size:15px; }
+    button { width:100%; padding:12px; border-radius:10px; border:none; background:#b5179e; color:#fff; font-weight:600; cursor:pointer;}
+    button:hover{ filter:brightness(.95) }
+    .note { margin-top:14px; font-size:13px; color:#ffdff4; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Restablecer contraseña</h2>
+    <p>Introduce tu nueva contraseña. El enlace es válido 1 hora.</p>
+    <form id="resetForm">
+      <input type="password" id="password" placeholder="Nueva contraseña" required />
+      <input type="password" id="confirm" placeholder="Confirmar contraseña" required />
+      <button type="submit">Actualizar contraseña</button>
+    </form>
+    <div class="note" id="msg"></div>
+  </div>
+
+  <script>
+    function qs(key) {
+      const u = new URL(window.location.href);
+      return u.searchParams.get(key);
+    }
+
+    const token = qs('token');
+    if (!token) {
+      document.getElementById('msg').textContent = 'Token no encontrado en la URL.';
+      document.getElementById('resetForm').style.display = 'none';
+    }
+
+    document.getElementById('resetForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pwd = document.getElementById('password').value;
+      const conf = document.getElementById('confirm').value;
+      const msg = document.getElementById('msg');
+
+      if (pwd.length < 6) { msg.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
+      if (pwd !== conf) { msg.textContent = 'Las contraseñas no coinciden.'; return; }
+
+      const res = await fetch('/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: pwd })
+      });
+      const data = await res.json();
+      msg.textContent = data.message || 'Respuesta desconocida';
+      if (data.message && data.message.toLowerCase().includes('actualizada')) {
+        setTimeout(() => window.location.href = '/login.html', 1800);
+      }
+    });
+  </script>
+</body>
+</html>
