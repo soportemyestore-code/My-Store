@@ -1,5 +1,5 @@
 // ================================
-// 🧩 MI STORE - BACKEND COMPLETO
+// 🧩 MI STORE - BACKEND COMPLETO (Google Login Integrado)
 // ================================
 
 import express from "express";
@@ -8,29 +8,29 @@ import bcrypt from "bcrypt";
 import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
-import fs from "fs";
-import { createReadStream } from "fs";
+import fs, { createReadStream } from "fs";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
-import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
+import { PrismaClient } from "@prisma/client";
 import db from "./db.js"; // conexión PostgreSQL
+import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 4000;
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// ================================
+// ⚙️ MIDDLEWARES
+// ================================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static("public"));
-
-
-// ================================
-// ⚙️ CONFIGURAR SESIONES
-// ================================
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "mi-store-secret",
@@ -40,7 +40,7 @@ app.use(
 );
 
 // ================================
-// ☁️ CONFIGURAR CLOUDINARY
+// ☁️ CLOUDINARY
 // ================================
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -85,7 +85,7 @@ app.get("/create-admin", async (req, res) => {
 });
 
 // ================================
-// 🔐 LOGIN
+// 🔐 LOGIN LOCAL
 // ================================
 app.post("/api/login", async (req, res) => {
   try {
@@ -101,7 +101,7 @@ app.post("/api/login", async (req, res) => {
     if (!isMatch) return res.json({ success: false, message: "Contraseña incorrecta" });
 
     req.session.user = { id: user.id, username: user.username, role: user.role };
-    res.json({ success: true, role: user.role });
+    res.json({ success: true, role: user.role, username: user.username });
   } catch (error) {
     console.error("❌ Error al iniciar sesión:", error);
     res.status(500).json({ success: false, message: "Error interno del servidor" });
@@ -109,14 +109,62 @@ app.post("/api/login", async (req, res) => {
 });
 
 // ================================
+// 🔑 LOGIN CON GOOGLE
+// ================================
+app.post("/api/google-login", async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ success: false, message: "Falta el token de Google" });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name || email.split("@")[0];
+    const picture = payload.picture || null;
+
+    // Buscar o crear usuario
+    const existingUser = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+
+    let user;
+    if (existingUser.rows.length > 0) {
+      user = existingUser.rows[0];
+    } else {
+      const insert = await db.query(
+        `INSERT INTO users (username, email, role, created_at)
+         VALUES ($1, $2, $3, NOW())
+         RETURNING *`,
+        [name, email, "user"]
+      );
+      user = insert.rows[0];
+    }
+
+    // Guardar sesión
+    req.session.user = { id: user.id, username: user.username, role: user.role };
+
+    res.json({
+      success: true,
+      username: user.username,
+      role: user.role,
+      picture,
+    });
+  } catch (error) {
+    console.error("❌ Error en /api/google-login:", error);
+    res.status(500).json({ success: false, message: "Error al autenticar con Google" });
+  }
+});
+
+// ================================
 // 🚀 SUBIDA DE APPS (IMAGEN + APK)
 // ================================
-
-// Crear carpeta temporal
 const uploadDir = "./uploads";
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
-// Configurar Multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
@@ -127,7 +175,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB máximo
+  limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (
       file.mimetype.startsWith("image/") ||
@@ -140,7 +188,6 @@ const upload = multer({
   },
 });
 
-// Crear o actualizar app
 app.post("/upload", upload.fields([{ name: "image" }, { name: "apk" }]), async (req, res) => {
   try {
     const { name, description, category, is_paid } = req.body;
@@ -148,14 +195,13 @@ app.post("/upload", upload.fields([{ name: "image" }, { name: "apk" }]), async (
       return res.status(400).json({ message: "Faltan archivos." });
     }
 
-    // Subir imagen
     const imagePath = req.files.image[0].path;
+    const apkPath = req.files.apk[0].path;
+
     const imageUpload = await cloudinary.uploader.upload(imagePath, {
       folder: "mi_store/apps",
     });
 
-    // Subir APK como RAW
-    const apkPath = req.files.apk[0].path;
     const apkUpload = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { resource_type: "raw", folder: "mi_store/apks" },
@@ -164,11 +210,9 @@ app.post("/upload", upload.fields([{ name: "image" }, { name: "apk" }]), async (
       createReadStream(apkPath).pipe(stream);
     });
 
-    // Eliminar archivos temporales
     fs.unlinkSync(imagePath);
     fs.unlinkSync(apkPath);
 
-    // Guardar en BD
     await db.query(
       `INSERT INTO apps (name, description, image, apk, category, is_paid, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
@@ -183,14 +227,12 @@ app.post("/upload", upload.fields([{ name: "image" }, { name: "apk" }]), async (
 });
 
 // ================================
-// 📋 LISTAR APPS (con promedio de estrellas)
+// 📋 LISTAR APPS
 // ================================
 app.get("/api/apps", async (req, res) => {
   try {
     const result = await db.query(`
-      SELECT 
-        a.*, 
-        COALESCE(AVG(r.rating), 0)::numeric(2,1) AS average_rating
+      SELECT a.*, COALESCE(AVG(r.rating), 0)::numeric(2,1) AS average_rating
       FROM apps a
       LEFT JOIN ratings r ON a.id = r.app_id
       GROUP BY a.id
@@ -219,7 +261,6 @@ app.post("/api/rate/:appId", async (req, res) => {
     const valid = rating >= 1 && rating <= 5;
     if (!valid) return res.status(400).json({ message: "La valoración debe ser entre 1 y 5" });
 
-    // Si ya existe, actualizarla; si no, crearla
     await db.query(
       `INSERT INTO ratings (user_id, app_id, rating, created_at)
        VALUES ($1, $2, $3, NOW())
@@ -236,10 +277,8 @@ app.post("/api/rate/:appId", async (req, res) => {
 });
 
 // ================================
-// ⭐ COMENTARIOS Y VALORACIONES
+// ⭐ RESEÑAS DE APPS
 // ================================
-
-// Obtener reseñas de una app
 app.get("/api/apps/:id/reviews", async (req, res) => {
   try {
     const { id } = req.params;
@@ -254,7 +293,6 @@ app.get("/api/apps/:id/reviews", async (req, res) => {
   }
 });
 
-// Agregar una nueva reseña
 app.post("/api/apps/:id/reviews", async (req, res) => {
   try {
     const { id } = req.params;
@@ -276,108 +314,9 @@ app.post("/api/apps/:id/reviews", async (req, res) => {
   }
 });
 
-
-// ================================
-// 🗑️ ELIMINAR APP
-// ================================
-app.delete("/apps/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const appData = await db.query("SELECT * FROM apps WHERE id = $1", [id]);
-    if (appData.rows.length === 0) {
-      return res.status(404).json({ message: "App no encontrada" });
-    }
-
-    const { image, apk } = appData.rows[0];
-
-    // Eliminar de Cloudinary
-    try {
-      const imagePublicId = image.split("/").slice(-2).join("/").split(".")[0];
-      const apkPublicId = apk.split("/").slice(-2).join("/").split(".")[0];
-      await cloudinary.uploader.destroy(imagePublicId, { resource_type: "image" });
-      await cloudinary.uploader.destroy(apkPublicId, { resource_type: "raw" });
-    } catch (err) {
-      console.warn("⚠️ No se pudo eliminar de Cloudinary:", err.message);
-    }
-
-    await db.query("DELETE FROM apps WHERE id = $1", [id]);
-    res.json({ message: "App eliminada correctamente" });
-  } catch (error) {
-    console.error("❌ Error al eliminar app:", error);
-    res.status(500).json({ message: "Error al eliminar app", error: error.message });
-  }
-});
-
-// ======================================================
-// 🔹 Reseñas de aplicaciones
-// ======================================================
-
-// Obtener todas las reseñas de una app
-app.get('/api/apps/:id/reviews', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query(
-      `SELECT username, rating, comment, TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI') AS created_at
-       FROM app_reviews
-       WHERE app_id = $1
-       ORDER BY created_at DESC`,
-      [id]
-    );
-    res.json(result.rows);
-  } catch (error) {
-    console.error("❌ Error al obtener reseñas:", error);
-    res.status(500).json({ error: "Error al obtener reseñas" });
-  }
-});
-
-// Agregar una nueva reseña con valoración
-app.post('/api/apps/:id/reviews', async (req, res) => {
-  const { id } = req.params;
-  const { username, rating, comment } = req.body;
-
-  if (!username || !rating) {
-    return res.status(400).json({ error: "Faltan datos requeridos" });
-  }
-
-  try {
-    // Insertar reseña
-    await pool.query(
-      `INSERT INTO app_reviews (app_id, username, rating, comment)
-       VALUES ($1, $2, $3, $4)`,
-      [id, username, rating, comment]
-    );
-
-    // Recalcular promedio de calificación
-    await pool.query(`
-      UPDATE apps
-      SET average_rating = (
-        SELECT ROUND(AVG(rating)::numeric, 2)
-        FROM app_reviews
-        WHERE app_id = $1
-      )
-      WHERE id = $1
-    `, [id]);
-
-    res.json({ success: true, message: "Reseña agregada con éxito" });
-  } catch (error) {
-    console.error("❌ Error al agregar reseña:", error);
-    res.status(500).json({ error: "Error al agregar reseña" });
-  }
-});
-
-
 // ================================
 // ⚙️ INICIAR SERVIDOR
 // ================================
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
-
-
-
-
-
-
-
-
