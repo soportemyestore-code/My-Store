@@ -1,0 +1,35 @@
+name: Setup Project Structure
+
+on: [workflow_dispatch] # Permite ejecutar el workflow manualmente
+
+jobs:
+  setup-directories:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create project directories
+        run: |
+          # Crea la carpeta principal
+          mkdir -p mi-store-auth/controllers
+          mkdir -p mi-store-auth/models
+          mkdir -p mi-store-auth/routes
+          mkdir -p mi-store-auth/middleware
+
+      - name: Create empty files
+        run: |
+          touch mi-store-auth/controllers/authController.js
+          touch mi-store-auth/models/User.js
+          touch mi-store-auth/routes/auth.js
+          touch mi-store-auth/middleware/authMiddleware.js
+          touch mi-store-auth/server.js
+          touch mi-store-auth/.env
+
+      - name: Commit changes (optional)
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add mi-store-auth
+          git commit -m "feat: Initial project structure"
+          git push
