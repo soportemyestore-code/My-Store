@@ -7,8 +7,12 @@ import session from "express-session";
 import bcrypt from "bcrypt";
 import cors from "cors";
 import dotenv from "dotenv";
+import helmet from "helmet";
 import fs from "fs";
 import { createReadStream } from "fs";
+import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
+import { PrismaClient } from "@prisma/client";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import db from "./db.js"; // conexión PostgreSQL
@@ -16,10 +20,13 @@ import db from "./db.js"; // conexión PostgreSQL
 dotenv.config();
 
 const app = express();
+const prisma = new PrismaClient();
+const PORT = process.env.PORT || 4000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(express.static("public"));
+
 
 // ================================
 // ⚙️ CONFIGURAR SESIONES
@@ -366,6 +373,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
+
 
 
 
