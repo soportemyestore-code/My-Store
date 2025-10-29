@@ -1,7 +1,7 @@
 {
   "name": "mi-store-prod",
   "version": "1.0.0",
-  "description": "Tienda de apps - backend Node/Express con Postgres, S3 y Stripe",
+  "description": "Tienda de apps - backend Node/Express con PostgreSQL, Cloudinary y Google OAuth",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -12,18 +12,24 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.500.0",
     "@aws-sdk/s3-request-presigner": "^3.500.0",
+    "bcrypt": "^5.1.0",
     "better-sqlite3": "^8.3.0",
+    "cloudinary": "^1.41.0",
     "connect-pg-simple": "^8.0.0",
-    "dotenv": "^16.0.0",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.1.0",
     "express-session": "^1.17.3",
+    "google-auth-library": "^9.0.0",
+    "helmet": "^7.1.0",
     "multer": "^1.4.5-lts.2",
     "pg": "^8.10.0",
+    "prisma": "^5.11.0",
+    "@prisma/client": "^5.11.0",
     "stripe": "^12.0.0",
-    "bcrypt": "^5.1.0",
-    "cloudinary": "^1.41.0",
-    "streamifier": "^0.1.1",
-    "cors": "^2.8.5"
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
