@@ -1,6 +1,34 @@
-mkdir mi-store-auth && cd mi-store-auth
-npm init -y
-npm i express mongoose bcryptjs jsonwebtoken dotenv helmet cors express-rate-limit node-fetch cookie-parser
-# para google validation
-npm i google-auth-library
-# (si usas Node <18) instala node-fetch; si Node >=18, fetch global está disponible
+name: Setup Node.js Project
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Run setup commands
+        run: |
+          # Crea la carpeta y navega a ella
+          mkdir mi-store-auth && cd mi-store-auth
+          # Inicializa el proyecto npm
+          npm init -y
+          # Instala las dependencias principales
+          npm i express mongoose bcryptjs jsonwebtoken dotenv helmet cors express-rate-limit node-fetch cookie-parser
+          # Instala la librería para validación de Google
+          npm i google-auth-library
+          # NOTA: En Node.js v18 o superior, node-fetch no es necesario, ya que fetch es nativo.
