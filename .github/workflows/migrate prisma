@@ -1,0 +1,36 @@
+name: Prisma Migrate
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: # Permite la ejecución manual desde la UI de GitHub
+
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }} # Usa el secreto de GitHub
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Prisma migration
+        run: npx prisma migrate dev --name init
+
+      - name: Commit migration files (optional)
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add prisma/migrations
+          git add prisma/schema.prisma
+          git commit -m "feat: initial migration"
+          git push
