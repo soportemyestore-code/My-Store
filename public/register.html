@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registro | MyStore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; height: 100vh; background: linear-gradient(135deg, #7209b7, #3a0ca3);
+      display: flex; justify-content: center; align-items: center; overflow: hidden; font-family: "Poppins", sans-serif; }
+    .bubble { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.15); animation: float 6s ease-in-out infinite; z-index: 0; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-25px); } }
+    .container { background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); padding: 40px 30px; border-radius: 20px;
+      text-align: center; color: white; width: 90%; max-width: 380px; z-index: 1; box-shadow: 0 4px 30px rgba(0,0,0,0.2); }
+    input, button { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 15px; }
+    button { background: #b5179e; color: white; cursor: pointer; transition: 0.3s; }
+    button:hover { background: #9d02a3; }
+    a { color: #ffb3ff; text-decoration: none; } a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="bubble" style="width: 150px; height: 150px; top: 10%; left: 15%;"></div>
+  <div class="bubble" style="width: 200px; height: 200px; bottom: 10%; right: 20%;"></div>
+
+  <div class="container">
+    <h2>Crear cuenta</h2>
+    <form id="registerForm">
+      <input type="email" id="email" placeholder="Correo electrónico" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <button type="submit">Registrarse</button>
+    </form>
+    <p>¿Ya tienes cuenta? <a href="login.html">Inicia sesión</a></p>
+  </div>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) window.location.href = "/login.html";
+    });
+  </script>
+</body>
+</html>
