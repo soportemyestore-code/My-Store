@@ -3,183 +3,209 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar Sesión - My Store</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <title>Iniciar sesión - Mi Store</title>
+  <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Cargar librería de Google -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     body {
-      margin: 0;
       font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #6366f1, #a78bfa);
-      min-height: 100vh;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 1rem;
+      height: 100vh;
+      margin: 0;
     }
 
-    .auth-box {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      padding: 2rem;
+    .login-container {
+      background: #1e293b;
+      border-radius: 16px;
+      padding: 40px;
       width: 100%;
       max-width: 400px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
       text-align: center;
-      transition: 0.4s ease;
     }
 
     h2 {
-      margin-bottom: 1rem;
-      color: #4f46e5;
-      font-size: 1.8rem;
+      margin-bottom: 20px;
+      color: #38bdf8;
     }
 
-    .input-group {
-      margin-bottom: 1rem;
-      text-align: left;
-    }
-
-    .input-group label {
-      display: block;
-      font-weight: 600;
-      color: #444;
-      margin-bottom: 0.4rem;
-    }
-
-    .input-group input {
+    input {
       width: 100%;
-      padding: 0.8rem;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      font-size: 1rem;
-    }
-
-    .auth-btn {
-      width: 100%;
-      padding: 0.8rem;
-      background: #4f46e5;
-      color: white;
+      padding: 12px;
+      margin: 10px 0;
       border: none;
-      border-radius: 25px;
-      font-size: 1rem;
+      border-radius: 8px;
+      background: #0f172a;
+      color: #fff;
+      outline: none;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #38bdf8;
+      color: #0f172a;
+      font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
-      font-weight: 600;
+      font-size: 16px;
+      margin-top: 10px;
     }
 
-    .auth-btn:hover {
-      background: #3730a3;
+    button:hover {
+      background: #0ea5e9;
     }
 
-    .error {
-      margin-top: 1rem;
-      color: #dc2626;
-      background: #fee2e2;
-      border-radius: 10px;
-      padding: 0.5rem;
-      display: none;
+    .divider {
+      margin: 20px 0;
+      border-bottom: 1px solid #334155;
+      position: relative;
     }
 
-    .oauth-btn {
-      margin-top: 1rem;
+    .divider span {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      padding: 0 10px;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    #g_id_onload, #googleSignInDiv {
       display: flex;
-      align-items: center;
       justify-content: center;
-      gap: 0.6rem;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      padding: 0.6rem;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.3s;
-      font-size: 0.95rem;
-      background: white;
-      color: #444;
+      margin-top: 10px;
     }
 
-    .oauth-btn:hover {
-      background: #f3f4f6;
+    p {
+      margin-top: 10px;
+      color: #94a3b8;
+      font-size: 14px;
     }
 
-    .back {
-      margin-top: 1rem;
-      display: inline-block;
-      color: #4f46e5;
+    a {
+      color: #38bdf8;
       text-decoration: none;
-      font-size: 0.9rem;
     }
 
-    .back:hover {
+    a:hover {
       text-decoration: underline;
-    }
-
-    @media (max-width: 480px) {
-      h2 {
-        font-size: 1.5rem;
-      }
-      .auth-box {
-        padding: 1.5rem;
-      }
     }
   </style>
 </head>
 <body>
-  <div class="auth-box">
-    <h2><i class="fa-solid fa-store"></i> Mi Store</h2>
+  <div class="login-container">
+    <h2>Inicia sesión en Mi Store</h2>
 
-    <p style="margin-bottom: 1.2rem; color:#555;">Accede con tu cuenta de Google para continuar</p>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Usuario" required />
+      <input type="password" id="password" placeholder="Contraseña" required />
+      <button type="submit">Iniciar sesión</button>
+    </form>
 
-    <div id="googleSignIn"></div>
+    <div class="divider"><span>o</span></div>
 
-    <div class="error" id="errorBox"></div>
+    <!-- 🔹 Google Sign-In -->
+    <div id="g_id_onload"
+      data-client_id="247418735725-covi4d76annrdemdgc7laecqnjbf9g5f.apps.googleusercontent.com"
+      data-callback="handleCredentialResponse"
+      data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin" data-type="standard"></div>
 
-    <a href="index.html" class="back">
-      <i class="fa-solid fa-arrow-left"></i> Volver a la tienda
-    </a>
+    <p>¿No tienes cuenta? <a href="#" id="registerLink">Regístrate</a></p>
+
+    <form id="registerForm" style="display:none; margin-top:20px;">
+      <input type="text" id="regUsername" placeholder="Usuario" required />
+      <input type="email" id="regEmail" placeholder="Correo electrónico" required />
+      <input type="password" id="regPassword" placeholder="Contraseña" required />
+      <button type="submit">Crear cuenta</button>
+      <p><a href="#" id="loginLink">¿Ya tienes cuenta? Inicia sesión</a></p>
+    </form>
   </div>
 
   <script>
-    const errorBox = document.getElementById("errorBox");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+    const registerLink = document.getElementById("registerLink");
+    const loginLink = document.getElementById("loginLink");
 
-    function showError(msg) {
-      errorBox.textContent = msg;
-      errorBox.style.display = "block";
-    }
+    registerLink.addEventListener("click", () => {
+      loginForm.style.display = "none";
+      registerForm.style.display = "block";
+    });
 
-    window.onload = function () {
-      google.accounts.id.initialize({
-        client_id: "247418735725-covi4d76annrdemdgc7laecqnjbf9g5f.apps.googleusercontent.com",
-        callback: handleGoogleResponse
+    loginLink.addEventListener("click", () => {
+      registerForm.style.display = "none";
+      loginForm.style.display = "block";
+    });
+
+    // 🔹 LOGIN LOCAL
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        alert("✅ Bienvenido " + data.username);
+        window.location.href = "/";
+      } else {
+        alert("❌ " + data.message);
+      }
+    });
+
+    // 🔹 REGISTRO LOCAL
+    registerForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("regUsername").value;
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
+
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password }),
       });
 
-      google.accounts.id.renderButton(
-        document.getElementById("googleSignIn"),
-        {
-          theme: "outline",
-          size: "large",
-          shape: "pill",
-          text: "continue_with",
-          width: "100%"
-        }
-      );
-    };
+      const data = await res.json();
+      alert(data.message);
+      if (data.success) {
+        registerForm.style.display = "none";
+        loginForm.style.display = "block";
+      }
+    });
 
-    async function handleGoogleResponse(response) {
-      try {
-        const res = await fetch("/api/google-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ credential: response.credential })
-        });
-        const data = await res.json();
-        if (!data.success) return showError(data.message || "Error al iniciar sesión con Google.");
+    // 🔹 LOGIN CON GOOGLE
+    async function handleCredentialResponse(response) {
+      const res = await fetch("/api/google-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ credential: response.credential }),
+      });
+      const data = await res.json();
 
-        sessionStorage.setItem("username", data.username);
-        sessionStorage.setItem("role", data.role);
-        window.location.href = data.role === "admin" ? "admin.html" : "index.html";
-      } catch {
-        showError("Error al conectar con el servidor.");
+      if (data.success) {
+        alert("✅ Bienvenido " + data.username);
+        window.location.href = "/";
+      } else {
+        alert("❌ Error con Google: " + data.message);
       }
     }
   </script>
