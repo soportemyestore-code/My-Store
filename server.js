@@ -1,5 +1,5 @@
 // ================================
-// 🧩 MI STORE - BACKEND PRODUCCIÓN
+// 🧩 MI STORE - BACKEND PRODUCCIÓN (FINAL)
 // ================================
 
 import express from "express";
@@ -22,11 +22,10 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.set("trust proxy", 1);
-
 // ================================
-// ⚙️ MIDDLEWARES
+// ⚙️ CONFIGURACIÓN BASE
 // ================================
+app.set("trust proxy", 1); // necesario en Render y para Google Auth
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -34,28 +33,38 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(helmet());
 app.use(express.static("public"));
 
-// Limitar solicitudes (previene ataques)
+// ================================
+// ⚙️ RATE LIMITING
+// ================================
 const limiter = rateLimit({
   windowMs: 60 * 1000,
   max: 100,
   message: "Demasiadas solicitudes. Intenta más tarde.",
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 app.use(limiter);
 
 // ================================
-// ⚙️ CONFIGURAR SESIONES
+// ⚙️ SESIONES
 // ================================
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "mi-store-secret",
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 },
+    saveUninitialized: false,
+    proxy: true,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 día
+    },
   })
 );
 
 // ================================
-// ☁️ CONFIGURAR CLOUDINARY
+// ☁️ CLOUDINARY
 // ================================
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -65,7 +74,7 @@ cloudinary.config({
 console.log("✅ Cloudinary configurado correctamente");
 
 // ================================
-// 🔐 CONFIGURAR GOOGLE OAUTH
+// 🔐 GOOGLE OAUTH2 CLIENT
 // ================================
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -158,11 +167,14 @@ app.post("/api/register", async (req, res) => {
 });
 
 // ================================
-// 🔐 LOGIN CON GOOGLE
+// 🔐 LOGIN CON GOOGLE (CORREGIDO)
 // ================================
 app.post("/api/google-login", async (req, res) => {
   try {
     const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ success: false, message: "Falta el token de Google." });
+    }
 
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
@@ -171,13 +183,11 @@ app.post("/api/google-login", async (req, res) => {
 
     const payload = ticket.getPayload();
     const email = payload.email;
-    const username = payload.name;
+    const username = payload.name || email.split("@")[0];
 
-    // Buscar si ya existe
     let result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
     let user;
     if (result.rows.length === 0) {
-      // Registrar nuevo usuario con Google
       user = await db.query(
         `INSERT INTO users (username, email, role, created_at)
          VALUES ($1, $2, $3, NOW()) RETURNING *`,
@@ -197,7 +207,7 @@ app.post("/api/google-login", async (req, res) => {
 });
 
 // ================================
-// 🚀 SUBIDA DE APPS (IMAGEN + APK)
+// 🚀 SUBIDA DE APPS
 // ================================
 const uploadDir = "./uploads";
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
@@ -212,12 +222,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB máximo
+  limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (
       file.mimetype.startsWith("image/") ||
       file.mimetype === "application/vnd.android.package-archive"
-    ) cb(null, true);
+    )
+      cb(null, true);
     else cb(new Error("Tipo de archivo no permitido"));
   },
 });
@@ -284,4 +295,3 @@ app.get("/api/apps", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
-
