@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Autenticación - Mi Store</title>
+  <title>Iniciar Sesión - My Store</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_LA/sdk.js"></script>
   <style>
     body {
       margin: 0;
       font-family: "Poppins", sans-serif;
       background: linear-gradient(135deg, #6366f1, #a78bfa);
-      height: 100vh;
+      min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
+      padding: 1rem;
     }
 
     .auth-box {
@@ -23,8 +23,8 @@
       border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
       padding: 2rem;
-      width: 90%;
-      max-width: 420px;
+      width: 100%;
+      max-width: 400px;
       text-align: center;
       transition: 0.4s ease;
     }
@@ -32,27 +32,7 @@
     h2 {
       margin-bottom: 1rem;
       color: #4f46e5;
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .tab {
-      cursor: pointer;
-      font-weight: 600;
-      color: #4f46e5;
-      padding: 0.4rem 0.8rem;
-      border-radius: 8px;
-      transition: 0.3s;
-    }
-
-    .tab.active {
-      background: #4f46e5;
-      color: white;
+      font-size: 1.8rem;
     }
 
     .input-group {
@@ -102,7 +82,7 @@
     }
 
     .oauth-btn {
-      margin-top: 0.8rem;
+      margin-top: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -114,156 +94,75 @@
       font-weight: 600;
       transition: 0.3s;
       font-size: 0.95rem;
+      background: white;
+      color: #444;
     }
 
     .oauth-btn:hover {
       background: #f3f4f6;
     }
 
-    .google-btn { color: #444; background: white; }
-    .facebook-btn { color: white; background: #1877f2; border: none; }
-
     .back {
       margin-top: 1rem;
       display: inline-block;
       color: #4f46e5;
       text-decoration: none;
+      font-size: 0.9rem;
     }
 
-    .back:hover { text-decoration: underline; }
+    .back:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      h2 {
+        font-size: 1.5rem;
+      }
+      .auth-box {
+        padding: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="auth-box">
     <h2><i class="fa-solid fa-store"></i> Mi Store</h2>
 
-    <div class="tabs">
-      <div class="tab active" id="loginTab">Iniciar sesión</div>
-      <div class="tab" id="registerTab">Registrarse</div>
-    </div>
+    <p style="margin-bottom: 1.2rem; color:#555;">Accede con tu cuenta de Google para continuar</p>
 
-    <div id="loginForm">
-      <div class="input-group">
-        <label for="loginUser">Usuario</label>
-        <input type="text" id="loginUser" placeholder="Ingresa tu usuario" required>
-      </div>
-      <div class="input-group">
-        <label for="loginPass">Contraseña</label>
-        <input type="password" id="loginPass" placeholder="••••••••" required>
-      </div>
-      <button class="auth-btn" onclick="login()">Iniciar sesión</button>
-    </div>
-
-    <div id="registerForm" style="display: none;">
-      <div class="input-group">
-        <label for="regUser">Usuario</label>
-        <input type="text" id="regUser" placeholder="Crea un nombre de usuario" required>
-      </div>
-      <div class="input-group">
-        <label for="regEmail">Correo electrónico</label>
-        <input type="email" id="regEmail" placeholder="tucorreo@ejemplo.com" required>
-      </div>
-      <div class="input-group">
-        <label for="regPass">Contraseña</label>
-        <input type="password" id="regPass" placeholder="••••••••" required>
-      </div>
-      <button class="auth-btn" onclick="register()">Registrarse</button>
-    </div>
-
-    <div class="oauth-btn google-btn" id="googleSignIn">
-      <i class="fa-brands fa-google"></i> Continuar con Google
-    </div>
-
-    <div class="oauth-btn facebook-btn" onclick="facebookLogin()">
-      <i class="fa-brands fa-facebook-f"></i> Continuar con Facebook
-    </div>
+    <div id="googleSignIn"></div>
 
     <div class="error" id="errorBox"></div>
-    <a href="index.html" class="back"><i class="fa-solid fa-arrow-left"></i> Volver a la tienda</a>
+
+    <a href="index.html" class="back">
+      <i class="fa-solid fa-arrow-left"></i> Volver a la tienda
+    </a>
   </div>
 
   <script>
-    // --- Tabs ---
-    const loginTab = document.getElementById("loginTab");
-    const registerTab = document.getElementById("registerTab");
-    const loginForm = document.getElementById("loginForm");
-    const registerForm = document.getElementById("registerForm");
     const errorBox = document.getElementById("errorBox");
-
-    loginTab.onclick = () => {
-      loginTab.classList.add("active");
-      registerTab.classList.remove("active");
-      loginForm.style.display = "block";
-      registerForm.style.display = "none";
-      errorBox.style.display = "none";
-    };
-    registerTab.onclick = () => {
-      registerTab.classList.add("active");
-      loginTab.classList.remove("active");
-      registerForm.style.display = "block";
-      loginForm.style.display = "none";
-      errorBox.style.display = "none";
-    };
 
     function showError(msg) {
       errorBox.textContent = msg;
       errorBox.style.display = "block";
     }
 
-    // --- Login local ---
-    async function login() {
-      const username = loginUser.value.trim();
-      const password = loginPass.value.trim();
-      if (!username || !password) return showError("Completa todos los campos.");
-
-      try {
-        const res = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-        if (!data.success) return showError(data.message || "Credenciales inválidas.");
-
-        sessionStorage.setItem("username", data.username);
-        sessionStorage.setItem("role", data.role);
-        window.location.href = data.role === "admin" ? "admin.html" : "index.html";
-      } catch {
-        showError("Error de conexión con el servidor.");
-      }
-    }
-
-    // --- Registro ---
-    async function register() {
-      const username = regUser.value.trim();
-      const email = regEmail.value.trim();
-      const password = regPass.value.trim();
-      if (!username || !email || !password) return showError("Completa todos los campos.");
-
-      try {
-        const res = await fetch("/api/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, email, password })
-        });
-        const data = await res.json();
-        if (!data.success) return showError(data.message || "Error en el registro.");
-        alert("Registro exitoso. Ahora puedes iniciar sesión.");
-        loginTab.click();
-      } catch {
-        showError("Error de conexión con el servidor.");
-      }
-    }
-
-    // --- Google Sign-In ---
     window.onload = function () {
       google.accounts.id.initialize({
-        client_id: "TU_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+        client_id: "247418735725-covi4d76annrdemdgc7laecqnjbf9g5f.apps.googleusercontent.com",
         callback: handleGoogleResponse
       });
-      google.accounts.id.renderButton(document.getElementById("googleSignIn"), {
-        theme: "outline", size: "large", shape: "pill", text: "continue_with"
-      });
+
+      google.accounts.id.renderButton(
+        document.getElementById("googleSignIn"),
+        {
+          theme: "outline",
+          size: "large",
+          shape: "pill",
+          text: "continue_with",
+          width: "100%"
+        }
+      );
     };
 
     async function handleGoogleResponse(response) {
@@ -274,49 +173,14 @@
           body: JSON.stringify({ credential: response.credential })
         });
         const data = await res.json();
-        if (!data.success) return showError(data.message || "Error con Google.");
+        if (!data.success) return showError(data.message || "Error al iniciar sesión con Google.");
+
         sessionStorage.setItem("username", data.username);
         sessionStorage.setItem("role", data.role);
         window.location.href = data.role === "admin" ? "admin.html" : "index.html";
       } catch {
-        showError("Error al autenticar con Google.");
+        showError("Error al conectar con el servidor.");
       }
-    }
-
-    // --- Facebook Login ---
-    window.fbAsyncInit = function () {
-      FB.init({
-        appId: 'TU_FACEBOOK_APP_ID',
-        cookie: true,
-        xfbml: true,
-        version: 'v21.0'
-      });
-    };
-
-    function facebookLogin() {
-      FB.login(response => {
-        if (response.authResponse) {
-          FB.api('/me', { fields: 'name,email' }, async user => {
-            try {
-              const res = await fetch("/api/facebook-login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  accessToken: response.authResponse.accessToken,
-                  user
-                })
-              });
-              const data = await res.json();
-              if (!data.success) return showError(data.message || "Error con Facebook.");
-              sessionStorage.setItem("username", data.username);
-              sessionStorage.setItem("role", data.role);
-              window.location.href = data.role === "admin" ? "admin.html" : "index.html";
-            } catch {
-              showError("Error al autenticar con Facebook.");
-            }
-          });
-        } else showError("Inicio de sesión cancelado.");
-      }, { scope: 'email,public_profile' });
     }
   </script>
 </body>
