@@ -1,0 +1,32 @@
+name: Prisma Setup and Install
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # Permite ejecutar el flujo de trabajo manualmente
+
+jobs:
+  setup-prisma:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+
+      - name: Install dependencies and initialize Prisma
+        run: |
+          # 1. Instalar dependencias de desarrollo y producción
+          npm init -y
+          npm i express bcryptjs jsonwebtoken dotenv helmet cors express-rate-limit cookie-parser
+          npm i @prisma/client
+          npm i -D prisma nodemon
+
+          # 2. Inicializar Prisma. Esto crea las carpetas prisma/ y el archivo .env.
+          npx prisma init
