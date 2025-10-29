@@ -1,0 +1,6 @@
+mkdir mi-store-auth && cd mi-store-auth
+npm init -y
+npm i express mongoose bcryptjs jsonwebtoken dotenv helmet cors express-rate-limit node-fetch cookie-parser
+# para google validation
+npm i google-auth-library
+# (si usas Node <18) instala node-fetch; si Node >=18, fetch global está disponible
