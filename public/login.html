@@ -3,318 +3,120 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar sesión - My Store</title>
+  <title>Iniciar sesión | MyStore</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
 
     body {
       margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: #ffffff;
-      overflow: hidden;
+      height: 100vh;
+      background: linear-gradient(135deg, #7209b7, #3a0ca3);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-    }
-
-    /* Fondo animado de burbujas */
-    .bubbles {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
       overflow: hidden;
-      z-index: 0;
     }
 
     .bubble {
       position: absolute;
-      bottom: -150px;
-      background: radial-gradient(circle at 30% 30%, #c084fc, #7e22ce);
       border-radius: 50%;
-      opacity: 0.5;
-      animation: rise 12s infinite ease-in;
+      background: rgba(255, 255, 255, 0.15);
+      animation: float 6s ease-in-out infinite;
+      z-index: 0;
     }
 
-    @keyframes rise {
-      0% { transform: translateY(0) scale(1); opacity: 0.8; }
-      100% { transform: translateY(-110vh) scale(1.2); opacity: 0; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-25px); }
     }
 
-    /* Contenedor del login */
     .login-container {
       position: relative;
       z-index: 1;
-      background: #ffffff;
-      border-radius: 20px;
+      width: 90%;
+      max-width: 380px;
       padding: 40px 30px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      color: white;
       text-align: center;
-      animation: fadeIn 1.2s ease;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.2);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .login-container img {
+      width: 80px;
+      margin-bottom: 10px;
     }
 
-    .logo {
-      width: 100px;
-      margin-bottom: 20px;
-    }
-
-    h2 {
-      margin-bottom: 20px;
-      color: #7e22ce;
-      font-weight: 600;
-    }
+    h2 { margin-bottom: 20px; }
 
     input {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
-      border: 2px solid #e5e7eb;
-      border-radius: 10px;
-      font-size: 15px;
+      border: none;
       outline: none;
-      transition: border 0.2s;
-    }
-
-    input:focus {
-      border-color: #a855f7;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 16px;
     }
 
     button {
       width: 100%;
       padding: 12px;
+      background: #b5179e;
+      color: #fff;
       border: none;
       border-radius: 10px;
-      background: linear-gradient(90deg, #a855f7, #7e22ce);
-      color: #fff;
-      font-weight: 600;
       font-size: 16px;
-      margin-top: 10px;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      transition: 0.3s;
     }
 
-    button:hover {
-      transform: scale(1.03);
-      box-shadow: 0 8px 20px rgba(126, 34, 206, 0.3);
-    }
+    button:hover { background: #9d02a3; }
 
-    .divider {
-      margin: 20px 0;
-      border-bottom: 1px solid #e5e7eb;
-      position: relative;
-    }
+    p { font-size: 14px; margin-top: 10px; }
 
-    .divider span {
-      position: absolute;
-      top: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #fff;
-      padding: 0 10px;
-      color: #9ca3af;
-      font-size: 14px;
-    }
-
-    #g_id_onload, .g_id_signin {
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
-    }
-
-    p {
-      margin-top: 15px;
-      color: #6b7280;
-      font-size: 14px;
-    }
-
-    a {
-      color: #7e22ce;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    /* Mensaje animado de bienvenida */
-    .welcome-message {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.9);
-      background: linear-gradient(90deg, #a855f7, #7e22ce);
-      color: white;
-      font-size: 1.8rem;
-      padding: 20px 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 30px rgba(126, 34, 206, 0.4);
-      opacity: 0;
-      z-index: 9999;
-      animation: showWelcome 1.5s ease forwards;
-    }
-
-    @keyframes showWelcome {
-      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-      40% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
-      100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-    }
-
-    @media (max-width: 480px) {
-      .login-container {
-        padding: 30px 20px;
-      }
-      h2 {
-        font-size: 1.3rem;
-      }
-    }
+    a { color: #ffb3ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-
-  <div class="bubbles"></div>
+  <div class="bubble" style="width: 120px; height: 120px; top: 15%; left: 10%;"></div>
+  <div class="bubble" style="width: 200px; height: 200px; bottom: 10%; right: 15%;"></div>
+  <div class="bubble" style="width: 80px; height: 80px; top: 70%; left: 25%;"></div>
 
   <div class="login-container">
-    <img src="/logo.png" alt="Mi Store Logo" class="logo" />
-    <h2>Inicia sesión en Mi Store</h2>
+    <img src="logo.png" alt="MyStore Logo">
+    <h2>Bienvenido a MyStore</h2>
 
     <form id="loginForm">
-      <input type="text" id="username" placeholder="Usuario" required />
-      <input type="password" id="password" placeholder="Contraseña" required />
+      <input type="email" id="email" placeholder="Correo electrónico" required>
+      <input type="password" id="password" placeholder="Contraseña" required>
       <button type="submit">Iniciar sesión</button>
     </form>
 
-    <div class="divider"><span>o</span></div>
-
-    <!-- Google Login -->
-    <div id="g_id_onload"
-      data-client_id="905760366837-7sbgpj6g4m2a8u3drmutnjs0pvn8nlds.apps.googleusercontent.com"
-      data-callback="handleCredentialResponse"
-      data-auto_prompt="false"></div>
-    <div class="g_id_signin" data-type="standard"></div>
-
-    <p>¿No tienes cuenta? <a href="#" id="registerLink">Regístrate</a></p>
-
-    <form id="registerForm" style="display:none; margin-top:20px;">
-      <input type="text" id="regUsername" placeholder="Usuario" required />
-      <input type="email" id="regEmail" placeholder="Correo electrónico" required />
-      <input type="password" id="regPassword" placeholder="Contraseña" required />
-      <button type="submit">Crear cuenta</button>
-      <p><a href="#" id="loginLink">¿Ya tienes cuenta? Inicia sesión</a></p>
-    </form>
+    <p><a href="register.html">¿No tienes cuenta? Regístrate</a></p>
+    <p><a href="forgot.html">¿Olvidaste tu contraseña?</a></p>
   </div>
 
   <script>
-    // Crear burbujas dinámicamente
-    const bubblesContainer = document.querySelector(".bubbles");
-    for (let i = 0; i < 15; i++) {
-      const bubble = document.createElement("div");
-      bubble.classList.add("bubble");
-      const size = Math.random() * 60 + 20;
-      bubble.style.width = `${size}px`;
-      bubble.style.height = `${size}px`;
-      bubble.style.left = `${Math.random() * 100}%`;
-      bubble.style.animationDelay = `${Math.random() * 10}s`;
-      bubblesContainer.appendChild(bubble);
-    }
-
-    const loginForm = document.getElementById("loginForm");
-    const registerForm = document.getElementById("registerForm");
-    const registerLink = document.getElementById("registerLink");
-    const loginLink = document.getElementById("loginLink");
-
-    registerLink.addEventListener("click", () => {
-      loginForm.style.display = "none";
-      registerForm.style.display = "block";
-    });
-
-    loginLink.addEventListener("click", () => {
-      registerForm.style.display = "none";
-      loginForm.style.display = "block";
-    });
-
-    // Login normal
-    loginForm.addEventListener("submit", async (e) => {
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const username = document.getElementById("username").value;
+      const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
 
-      const res = await fetch("/api/login", {
+      const res = await fetch("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
 
-      if (data.success) {
-        showWelcomeMessage(data.username);
-        setTimeout(() => (window.location.href = "/"), 2000);
-      } else {
-        alert("❌ " + data.message);
-      }
+      if (data.success) window.location.href = "/";
+      else alert(data.message || "Credenciales incorrectas");
     });
-
-    // Registro
-    registerForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("regUsername").value;
-      const email = document.getElementById("regEmail").value;
-      const password = document.getElementById("regPassword").value;
-
-      const res = await fetch("/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password }),
-      });
-
-      const data = await res.json();
-      alert(data.message);
-      if (data.success) {
-        registerForm.style.display = "none";
-        loginForm.style.display = "block";
-      }
-    });
-
-    // Google Login
-    async function handleCredentialResponse(response) {
-      const res = await fetch("/api/google-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ credential: response.credential }),
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        showWelcomeMessage(data.username);
-        setTimeout(() => (window.location.href = "/"), 2000);
-      } else {
-        alert("❌ Error con Google: " + data.message);
-      }
-    }
-
-    window.handleCredentialResponse = handleCredentialResponse;
-
-    // Animación bienvenida
-    function showWelcomeMessage(name) {
-      const msg = document.createElement("div");
-      msg.className = "welcome-message";
-      msg.textContent = `🎉 Bienvenido a Mi Store, ${name}!`;
-      document.body.appendChild(msg);
-      setTimeout(() => msg.remove(), 2000);
-    }
   </script>
 </body>
 </html>
