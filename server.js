@@ -12,12 +12,12 @@ import fs, { createReadStream } from "fs";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import multer from "multer";
-import nodemailer from "nodemailer";
 import crypto from "crypto";
 import { v2 as cloudinary } from "cloudinary";
-import db from "./db.js"; // tu pool/cliente PostgreSQL configurado en db.js
+import db from "./db.js";
 import path from "path";
 import { fileURLToPath } from "url";
+import SibApiV3Sdk from "@sendinblue/client";
 
 dotenv.config();
 
@@ -80,18 +80,14 @@ cloudinary.config({
 console.log("✅ Cloudinary configurado correctamente");
 
 // ================================
-// 📧 NODEMAILER
+// 📧 SENDINBLUE / BREVO
 // ================================
-if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-  console.warn("⚠️ EMAIL_USER o EMAIL_PASS no definidos — los emails de reset NO funcionarán hasta configurarlos.");
+if (!process.env.SENDINBLUE_API_KEY) {
+  console.warn("⚠️ SENDINBLUE_API_KEY no definido — los emails de reset NO funcionarán hasta configurarlo.");
 }
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+
+const sibClient = new SibApiV3Sdk.TransactionalEmailsApi();
+sibClient.authentications["apiKey"].apiKey = process.env.SENDINBLUE_API_KEY;
 
 // ================================
 // ✅ Asegurar columnas necesarias en tabla users (reset_token, reset_expires)
@@ -115,7 +111,7 @@ app.get("/", (req, res) => {
 });
 
 // ================================
-// 🧑‍💼 Crear admin (útil para primera vez)
+// 🧑‍💼 Crear admin (primera vez)
 // ================================
 app.get("/create-admin", async (req, res) => {
   try {
@@ -136,7 +132,7 @@ app.get("/create-admin", async (req, res) => {
 });
 
 // ================================
-// 🔐 LOGIN (rutas duplicadas para compatibilidad frontend antiguo y /api/*)
+// 🔐 LOGIN
 // ================================
 async function handleLoginLogic(email, password) {
   const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
@@ -152,7 +148,7 @@ app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const r = await handleLoginLogic(email, password);
     if (!r.success) return res.json(r);
-    req.session.user = { id: r.user.id, username: r.user.username || r.user.email, role: r.user.role };
+    req.session.user = { id: r.user.id, username: r.user.username, role: r.user.role };
     res.json({ success: true, message: "Inicio de sesión correcto" });
   } catch (err) {
     console.error("❌ /login error:", err);
@@ -160,21 +156,8 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/api/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const r = await handleLoginLogic(email, password);
-    if (!r.success) return res.json(r);
-    req.session.user = { id: r.user.id, username: r.user.username || r.user.email, role: r.user.role };
-    res.json({ success: true, message: "Inicio de sesión correcto" });
-  } catch (err) {
-    console.error("❌ /api/login error:", err);
-    res.status(500).json({ success: false, message: "Error interno" });
-  }
-});
-
 // ================================
-// 🆕 REGISTRO (ambos caminos)
+// 🆕 REGISTRO
 // ================================
 async function handleRegisterLogic(username, email, password) {
   const exists = await db.query("SELECT id FROM users WHERE username = $1 OR email = $2", [username, email]);
@@ -200,66 +183,55 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.post("/api/register", async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-    const r = await handleRegisterLogic(username || email.split("@")[0], email, password);
-    res.json(r);
-  } catch (err) {
-    console.error("❌ /api/register error:", err);
-    res.status(500).json({ success: false, message: "Error interno" });
-  }
-});
-
 // ================================
-// 🔄 OLVIDÉ MI CONTRASEÑA (envía email con token)
+// 🔄 OLVIDÉ MI CONTRASEÑA (Sendinblue)
 // ================================
 app.post("/forgot", async (req, res) => {
   try {
     const { email } = req.body;
     const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length === 0) {
-      // respuesta genérica para no filtrar existencia
-      return res.json({ message: "Si existe el correo, se enviará un enlace." });
-    }
+    if (result.rows.length === 0)
+      return res.json({ message: "Si el correo existe, se enviará un enlace de recuperación." });
 
+    const user = result.rows[0];
     const token = crypto.randomBytes(32).toString("hex");
-    const expires = Date.now() + 3600000; // 1 hora
-    await db.query("UPDATE users SET reset_token = $1, reset_expires = $2 WHERE email = $3", [token, expires, email]);
+    const expires = Date.now() + 15 * 60 * 1000; // 15 minutos
+
+    await db.query("UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3", [
+      token,
+      expires,
+      user.id,
+    ]);
 
     const resetLink = `${BASE_URL}/reset.html?token=${token}`;
 
-    // enviar correo (si está configurado)
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      await transporter.sendMail({
-        to: email,
-        subject: "Restablecer contraseña - MyStore",
-        html: `
-          <p>Se solicitó restablecer tu contraseña. Haz clic en el enlace para continuar (válido 1 hora):</p>
-          <p><a href="${resetLink}">${resetLink}</a></p>
-          <p>Si no solicitaste esto, ignora este correo.</p>
-        `,
-      });
-      console.log(`✅ Enviado email de reset a ${email}`);
-    } else {
-      // para pruebas: mostrar enlace en consola
-      console.log("⚠️ EMAIL no configurado — enlace de reset:", resetLink);
-    }
+    await sibClient.sendTransacEmail({
+      sender: { email: "no-reply@mystore.com", name: "Mi Store" },
+      to: [{ email }],
+      subject: "🔐 Recupera tu contraseña - Mi Store",
+      htmlContent: `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin:auto; border:1px solid #ddd; border-radius:10px; padding:20px;">
+          <h2 style="color:#6b21a8;">Mi Store</h2>
+          <p>Hola <b>${user.username}</b>,</p>
+          <p>Has solicitado recuperar tu contraseña. Haz clic en el siguiente botón para restablecerla:</p>
+          <p style="text-align:center; margin:30px 0;">
+            <a href="${resetLink}" style="background:#6b21a8; color:white; padding:10px 20px; border-radius:5px; text-decoration:none;">Restablecer contraseña</a>
+          </p>
+          <p>Este enlace expirará en 15 minutos.</p>
+          <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
+        </div>
+      `,
+    });
 
-    res.json({ message: "Si existe el correo, se enviará un enlace para restablecer la contraseña." });
+    res.json({ message: "Si el correo existe, se enviará un enlace para restablecer la contraseña." });
   } catch (err) {
     console.error("❌ /forgot error:", err);
-    res.status(500).json({ message: "Error al procesar la solicitud." });
+    res.status(500).json({ message: "Error al enviar correo de recuperación." });
   }
 });
 
-app.post("/api/forgot", async (req, res) => {
-  // alias de /forgot
-  return app._router.handle(req, res, () => {}, "/forgot");
-});
-
 // ================================
-// 🔁 RESTABLECER CONTRASEÑA (recibe token + nueva pass)
+// 🔁 RESTABLECER CONTRASEÑA
 // ================================
 app.post("/reset", async (req, res) => {
   try {
@@ -268,13 +240,13 @@ app.post("/reset", async (req, res) => {
 
     const result = await db.query("SELECT * FROM users WHERE reset_token = $1", [token]);
     if (result.rows.length === 0) return res.json({ message: "Token inválido o expirado." });
-    const user = result.rows[0];
 
-    if (!user.reset_expires || Number(user.reset_expires) < Date.now())
+    const user = result.rows[0];
+    if (Number(user.reset_expires) < Date.now())
       return res.json({ message: "Token expirado." });
 
     const hashed = await bcrypt.hash(password, 10);
-    await db.query("UPDATE users SET password_hash = $1, reset_token = NULL, reset_expires = NULL WHERE id = $2", [
+    await db.query("UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2", [
       hashed,
       user.id,
     ]);
@@ -282,12 +254,8 @@ app.post("/reset", async (req, res) => {
     res.json({ message: "Contraseña actualizada correctamente." });
   } catch (err) {
     console.error("❌ /reset error:", err);
-    res.status(500).json({ message: "Error al actualizar contraseña." });
+    res.status(500).json({ message: "Error interno del servidor." });
   }
-});
-
-app.post("/api/reset", async (req, res) => {
-  return app._router.handle(req, res, () => {}, "/reset");
 });
 
 // ================================
@@ -304,7 +272,8 @@ const upload = multer({
   storage,
   limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/") || file.mimetype === "application/vnd.android.package-archive") cb(null, true);
+    if (file.mimetype.startsWith("image/") || file.mimetype === "application/vnd.android.package-archive")
+      cb(null, true);
     else cb(new Error("Tipo de archivo no permitido"));
   },
 });
@@ -312,7 +281,8 @@ const upload = multer({
 app.post("/upload", upload.fields([{ name: "image" }, { name: "apk" }]), async (req, res) => {
   try {
     const { name, description, category, is_paid } = req.body;
-    if (!req.files?.image || !req.files?.apk) return res.status(400).json({ message: "Faltan archivos." });
+    if (!req.files?.image || !req.files?.apk)
+      return res.status(400).json({ message: "Faltan archivos." });
 
     const imageUpload = await cloudinary.uploader.upload(req.files.image[0].path, { folder: "mi_store/apps" });
 
@@ -359,94 +329,6 @@ app.get("/api/apps", async (req, res) => {
 });
 
 // ================================
-// 📧 RECUPERAR CONTRASEÑA (Sendinblue / Brevo)
-// ================================
-
-// Configurar transporter de Sendinblue
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false, // true solo si usas puerto 465
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
-
-// 🧠 Generar token y enviar correo
-app.post("/api/forgot", async (req, res) => {
-  try {
-    const { email } = req.body;
-    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length === 0)
-      return res.status(404).json({ message: "No existe una cuenta con ese correo." });
-
-    const user = result.rows[0];
-    const token = crypto.randomBytes(20).toString("hex");
-    const expireDate = new Date(Date.now() + 1000 * 60 * 15); // 15 min
-
-    await db.query(
-      `UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3`,
-      [token, expireDate, user.id]
-    );
-
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password.html?token=${token}`;
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM,
-      to: email,
-      subject: "🔐 Recuperar tu contraseña - Mi Store",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 480px; margin:auto; border:1px solid #ddd; border-radius:10px; padding:20px;">
-          <h2 style="color:#6b21a8;">Mi Store</h2>
-          <p>Hola <b>${user.username}</b>,</p>
-          <p>Has solicitado recuperar tu contraseña. Haz clic en el siguiente botón para establecer una nueva:</p>
-          <p style="text-align:center; margin:30px 0;">
-            <a href="${resetLink}" style="background:#6b21a8; color:white; padding:10px 20px; border-radius:5px; text-decoration:none;">Restablecer contraseña</a>
-          </p>
-          <p>Este enlace expirará en 15 minutos.</p>
-          <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
-        </div>
-      `,
-    });
-
-    res.json({ success: true, message: "Correo de recuperación enviado correctamente." });
-  } catch (error) {
-    console.error("/forgot error:", error);
-    res.status(500).json({ message: "Error al enviar el correo de recuperación." });
-  }
-});
-
-// ✅ Confirmar token y cambiar contraseña
-app.post("/api/reset-password", async (req, res) => {
-  try {
-    const { token, newPassword } = req.body;
-    const result = await db.query(
-      "SELECT * FROM users WHERE reset_token = $1 AND reset_expires > NOW()",
-      [token]
-    );
-
-    if (result.rows.length === 0)
-      return res.status(400).json({ message: "Token inválido o expirado." });
-
-    const user = result.rows[0];
-    const hashed = await bcrypt.hash(newPassword, 10);
-
-    await db.query(
-      "UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2",
-      [hashed, user.id]
-    );
-
-    res.json({ success: true, message: "Contraseña actualizada correctamente." });
-  } catch (error) {
-    console.error("Error al restablecer contraseña:", error);
-    res.status(500).json({ message: "Error interno del servidor." });
-  }
-});
-
-
-// ================================
 // 🚀 INICIAR SERVIDOR
 // ================================
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
-
-
