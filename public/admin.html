@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="styles-admin.css" />
 </head>
 <body>
-  <!-- 🌈 Fondo animado de burbujas -->
+  <!-- 🌈 Fondo de burbujas -->
   <div class="bubble" style="left: 10%; width: 60px; height: 60px; animation-delay: 0s;"></div>
   <div class="bubble" style="left: 30%; width: 40px; height: 40px; animation-delay: 2s;"></div>
   <div class="bubble" style="left: 50%; width: 80px; height: 80px; animation-delay: 4s;"></div>
@@ -20,7 +20,7 @@
     <div class="splash-text">Cargando panel de administración...</div>
   </div>
 
-  <!-- ⚡ Transición entre páginas -->
+  <!-- ⚡ Transición -->
   <div class="page-transition" id="pageTransition">
     <div class="transition-text">Cargando...</div>
   </div>
@@ -58,27 +58,21 @@
   </div>
 
   <script>
-    // 🌐 Verificar si el usuario tiene sesión y rol admin
-    async function checkAccess() {
-      try {
-        const res = await fetch("/api/auth/session");
-        if (!res.ok) throw new Error("No autorizado");
-
-        const data = await res.json();
-        if (!data.loggedIn || data.role !== "admin") {
-          alert("🚫 Acceso denegado. Solo administradores pueden entrar aquí.");
-          window.location.href = "/login.html";
-          return;
-        }
-
-        // ✅ Mostrar panel
-        document.querySelector(".admin-panel").style.display = "block";
-        document.querySelector(".splash-screen").style.display = "none";
-      } catch (err) {
-        console.error(err);
-        alert("Debes iniciar sesión para acceder al panel de administración.");
-        window.location.href = "/login.html";
+    // 🌐 Verificar sesión en localStorage
+    function checkSession() {
+      const session = JSON.parse(localStorage.getItem("userSession") || "{}");
+      if (!session.loggedIn) {
+        alert("Debes iniciar sesión para acceder al panel.");
+        return window.location.href = "/login.html";
       }
+      if (session.role !== "admin") {
+        alert("Acceso denegado. Solo administradores pueden entrar aquí.");
+        return window.location.href = "/";
+      }
+
+      // ✅ Mostrar el panel
+      document.querySelector(".splash-screen").style.display = "none";
+      document.querySelector(".admin-panel").style.display = "block";
     }
 
     // 🌈 Transición entre páginas
@@ -91,15 +85,13 @@
     // 🚪 Cerrar sesión
     function logout() {
       if (confirm("¿Deseas cerrar sesión?")) {
+        localStorage.removeItem("userSession");
         transition.classList.add("active");
-        fetch("/logout", { method: "POST" })
-          .then(() => setTimeout(() => (window.location.href = "/login.html"), 700))
-          .catch(() => alert("Error al cerrar sesión."));
+        setTimeout(() => (window.location.href = "/login.html"), 700);
       }
     }
 
-    // ⏳ Iniciar verificación al cargar
-    document.addEventListener("DOMContentLoaded", checkAccess);
+    document.addEventListener("DOMContentLoaded", checkSession);
   </script>
 </body>
 </html>
