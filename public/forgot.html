@@ -87,10 +87,35 @@
       font-size: 1rem;
       cursor: pointer;
       transition: background 0.3s ease;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
     }
 
-    button:hover {
+    button:hover:not(:disabled) {
       background: #7e22ce;
+    }
+
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    /* Spinner */
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid #fff;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .message {
@@ -128,7 +153,9 @@
     <p>Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.</p>
 
     <input type="email" id="email" placeholder="Correo electrónico" required />
-    <button onclick="sendReset()">Enviar enlace</button>
+    <button id="resetBtn" onclick="sendReset()">
+      <span id="btnText">Enviar enlace</span>
+    </button>
 
     <div id="msg" class="message"></div>
 
@@ -139,6 +166,8 @@
     async function sendReset() {
       const email = document.getElementById("email").value.trim();
       const msg = document.getElementById("msg");
+      const btn = document.getElementById("resetBtn");
+      const btnText = document.getElementById("btnText");
 
       if (!email) {
         msg.textContent = "Por favor, ingresa tu correo electrónico.";
@@ -146,29 +175,45 @@
         return;
       }
 
-      msg.textContent = "Enviando enlace...";
-      msg.style.color = "#e9d5ff";
-
+      // Mostrar spinner
+      btn.disabled = true;
+      btnText.innerHTML = '<div class="spinner"></div> Enviando...';
+      msg.textContent = "";
+      
       try {
-        const res = await fetch('/forgot', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email })
+        const res = await fetch("/forgot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
         });
 
-        const data = await response.json();
+        const text = await res.text();
+        let data;
 
-        if (data.success) {
-          msg.textContent = "✅ Se ha enviado un enlace a tu correo.";
-          msg.style.color = "#bbf7d0";
-        } else {
-          msg.textContent = "❌ " + data.message;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          console.error("⚠️ Respuesta no JSON:", text);
+          msg.textContent = "Error inesperado del servidor.";
           msg.style.color = "#fecaca";
+          return;
+        }
+
+        if (!res.ok) {
+          msg.textContent = "❌ " + (data.message || "Error al enviar el correo.");
+          msg.style.color = "#fecaca";
+        } else {
+          msg.textContent = "✅ " + (data.message || "Se ha enviado un enlace a tu correo.");
+          msg.style.color = "#bbf7d0";
         }
       } catch (error) {
-        msg.textContent = "Error al enviar el correo.";
+        console.error("❌ Error de red:", error);
+        msg.textContent = "No se pudo conectar con el servidor.";
         msg.style.color = "#fecaca";
-        console.error(error);
+      } finally {
+        // Restaurar el botón
+        btn.disabled = false;
+        btnText.textContent = "Enviar enlace";
       }
     }
   </script>
