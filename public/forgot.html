@@ -3,219 +3,132 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recuperar Contraseña - Mi Store</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <title>Recuperar contraseña | MyStore</title>
+
+  <!-- Tipografía -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Estilos globales -->
+  <link rel="stylesheet" href="styles/styles.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/animations.css">
+
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-    }
-
-    body {
-      background: linear-gradient(135deg, #4b0082, #6b21a8, #9333ea);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      color: #fff;
-      position: relative;
-    }
-
-    /* Burbujas decorativas */
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      animation: float 6s ease-in-out infinite;
-    }
-
-    .bubble:nth-child(1) { width: 80px; height: 80px; left: 10%; animation-delay: 0s; }
-    .bubble:nth-child(2) { width: 100px; height: 100px; left: 70%; animation-delay: 2s; }
-    .bubble:nth-child(3) { width: 60px; height: 60px; left: 50%; animation-delay: 4s; }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-30px); }
-    }
-
-    .container {
-      background: rgba(255, 255, 255, 0.12);
-      padding: 2.5rem;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-      z-index: 1;
-    }
-
-    h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-
-    p {
+    .message {
+      margin-top: 1rem;
       font-size: 0.9rem;
-      color: #e9d5ff;
-      margin-bottom: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
     }
 
-    input {
-      width: 100%;
-      padding: 0.8rem;
-      margin-bottom: 1rem;
-      border: none;
-      border-radius: 10px;
-      font-size: 1rem;
-      outline: none;
-      background: rgba(255, 255, 255, 0.9);
-      color: #333;
+    .message.error {
+      color: #e11d48;
+      animation: shake 0.4s ease;
     }
 
-    button {
-      width: 100%;
-      background: #9333ea;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      padding: 0.9rem;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
+    .message.success {
+      color: #16a34a;
+      animation: fade-in 0.5s ease;
     }
 
-    button:hover:not(:disabled) {
-      background: #7e22ce;
-    }
-
-    button:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    /* Spinner */
     .spinner {
       border: 3px solid rgba(255, 255, 255, 0.3);
-      border-top: 3px solid #fff;
+      border-top: 3px solid white;
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
+      0% { transform: rotate(0); }
       100% { transform: rotate(360deg); }
-    }
-
-    .message {
-      margin-top: 1rem;
-      font-size: 0.9rem;
-      color: #d1fae5;
-    }
-
-    a {
-      display: block;
-      margin-top: 1rem;
-      color: #e9d5ff;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 480px) {
-      .container {
-        padding: 2rem 1.5rem;
-      }
     }
   </style>
 </head>
+
 <body>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
+  <!-- Fondo -->
+  <div class="background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
 
-  <div class="container">
-    <h1>¿Olvidaste tu contraseña?</h1>
-    <p>Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.</p>
+  <div class="centered fade-in" style="min-height: 100vh; z-index: 1;">
+    <div class="card slide-up" style="max-width: 400px; width: 90%; text-align: center;">
+      <h2 style="color: var(--primary); margin-bottom: 15px;">¿Olvidaste tu contraseña?</h2>
+      <p style="color: var(--text-color-light); margin-bottom: 25px;">
+        Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.
+      </p>
 
-    <input type="email" id="email" placeholder="Correo electrónico" required />
-    <button id="resetBtn" onclick="sendReset()">
-      <span id="btnText">Enviar enlace</span>
-    </button>
+      <form id="forgotForm">
+        <input type="email" id="email" placeholder="Correo electrónico" required>
+        <button type="submit" id="resetBtn" class="btn">
+          <span id="btnText">Enviar enlace</span>
+        </button>
+      </form>
 
-    <div id="msg" class="message"></div>
+      <div id="msg" class="message"></div>
 
-    <a href="/login.html">Volver al inicio de sesión</a>
+      <p style="margin-top: 15px;">
+        <a href="login.html">Volver al inicio de sesión</a>
+      </p>
+    </div>
   </div>
 
   <script>
-    async function sendReset() {
-      const email = document.getElementById("email").value.trim();
-      const msg = document.getElementById("msg");
-      const btn = document.getElementById("resetBtn");
-      const btnText = document.getElementById("btnText");
+    const form = document.getElementById("forgotForm");
+    const emailInput = document.getElementById("email");
+    const msg = document.getElementById("msg");
+    const btn = document.getElementById("resetBtn");
+    const btnText = document.getElementById("btnText");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+      msg.textContent = "";
 
       if (!email) {
         msg.textContent = "Por favor, ingresa tu correo electrónico.";
-        msg.style.color = "#fecaca";
+        msg.className = "message error";
         return;
       }
 
-      // Mostrar spinner
+      // Spinner on
       btn.disabled = true;
       btnText.innerHTML = '<div class="spinner"></div> Enviando...';
-      msg.textContent = "";
-      
+
       try {
         const res = await fetch("/forgot", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email })
         });
 
-        const text = await res.text();
-        let data;
+        const data = await res.json();
 
-        try {
-          data = JSON.parse(text);
-        } catch {
-          console.error("⚠️ Respuesta no JSON:", text);
-          msg.textContent = "Error inesperado del servidor.";
-          msg.style.color = "#fecaca";
-          return;
-        }
-
-        if (!res.ok) {
-          msg.textContent = "❌ " + (data.message || "Error al enviar el correo.");
-          msg.style.color = "#fecaca";
+        if (res.ok && data.success) {
+          msg.textContent = "✅ Se ha enviado un enlace a tu correo.";
+          msg.className = "message success";
+          emailInput.value = "";
         } else {
-          msg.textContent = "✅ " + (data.message || "Se ha enviado un enlace a tu correo.");
-          msg.style.color = "#bbf7d0";
+          msg.textContent = "❌ " + (data.message || "No se pudo enviar el correo.");
+          msg.className = "message error";
         }
-      } catch (error) {
-        console.error("❌ Error de red:", error);
+      } catch (err) {
+        console.error(err);
         msg.textContent = "No se pudo conectar con el servidor.";
-        msg.style.color = "#fecaca";
+        msg.className = "message error";
       } finally {
-        // Restaurar el botón
         btn.disabled = false;
         btnText.textContent = "Enviar enlace";
       }
-    }
+    });
   </script>
 </body>
 </html>
