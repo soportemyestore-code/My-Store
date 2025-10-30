@@ -1,5 +1,5 @@
 // ================================
-// 🧩 MI STORE - BACKEND PRODUCCIÓN (FINAL - LOGIN TRAD + RESET PASS)
+// 🧩 MI STORE - BACKEND PRODUCCIÓN (CON SESIONES Y ROLES)
 // ================================
 
 import express from "express";
@@ -21,9 +21,15 @@ import SibApiV3Sdk from "@sendinblue/client";
 
 dotenv.config();
 
+// ================================
+// 📧 CONFIGURAR BREVO (SENDINBLUE)
+// ================================
 const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
 brevo.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 
+// ================================
+// 📁 CONFIGURACIONES BÁSICAS
+// ================================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -32,7 +38,7 @@ const PORT = process.env.PORT || 4000;
 const BASE_URL = process.env.BASE_URL || "https://my-store-lwl1.onrender.com";
 
 // ================================
-// ⚙️ CONFIGURACIÓN BASE
+// ⚙️ MIDDLEWARES BASE
 // ================================
 app.set("trust proxy", 1);
 app.use(express.json());
@@ -65,7 +71,7 @@ app.use(
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
+      maxAge: 24 * 60 * 60 * 1000, // 1 día
     },
   })
 );
@@ -81,7 +87,7 @@ cloudinary.config({
 console.log("✅ Cloudinary configurado correctamente");
 
 // ================================
-// ✅ Asegurar columnas necesarias en tabla users (reset_token, reset_expires)
+// ✅ ASEGURAR COLUMNAS DE RESET PASS
 // ================================
 (async function ensureUserColumns() {
   try {
@@ -94,7 +100,24 @@ console.log("✅ Cloudinary configurado correctamente");
 })();
 
 // ================================
-// 🏠 Páginas estáticas
+// 🛡️ MIDDLEWARES DE AUTENTICACIÓN
+// ================================
+function requireLogin(req, res, next) {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "No autorizado. Inicia sesión." });
+  }
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.session.user || req.session.user.role !== "admin") {
+    return res.status(403).json({ message: "Acceso denegado. Solo administradores." });
+  }
+  next();
+}
+
+// ================================
+// 🏠 RUTA PRINCIPAL
 // ================================
 app.get("/", (req, res) => {
   if (!req.session.user) return res.redirect("/login.html");
@@ -102,7 +125,7 @@ app.get("/", (req, res) => {
 });
 
 // ================================
-// 🧑‍💼 Crear admin (primera vez)
+// 🧑‍💼 CREAR ADMIN (SOLO 1 VEZ)
 // ================================
 app.get("/create-admin", async (req, res) => {
   try {
@@ -129,18 +152,45 @@ app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length === 0) return res.json({ success: false, message: "Usuario no encontrado" });
+    if (result.rows.length === 0)
+      return res.json({ success: false, message: "Usuario no encontrado" });
 
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash || "");
-    if (!valid) return res.json({ success: false, message: "Contraseña incorrecta" });
+    if (!valid)
+      return res.json({ success: false, message: "Contraseña incorrecta" });
 
-    req.session.user = { id: user.id, username: user.username, role: user.role };
-    res.json({ success: true, message: "Inicio de sesión correcto" });
+    // Guardar sesión
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+      email: user.email,
+    };
+
+    res.json({ success: true, message: "Inicio de sesión correcto", user: req.session.user });
   } catch (err) {
     console.error("❌ /login error:", err);
     res.status(500).json({ success: false, message: "Error interno" });
   }
+});
+
+// ================================
+// 🚪 LOGOUT
+// ================================
+app.post("/api/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.clearCookie("connect.sid");
+    res.json({ success: true, message: "Sesión cerrada correctamente" });
+  });
+});
+
+// ================================
+// 🔎 CONSULTAR SESIÓN ACTUAL
+// ================================
+app.get("/api/session", (req, res) => {
+  if (req.session.user) return res.json(req.session.user);
+  res.json(null);
 });
 
 // ================================
@@ -149,8 +199,12 @@ app.post("/login", async (req, res) => {
 app.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    const exists = await db.query("SELECT id FROM users WHERE username=$1 OR email=$2", [username, email]);
-    if (exists.rows.length > 0) return res.json({ success: false, message: "Usuario o correo ya existe." });
+    const exists = await db.query("SELECT id FROM users WHERE username=$1 OR email=$2", [
+      username,
+      email,
+    ]);
+    if (exists.rows.length > 0)
+      return res.json({ success: false, message: "Usuario o correo ya existe." });
 
     const hashed = await bcrypt.hash(password, 10);
     await db.query(
@@ -179,20 +233,22 @@ app.post("/forgot", async (req, res) => {
     const token = crypto.randomBytes(32).toString("hex");
     const expires = Date.now() + 15 * 60 * 1000;
 
-    await db.query("UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3", [token, expires, user.id]);
+    await db.query("UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3", [
+      token,
+      expires,
+      user.id,
+    ]);
 
     const resetLink = `${BASE_URL}/reset.html?token=${token}`;
-
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin:auto; border:1px solid #ddd; border-radius:10px; padding:20px;">
         <h2 style="color:#6b21a8;">Mi Store</h2>
         <p>Hola <b>${user.username}</b>,</p>
-        <p>Has solicitado recuperar tu contraseña. Haz clic en el siguiente botón para restablecerla:</p>
+        <p>Haz clic en el siguiente botón para restablecer tu contraseña:</p>
         <p style="text-align:center; margin:30px 0;">
           <a href="${resetLink}" style="background:#6b21a8; color:white; padding:10px 20px; border-radius:5px; text-decoration:none;">Restablecer contraseña</a>
         </p>
         <p>Este enlace expirará en 15 minutos.</p>
-        <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
       </div>
     `;
 
@@ -203,7 +259,9 @@ app.post("/forgot", async (req, res) => {
       htmlContent: html,
     });
 
-    res.json({ message: "Si el correo existe, se enviará un enlace para restablecer la contraseña." });
+    res.json({
+      message: "Si el correo existe, se enviará un enlace para restablecer la contraseña.",
+    });
   } catch (err) {
     console.error("❌ /forgot error:", err);
     res.status(500).json({ message: "Error al enviar correo de recuperación." });
@@ -216,19 +274,18 @@ app.post("/forgot", async (req, res) => {
 app.post("/reset", async (req, res) => {
   try {
     const { token, password } = req.body;
-    if (!token || !password) return res.json({ message: "Faltan datos." });
-
     const result = await db.query("SELECT * FROM users WHERE reset_token = $1", [token]);
     if (result.rows.length === 0) return res.json({ message: "Token inválido o expirado." });
 
     const user = result.rows[0];
-    if (Number(user.reset_expires) < Date.now()) return res.json({ message: "Token expirado." });
+    if (Number(user.reset_expires) < Date.now())
+      return res.json({ message: "Token expirado." });
 
     const hashed = await bcrypt.hash(password, 10);
-    await db.query("UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2", [
-      hashed,
-      user.id,
-    ]);
+    await db.query(
+      "UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2",
+      [hashed, user.id]
+    );
 
     res.json({ message: "Contraseña actualizada correctamente." });
   } catch (err) {
@@ -238,56 +295,75 @@ app.post("/reset", async (req, res) => {
 });
 
 // ================================
-// 🚀 SUBIDA DE APPS (Cloudinary + Multer)
+// 🚀 SUBIDA DE APPS (solo admin)
 // ================================
 const uploadDir = "./uploads";
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, "_")),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, "_")),
 });
 
 const upload = multer({
   storage,
   limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith("image/") || file.mimetype === "application/vnd.android.package-archive")
+    if (
+      file.mimetype.startsWith("image/") ||
+      file.mimetype === "application/vnd.android.package-archive"
+    )
       cb(null, true);
     else cb(new Error("Tipo de archivo no permitido"));
   },
 });
 
-app.post("/upload", upload.fields([{ name: "image" }, { name: "apk" }]), async (req, res) => {
-  try {
-    const { name, description, category, is_paid } = req.body;
-    if (!req.files?.image || !req.files?.apk)
-      return res.status(400).json({ message: "Faltan archivos." });
+app.post(
+  "/upload",
+  requireAdmin,
+  upload.fields([{ name: "image" }, { name: "apk" }]),
+  async (req, res) => {
+    try {
+      const { name, description, category, is_paid } = req.body;
+      if (!req.files?.image || !req.files?.apk)
+        return res.status(400).json({ message: "Faltan archivos." });
 
-    const imageUpload = await cloudinary.uploader.upload(req.files.image[0].path, { folder: "mi_store/apps" });
+      const imageUpload = await cloudinary.uploader.upload(req.files.image[0].path, {
+        folder: "mi_store/apps",
+      });
 
-    const apkUpload = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream({ resource_type: "raw", folder: "mi_store/apks" }, (err, result) =>
-        err ? reject(err) : resolve(result)
+      const apkUpload = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { resource_type: "raw", folder: "mi_store/apks" },
+          (err, result) => (err ? reject(err) : resolve(result))
+        );
+        createReadStream(req.files.apk[0].path).pipe(stream);
+      });
+
+      fs.unlinkSync(req.files.image[0].path);
+      fs.unlinkSync(req.files.apk[0].path);
+
+      await db.query(
+        `INSERT INTO apps (name, description, image, apk, category, is_paid, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6,NOW())`,
+        [
+          name,
+          description,
+          imageUpload.secure_url,
+          apkUpload.secure_url,
+          category,
+          is_paid === "true",
+        ]
       );
-      createReadStream(req.files.apk[0].path).pipe(stream);
-    });
 
-    fs.unlinkSync(req.files.image[0].path);
-    fs.unlinkSync(req.files.apk[0].path);
-
-    await db.query(
-      `INSERT INTO apps (name, description, image, apk, category, is_paid, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,NOW())`,
-      [name, description, imageUpload.secure_url, apkUpload.secure_url, category, is_paid === "true"]
-    );
-
-    res.json({ message: "App subida con éxito" });
-  } catch (err) {
-    console.error("❌ /upload error:", err);
-    res.status(500).json({ message: "Error al subir aplicación" });
+      res.json({ message: "App subida con éxito" });
+    } catch (err) {
+      console.error("❌ /upload error:", err);
+      res.status(500).json({ message: "Error al subir aplicación" });
+    }
   }
-});
+);
 
 // ================================
 // 📋 LISTAR APPS
@@ -312,5 +388,3 @@ app.get("/api/apps", async (req, res) => {
 // 🚀 INICIAR SERVIDOR
 // ================================
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
-
-
