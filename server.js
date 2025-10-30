@@ -18,8 +18,6 @@ import db from "./db.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import SibApiV3Sdk from "@sendinblue/client";
-import './styles.css';
-
 
 dotenv.config();
 
@@ -314,4 +312,5 @@ app.get("/api/apps", async (req, res) => {
 // 🚀 INICIAR SERVIDOR
 // ================================
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+
 
