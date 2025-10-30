@@ -1,268 +1,154 @@
-/* =============== RESETEO GENERAL =============== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+/* 🌈 Fondo y burbujas */
 body {
-  font-family: "Poppins", "Segoe UI", sans-serif;
-  background: #f4f6fb;
-  color: #333;
-  overflow-x: hidden;
+  margin: 0;
   min-height: 100vh;
-  transition: background 0.6s ease;
-}
-
-/* =============== BURBUJAS DE FONDO =============== */
-.bubble {
-  position: absolute;
-  bottom: -150px;
-  background: rgba(0, 123, 255, 0.15);
-  border-radius: 50%;
-  animation: rise 12s infinite ease-in;
-  z-index: -1;
-}
-
-@keyframes rise {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-120vh) scale(1.4); opacity: 0; }
-}
-
-/* =============== SPLASH SCREEN =============== */
-.splash-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #007bff, #00c6ff);
+  background: #fff;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  animation: fadeOut 1s ease forwards;
-  animation-delay: 2.8s;
 }
 
-@keyframes fadeOut {
-  to { opacity: 0; visibility: hidden; }
+.bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(147, 51, 234, 0.1);
+  animation: float 6s ease-in-out infinite;
+  z-index: 0;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-25px); }
 }
 
-.splash-logo {
-  width: 130px;
-  height: 130px;
-  object-fit: contain;
-  border-radius: 20px;
-  box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
-  animation: logoPop 1.5s ease forwards;
-}
-
-@keyframes logoPop {
-  0% { transform: scale(0.5) rotate(-15deg); opacity: 0; }
-  50% { transform: scale(1.1) rotate(10deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); }
-}
-
-.splash-text {
+/* 🌟 Splash */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #7209b7, #3a0ca3);
   color: white;
-  margin-top: 1.5rem;
-  font-size: 1.2rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  animation: fadeInText 2s ease-in;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+.splash-logo {
+  width: 120px;
+  margin-bottom: 20px;
+  animation: pop 1s ease-in-out infinite alternate;
+}
+.splash-text { font-size: 1.2rem; opacity: 0.9; }
+@keyframes pop {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
 }
 
-@keyframes fadeInText {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* =============== PANEL ADMIN =============== */
-.admin-panel {
+/* ⚡ Transición */
+.page-transition {
+  position: fixed;
+  inset: 0;
+  background: rgba(147, 51, 234, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5rem;
   opacity: 0;
-  transform: translateY(30px);
-  animation: showPanel 1s ease forwards;
-  animation-delay: 3.1s;
-  padding: 2rem;
+  pointer-events: none;
+  transition: opacity 0.5s;
+  z-index: 998;
+}
+.page-transition.active {
+  opacity: 1;
+  pointer-events: all;
 }
 
-@keyframes showPanel {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* 🧩 Panel */
+.admin-panel {
+  z-index: 1;
+  width: 100%;
+  max-width: 1100px;
+  padding: 40px 20px;
 }
 
-/* =============== ENCABEZADO =============== */
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 40px;
 }
 
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 
 .header-logo {
-  width: 48px;
-  height: 48px;
-  object-fit: contain;
-  border-radius: 10px;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
-  animation: float 4s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-header h1 {
-  color: #007bff;
-  font-weight: 600;
-  font-size: 1.6rem;
+  width: 50px;
+  border-radius: 12px;
 }
 
 .logout-btn {
-  background: #ff4757;
-  border: none;
+  background: #9333ea;
   color: white;
-  padding: 0.6rem 1.2rem;
-  border-radius: 0.5rem;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-size: 0.95rem;
   cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: 500;
+  transition: background 0.3s ease;
 }
-
 .logout-btn:hover {
-  background: #e84118;
-  transform: scale(1.05);
+  background: #7e22ce;
 }
 
-/* =============== TARJETAS DEL PANEL =============== */
-main.cards-container {
-  margin-top: 2rem;
+/* 🪄 Tarjetas */
+.cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  grid-auto-rows: 1fr; /* Todas las filas tienen misma altura */
-  gap: 1.8rem;
-  align-items: stretch;
-  transition: all 0.5s ease;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
 }
 
 .card {
-  background: white;
-  padding: 1.7rem;
-  border-radius: 1rem;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background: rgba(147, 51, 234, 0.07);
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
   position: relative;
   overflow: hidden;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-height: 180px;
 }
-
-.card::before {
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(147, 51, 234, 0.2);
+}
+.card::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 123, 255, 0.1);
-  transition: all 0.4s ease;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(58, 12, 163, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s;
 }
-
-.card:hover::before {
-  left: 0;
-  background: rgba(0, 123, 255, 0.15);
+.card:hover::after {
+  opacity: 1;
 }
-
-.card:hover {
-  transform: translateY(-6px) scale(1.03); /* efecto hover más visible */
-  box-shadow: 0 12px 28px rgba(0, 123, 255, 0.25); /* sombra azul más intensa */
-}
-
 .card h3 {
-  color: #007bff;
-  margin-bottom: 0.8rem;
-  font-weight: 600;
+  margin-bottom: 10px;
+  color: #3a0ca3;
 }
-
 .card p {
-  font-size: 0.95rem;
-  margin-bottom: 0;
-  color: #555;
+  color: #5b21b6;
 }
 
-/* =============== FOOTER =============== */
+/* 🦶 Footer */
 footer {
   text-align: center;
-  margin-top: 2rem;
-  color: #777;
+  margin-top: 40px;
   font-size: 0.9rem;
-}
-
-/* =============== TRANSICIÓN ENTRE PÁGINAS =============== */
-.page-transition {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: white;
-  z-index: 2000;
-  transform: translateY(100%);
-  transition: transform 0.6s ease-in-out;
-}
-
-.page-transition.active {
-  transform: translateY(0);
-}
-
-.transition-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.4rem;
-  color: #007bff;
-  font-weight: 600;
-  animation: pulse 1s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* =============== RESPONSIVE =============== */
-@media (max-width: 600px) {
-  header h1 {
-    font-size: 1.1rem;
-  }
-  .header-logo {
-    width: 36px;
-    height: 36px;
-  }
-  main.cards-container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    grid-auto-rows: auto;
-  }
-  .splash-logo {
-    width: 100px;
-    height: 100px;
-  }
+  color: #777;
 }
