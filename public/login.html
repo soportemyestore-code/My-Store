@@ -8,12 +8,16 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
+  <!-- Fondo animado -->
+  <div class="background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
 
+  <!-- Login -->
   <div class="login-container">
     <img src="logo.png" alt="MyStore Logo">
     <h2>Bienvenido a MyStore</h2>
@@ -29,6 +33,7 @@
   </div>
 
   <script>
+    // === Envío de formulario ===
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const email = document.getElementById("email").value;
@@ -43,6 +48,14 @@
 
       if (data.success) window.location.href = "/";
       else alert(data.message || "Credenciales incorrectas");
+    });
+
+    // === Efecto Parallax para las burbujas ===
+    const background = document.querySelector(".background");
+    document.addEventListener("mousemove", (e) => {
+      const moveX = (e.clientX / window.innerWidth - 0.5) * 30;
+      const moveY = (e.clientY / window.innerHeight - 0.5) * 30;
+      background.style.transform = `translate(${moveX}px, ${moveY}px)`;
     });
   </script>
 </body>
