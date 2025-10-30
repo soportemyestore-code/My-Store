@@ -1,0 +1,85 @@
+/* === BOTONES === */
+button, .btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+button:hover, .btn:hover {
+  transform: scale(1.02);
+}
+
+button::before, .btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+  transition: all 0.5s;
+}
+
+button:hover::before, .btn:hover::before {
+  left: 100%;
+}
+
+/* === INPUTS === */
+input, select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #b5179e20;
+  border-radius: 10px;
+  outline: none;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--secondary);
+  box-shadow: 0 0 10px rgba(181, 23, 158, 0.3);
+}
+
+/* === FORMULARIOS === */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+label {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* === TARJETAS (para apps, productos, etc.) === */
+.card-item {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s;
+}
+
+.card-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.card-item img {
+  width: 100%;
+  height: auto;
+  border-bottom: 2px solid var(--primary);
+}
+
+.card-item .content {
+  padding: 15px;
+  color: var(--text-color);
+}
