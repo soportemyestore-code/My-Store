@@ -6,11 +6,66 @@
   <title>Iniciar sesión | My Store</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <link rel="icon" href="logo.png" type="image/png">
+  
   <!-- Estilos globales -->
   <link rel="stylesheet" href="styles/styles.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/components.css">
   <link rel="stylesheet" href="styles/animations.css">
+
+  <style>
+    /* === LIFT-UP ANIMATION === */
+    @keyframes liftUp {
+      0% { transform: translateY(40px); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    .lift-up {
+      animation: liftUp 0.8s ease-out forwards;
+    }
+
+    /* Inputs y botón */
+    form input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    form input:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 8px rgba(114, 9, 183, 0.3);
+    }
+
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(114, 9, 183, 0.4);
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
   <!-- Fondo animado -->
@@ -24,7 +79,7 @@
 
   <!-- Contenedor principal del login -->
   <div class="centered" style="min-height: 100vh; z-index: 1;">
-    <div class="card fade-in" style="max-width: 380px; width: 90%; text-align: center;">
+    <div class="card lift-up" style="max-width: 380px; width: 90%; text-align: center;">
       <img src="logo.png" alt="MyStore Logo" style="width: 80px; margin-bottom: 10px;">
       <h2 style="color: var(--primary); margin-bottom: 20px;">Bienvenido a My Store</h2>
 
@@ -54,10 +109,12 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password })
         });
+
         const data = await res.json();
 
         if (data.success) {
-          window.location.href = "/";
+          // Redirige según el rol
+          window.location.href = data.redirect || "/index.html";
         } else {
           alert(data.message || "Credenciales incorrectas");
         }
