@@ -13,6 +13,73 @@
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/components.css">
   <link rel="stylesheet" href="styles/animations.css">
+
+  <style>
+    /* === Indicador de fuerza === */
+    .password-strength {
+      height: 8px;
+      width: 100%;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .password-strength-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+
+    .strength-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .strength-text {
+      font-size: 13px;
+      color: var(--text-color);
+      flex: 1;
+      text-align: left;
+    }
+
+    .lock-icon {
+      font-size: 20px;
+      transition: transform 0.3s ease, color 0.3s ease;
+    }
+
+    .lock-icon.weak {
+      color: #ff4d4d;
+      animation: shake 0.4s ease;
+    }
+
+    .lock-icon.medium {
+      color: #ffb347;
+    }
+
+    .lock-icon.good {
+      color: #66cc66;
+    }
+
+    .lock-icon.strong {
+      color: #00b300;
+      animation: pulse-lock 1.5s infinite ease-in-out;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-3px); }
+      75% { transform: translateX(3px); }
+    }
+
+    @keyframes pulse-lock {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+  </style>
 </head>
 <body>
   <!-- Fondo animado -->
@@ -29,9 +96,20 @@
     <div class="card fade-in" style="max-width: 400px; width: 90%; text-align: center;">
       <h2 style="color: var(--primary); margin-bottom: 20px;">Crear cuenta</h2>
 
-      <form id="registerForm">
+      <form id="registerForm" class="slide-up">
         <input type="email" id="email" placeholder="Correo electrónico" required>
+
         <input type="password" id="password" placeholder="Contraseña" required>
+        <!-- Barra de fuerza -->
+        <div class="password-strength">
+          <div class="password-strength-bar" id="strengthBar"></div>
+        </div>
+        <div class="strength-wrapper">
+          <div class="strength-text" id="strengthText"></div>
+          <span class="lock-icon" id="lockIcon">🔒</span>
+        </div>
+
+        <input type="password" id="confirmPassword" placeholder="Confirmar contraseña" required>
         <button type="submit" class="btn">Registrarse</button>
       </form>
 
@@ -44,10 +122,61 @@
 
   <!-- Script de registro -->
   <script>
+    const passwordInput = document.getElementById("password");
+    const strengthBar = document.getElementById("strengthBar");
+    const strengthText = document.getElementById("strengthText");
+    const lockIcon = document.getElementById("lockIcon");
+
+    passwordInput.addEventListener("input", () => {
+      const value = passwordInput.value;
+      const strength = calculateStrength(value);
+
+      // Actualizar barra
+      strengthBar.style.width = strength.percent + "%";
+      strengthBar.style.background = strength.color;
+      strengthText.textContent = strength.text;
+
+      // Actualizar icono
+      lockIcon.className = "lock-icon " + strength.level;
+    });
+
+    function calculateStrength(password) {
+      let score = 0;
+      if (password.length >= 6) score += 1;
+      if (password.match(/[A-Z]/)) score += 1;
+      if (password.match(/[0-9]/)) score += 1;
+      if (password.match(/[^A-Za-z0-9]/)) score += 1;
+
+      switch (score) {
+        case 0:
+        case 1:
+          return { percent: 25, color: "#ff4d4d", text: "Contraseña débil", level: "weak" };
+        case 2:
+          return { percent: 50, color: "#ffb347", text: "Seguridad media", level: "medium" };
+        case 3:
+          return { percent: 75, color: "#66cc66", text: "Buena contraseña", level: "good" };
+        case 4:
+          return { percent: 100, color: "#00b300", text: "Contraseña fuerte", level: "strong" };
+      }
+    }
+
+    // Validar registro
     document.getElementById("registerForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+
       const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+
+      if (password !== confirmPassword) {
+        alert("Las contraseñas no coinciden. Por favor, verifica.");
+        return;
+      }
+
+      if (password.length < 6) {
+        alert("La contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
 
       try {
         const res = await fetch("/register", {
