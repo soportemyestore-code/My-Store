@@ -3,40 +3,174 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Recuperar contraseña | MyStore</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <title>Recuperar Contraseña - Mi Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body { margin: 0; height: 100vh; background: linear-gradient(135deg, #7209b7, #3a0ca3);
-      display: flex; justify-content: center; align-items: center; overflow: hidden; font-family: "Poppins", sans-serif; }
-    .container { background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); padding: 40px 30px; border-radius: 20px;
-      text-align: center; color: white; width: 90%; max-width: 380px; z-index: 1; box-shadow: 0 4px 30px rgba(0,0,0,0.2); }
-    input, button { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 16px; margin-bottom: 15px; }
-    button { background: #b5179e; color: white; cursor: pointer; transition: 0.3s; }
-    button:hover { background: #9d02a3; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #4b0082, #6b21a8, #9333ea);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: #fff;
+      position: relative;
+    }
+
+    /* Burbujas decorativas */
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .bubble:nth-child(1) { width: 80px; height: 80px; left: 10%; animation-delay: 0s; }
+    .bubble:nth-child(2) { width: 100px; height: 100px; left: 70%; animation-delay: 2s; }
+    .bubble:nth-child(3) { width: 60px; height: 60px; left: 50%; animation-delay: 4s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-30px); }
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 2.5rem;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #e9d5ff;
+      margin-bottom: 1.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
+
+    button {
+      width: 100%;
+      background: #9333ea;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.9rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #7e22ce;
+    }
+
+    .message {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #d1fae5;
+    }
+
+    a {
+      display: block;
+      margin-top: 1rem;
+      color: #e9d5ff;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 2rem 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+
   <div class="container">
-    <h2>¿Olvidaste tu contraseña?</h2>
-    <p>Ingresa tu correo y te enviaremos un enlace para restablecerla.</p>
-    <form id="forgotForm">
-      <input type="email" id="email" placeholder="Correo electrónico" required>
-      <button type="submit">Enviar enlace</button>
-    </form>
+    <h1>¿Olvidaste tu contraseña?</h1>
+    <p>Ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.</p>
+
+    <input type="email" id="email" placeholder="Correo electrónico" required />
+    <button onclick="sendReset()">Enviar enlace</button>
+
+    <div id="msg" class="message"></div>
+
+    <a href="/login.html">Volver al inicio de sesión</a>
   </div>
 
   <script>
-    document.getElementById("forgotForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const res = await fetch("/forgot", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      alert(data.message);
-    });
+    async function sendReset() {
+      const email = document.getElementById("email").value.trim();
+      const msg = document.getElementById("msg");
+
+      if (!email) {
+        msg.textContent = "Por favor, ingresa tu correo electrónico.";
+        msg.style.color = "#fecaca";
+        return;
+      }
+
+      msg.textContent = "Enviando enlace...";
+      msg.style.color = "#e9d5ff";
+
+      try {
+        const response = await fetch("/api/forgot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          msg.textContent = "✅ Se ha enviado un enlace a tu correo.";
+          msg.style.color = "#bbf7d0";
+        } else {
+          msg.textContent = "❌ " + data.message;
+          msg.style.color = "#fecaca";
+        }
+      } catch (error) {
+        msg.textContent = "Error al enviar el correo.";
+        msg.style.color = "#fecaca";
+        console.error(error);
+      }
+    }
   </script>
 </body>
 </html>
