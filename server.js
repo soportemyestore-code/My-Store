@@ -359,6 +359,95 @@ app.get("/api/apps", async (req, res) => {
 });
 
 // ================================
+// 📧 RECUPERAR CONTRASEÑA (Sendinblue / Brevo)
+// ================================
+import nodemailer from "nodemailer";
+import crypto from "crypto";
+
+// Configurar transporter de Sendinblue
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false, // true solo si usas puerto 465
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+// 🧠 Generar token y enviar correo
+app.post("/api/forgot", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+    if (result.rows.length === 0)
+      return res.status(404).json({ message: "No existe una cuenta con ese correo." });
+
+    const user = result.rows[0];
+    const token = crypto.randomBytes(20).toString("hex");
+    const expireDate = new Date(Date.now() + 1000 * 60 * 15); // 15 min
+
+    await db.query(
+      `UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3`,
+      [token, expireDate, user.id]
+    );
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password.html?token=${token}`;
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM,
+      to: email,
+      subject: "🔐 Recuperar tu contraseña - Mi Store",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin:auto; border:1px solid #ddd; border-radius:10px; padding:20px;">
+          <h2 style="color:#6b21a8;">Mi Store</h2>
+          <p>Hola <b>${user.username}</b>,</p>
+          <p>Has solicitado recuperar tu contraseña. Haz clic en el siguiente botón para establecer una nueva:</p>
+          <p style="text-align:center; margin:30px 0;">
+            <a href="${resetLink}" style="background:#6b21a8; color:white; padding:10px 20px; border-radius:5px; text-decoration:none;">Restablecer contraseña</a>
+          </p>
+          <p>Este enlace expirará en 15 minutos.</p>
+          <p>Si no solicitaste este cambio, puedes ignorar este correo.</p>
+        </div>
+      `,
+    });
+
+    res.json({ success: true, message: "Correo de recuperación enviado correctamente." });
+  } catch (error) {
+    console.error("/forgot error:", error);
+    res.status(500).json({ message: "Error al enviar el correo de recuperación." });
+  }
+});
+
+// ✅ Confirmar token y cambiar contraseña
+app.post("/api/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    const result = await db.query(
+      "SELECT * FROM users WHERE reset_token = $1 AND reset_expires > NOW()",
+      [token]
+    );
+
+    if (result.rows.length === 0)
+      return res.status(400).json({ message: "Token inválido o expirado." });
+
+    const user = result.rows[0];
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      "UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2",
+      [hashed, user.id]
+    );
+
+    res.json({ success: true, message: "Contraseña actualizada correctamente." });
+  } catch (error) {
+    console.error("Error al restablecer contraseña:", error);
+    res.status(500).json({ message: "Error interno del servidor." });
+  }
+});
+
+
+// ================================
 // 🚀 INICIAR SERVIDOR
 // ================================
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+
