@@ -1,7 +1,7 @@
 {
   "name": "mi-store-prod",
   "version": "1.0.0",
-  "description": "Tienda de apps - backend Node/Express con PostgreSQL, Cloudinary y Google OAuth",
+  "description": "Tienda de apps - backend Node/Express con PostgreSQL, Cloudinary y recuperación de contraseñas vía Sendinblue",
   "main": "server.js",
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.500.0",
     "@aws-sdk/s3-request-presigner": "^3.500.0",
+    "@sendinblue/client": "^3.2.3",
     "bcrypt": "^5.1.0",
     "better-sqlite3": "^8.3.0",
     "cloudinary": "^1.41.0",
@@ -25,15 +26,21 @@
     "google-auth-library": "^9.0.0",
     "helmet": "^7.1.0",
     "multer": "^1.4.5-lts.2",
+    "nodemailer": "^6.9.15",
     "pg": "^8.10.0",
     "prisma": "^5.11.0",
     "@prisma/client": "^5.11.0",
     "stripe": "^12.0.0",
-    "streamifier": "^0.1.1",
-    "nodemailer": "^6.9.15"
+    "streamifier": "^0.1.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
+  },
+  "engines": {
+    "node": ">=20.x"
+  },
+  "render": {
+    "buildCommand": "",
+    "startCommand": "node server.js"
   }
 }
-
