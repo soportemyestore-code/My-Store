@@ -21,6 +21,9 @@ import SibApiV3Sdk from "@sendinblue/client";
 
 dotenv.config();
 
+const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
+brevo.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -201,11 +204,12 @@ app.post("/forgot", async (req, res) => {
 
     const resetLink = `${BASE_URL}/reset.html?token=${token}`;
 
-    await sibClient.sendTransacEmail({
-      sender: { email: "no-reply@mystore.com", name: "Mi Store" },
+    await brevo.sendTransacEmail({
+      sender: { name: 'Mi Store', email: 'no-reply@mystore.com' },
       to: [{ email }],
-      subject: "🔐 Recupera tu contraseña - Mi Store",
-      htmlContent: `
+      subject: '🔐 Recupera tu contraseña - Mi Store',
+      htmlContent: html,
+    }); `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin:auto; border:1px solid #ddd; border-radius:10px; padding:20px;">
           <h2 style="color:#6b21a8;">Mi Store</h2>
           <p>Hola <b>${user.username}</b>,</p>
@@ -328,3 +332,4 @@ app.get("/api/apps", async (req, res) => {
 // 🚀 INICIAR SERVIDOR
 // ================================
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+
