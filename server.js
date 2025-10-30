@@ -361,8 +361,6 @@ app.get("/api/apps", async (req, res) => {
 // ================================
 // 📧 RECUPERAR CONTRASEÑA (Sendinblue / Brevo)
 // ================================
-import nodemailer from "nodemailer";
-import crypto from "crypto";
 
 // Configurar transporter de Sendinblue
 const transporter = nodemailer.createTransport({
@@ -450,4 +448,5 @@ app.post("/api/reset-password", async (req, res) => {
 // 🚀 INICIAR SERVIDOR
 // ================================
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+
 
