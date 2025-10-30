@@ -1,240 +1,159 @@
-/* styles-admin.css
-   Estilos limpios y coherentes con el tema global: fondo blanco + burbujas púrpuras,
-   tarjetas translúcidas (glass), animaciones suaves y responsivas.
-*/
+/* === GLOBAL RESET === */
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  padding: 0;
+}
 
-/* ===== Reset básico ===== */
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; width: 100%; font-family: "Poppins", sans-serif; }
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  background-color: var(--background);
+}
 
-/* ===== Variables (ajustables) ===== */
-:root{
-  --bg: #ffffff;
+/* === VARIABLES === */
+:root {
   --primary: #7209b7;
   --secondary: #b5179e;
-  --muted: #6b21a8;
-  --text: #241a35;
-  --glass: rgba(255,255,255,0.72);
-  --glass-2: rgba(255,255,255,0.85);
-  --bubble: rgba(128,0,255,0.12);
-  --card-shadow: 0 8px 30px rgba(58,12,163,0.08);
+  --accent: #9d02a3;
+  --text-color: #3a0ca3;
+  --text-light: #ffffff;
+  --background: #ffffff;
+  --bubble: rgba(128, 0, 255, 0.15);
 }
 
-/* ===== Body & background ===== */
-body {
-  background: var(--bg);
-  color: var(--text);
-  overflow-x: hidden;
-  -webkit-font-smoothing:antialiased;
-}
-
-/* Contenedor global para poder posicionar burbujas */
+/* === FONDO ANIMADO === */
 .background {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 0;
   pointer-events: none;
-  background-color: transparent;
+  background-color: var(--background);
+  overflow: hidden;
 }
 
-/* Burbujas reutilizables (usa elementos .bubble con estilos inline para tamaño/posición) */
 .bubble {
   position: absolute;
   border-radius: 50%;
   background: var(--bubble);
-  will-change: transform, opacity;
-  animation: floatUp 22s linear infinite;
-  z-index: 0;
-  filter: blur(.5px);
-  transform: translateY(0);
+  animation: floatUp 20s linear infinite;
 }
+
 @keyframes floatUp {
-  0%   { transform: translateY(20vh) scale(1); opacity: 0.95; }
-  30%  { opacity: 0.9; }
-  70%  { opacity: 0.6; }
-  100% { transform: translateY(-120vh) scale(1.25); opacity: 0; }
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translate(50px, -50vh) scale(1.1); opacity: 0.8; }
+  100% { transform: translate(-30px, -110vh) scale(1.3); opacity: 0; }
 }
 
-/* ===== Page wrapper ===== */
-.admin-panel {
+.bubble:nth-child(1) { width: 120px; height: 120px; top: 15%; left: 10%; animation-delay: 0s; }
+.bubble:nth-child(2) { width: 200px; height: 200px; bottom: 10%; right: 15%; animation-delay: 4s; }
+.bubble:nth-child(3) { width: 80px; height: 80px; top: 70%; left: 25%; animation-delay: 8s; }
+.bubble:nth-child(4) { width: 150px; height: 150px; top: 40%; right: 30%; animation-delay: 2s; }
+.bubble:nth-child(5) { width: 100px; height: 100px; bottom: 5%; left: 40%; animation-delay: 6s; }
+
+/* === HEADER === */
+.admin-header {
   position: relative;
-  z-index: 2;
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 20px;
-}
-
-/* ===== Header ===== */
-header {
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 20px 40px;
   display: flex;
-  gap: 16px;
-  align-items: center;
   justify-content: space-between;
-  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.78));
-  border-radius: 14px;
-  padding: 14px 20px;
-  box-shadow: 0 6px 24px rgba(16,24,40,0.06);
-  backdrop-filter: blur(8px);
-}
-
-.logo-section {
-  display: flex;
-  gap: 12px;
   align-items: center;
-}
-.header-logo {
-  width: 52px;
-  height: 52px;
-  object-fit: cover;
-  border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(58,12,163,0.06);
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  padding: 6px;
+  border-bottom: 2px solid var(--primary);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
 }
 
-.header-title {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-/* Logout */
-.logout-btn {
-  background: linear-gradient(135deg, var(--secondary), var(--primary));
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform .18s ease, box-shadow .18s;
-  box-shadow: 0 6px 18px rgba(181,23,158,0.12);
-}
-.logout-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(149,13,116,0.12); }
-
-/* ===== Cards grid ===== */
-.cards-container {
-  margin-top: 22px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
-}
-
-/* Card base (clickable) */
-.card {
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-  padding: 20px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
-  border: 1px solid rgba(118,75,162,0.06);
-  box-shadow: var(--card-shadow);
-  transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s, background .22s;
+.header-left {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: 110px;
+  align-items: center;
+  gap: 12px;
 }
 
-/* Hover effect */
-.card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 14px 40px rgba(58,12,163,0.12);
-  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(248,244,255,0.96));
+.header-logo {
+  width: 45px;
+  height: 45px;
 }
 
-/* Decorative accent in card */
-.card::before{
-  content: "";
-  position: absolute;
-  right: -30%;
-  top: -30%;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(147,51,234,0.08), rgba(114,9,183,0.06));
-  transform: rotate(15deg);
-  pointer-events: none;
-  transition: opacity .3s;
-  opacity: 0;
+.admin-header h1 {
+  font-size: 1.5rem;
+  color: var(--text-color);
+  font-weight: 600;
 }
-.card:hover::before { opacity: 1; }
 
-/* Card text */
+.logout-btn {
+  background: var(--primary);
+  color: var(--text-light);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: var(--secondary);
+  transform: scale(1.05);
+}
+
+/* === CARDS === */
+.cards-container {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  padding: 60px 10%;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(114, 9, 183, 0.1);
+}
+
 .card h3 {
-  margin: 0;
-  font-size: 1.05rem;
-  color: var(--primary);
+  font-size: 1.3rem;
+  color: var(--text-color);
+  margin-bottom: 10px;
 }
+
 .card p {
-  margin: 0;
-  color: #5a3a79;
+  color: #555;
   font-size: 0.95rem;
 }
 
-/* Make entire card accessible (keyboard) */
-.card:focus { outline: 3px solid rgba(114,9,183,0.14); transform: translateY(-6px); }
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 50px rgba(114, 9, 183, 0.25);
+  border-color: var(--primary);
+}
 
-/* ===== Page transition overlay ===== */
-.page-transition {
-  position: fixed;
-  inset: 0;
-  background: rgba(255,255,255,0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary);
-  font-weight: 700;
-  font-size: 1.05rem;
+/* === FOOTER === */
+.admin-footer {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+  font-size: 0.9rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+/* === TRANSICIÓN PÁGINA === */
+body.page-transition {
+  transition: opacity 0.5s ease;
   opacity: 0;
-  pointer-events: none;
-  transition: opacity .35s ease;
-  z-index: 9999;
 }
-.page-transition.active {
-  opacity: 1;
-  pointer-events: all;
-}
-
-/* ===== Splash (entrance) ===== */
-.splash-screen {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, rgba(114,9,183,0.95), rgba(58,12,163,0.95));
-  color: white;
-  z-index: 9998;
-}
-.splash-logo { width: 96px; border-radius: 12px; margin-bottom: 12px; }
-.splash-text { opacity: .95; }
-
-/* Fade out effect for splash (keep JS control if needed) */
-.splash-screen.hidden { animation: splashFade 0.7s ease forwards; }
-@keyframes splashFade { to { opacity: 0; visibility: hidden; } }
-
-/* ===== Responsive tweaks ===== */
-@media (max-width: 720px) {
-  .admin-panel { padding: 12px; margin: 20px 12px; }
-  header { padding: 12px; border-radius: 12px; }
-  .header-title { font-size: 1rem; }
-  .card { padding: 16px; min-height: 100px; }
-}
-
-/* ===== Small helpers ===== */
-.center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* ===== Utility - clickable focus outline removal for mouse but keep for keyboard ===== */
-.card:focus { outline: none; }
-.card:focus-visible { outline: 3px solid rgba(114,9,183,0.14); }
-
-/* ===== Ensure high contrast for links in cards/footer ===== */
-a { color: var(--primary); text-decoration: none; }
-a:hover { text-decoration: underline; }
