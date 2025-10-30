@@ -5,87 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Iniciar sesión | MyStore</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
-
-    body {
-      margin: 0;
-      height: 100vh;
-      background: linear-gradient(135deg, #7209b7, #3a0ca3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.15);
-      animation: float 6s ease-in-out infinite;
-      z-index: 0;
-    }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-25px); }
-    }
-
-    .login-container {
-      position: relative;
-      z-index: 1;
-      width: 90%;
-      max-width: 380px;
-      padding: 40px 30px;
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(15px);
-      border-radius: 20px;
-      color: white;
-      text-align: center;
-      box-shadow: 0 4px 30px rgba(0,0,0,0.2);
-    }
-
-    .login-container img {
-      width: 80px;
-      margin-bottom: 10px;
-    }
-
-    h2 { margin-bottom: 20px; }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      outline: none;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #b5179e;
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-
-    button:hover { background: #9d02a3; }
-
-    p { font-size: 14px; margin-top: 10px; }
-
-    a { color: #ffb3ff; text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="bubble" style="width: 120px; height: 120px; top: 15%; left: 10%;"></div>
-  <div class="bubble" style="width: 200px; height: 200px; bottom: 10%; right: 15%;"></div>
-  <div class="bubble" style="width: 80px; height: 80px; top: 70%; left: 25%;"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
 
   <div class="login-container">
     <img src="logo.png" alt="MyStore Logo">
