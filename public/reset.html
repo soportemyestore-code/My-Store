@@ -1,68 +1,178 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Restablecer contraseña | MyStore</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restablecer Contraseña - Mi Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
-    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-      background: linear-gradient(135deg,#7209b7,#3a0ca3); color:#fff; }
-    .card { width:90%; max-width:420px; background: rgba(255,255,255,0.06); padding:28px; border-radius:16px;
-      box-shadow:0 8px 30px rgba(0,0,0,0.25); text-align:center; backdrop-filter: blur(8px); }
-    h2 { margin-bottom:12px; color:#ffebff; }
-    p { color:#f0e6f9; margin-bottom:18px; font-size:14px; }
-    input { width:100%; padding:12px; border-radius:10px; border:none; margin-bottom:12px; font-size:15px; }
-    button { width:100%; padding:12px; border-radius:10px; border:none; background:#b5179e; color:#fff; font-weight:600; cursor:pointer;}
-    button:hover{ filter:brightness(.95) }
-    .note { margin-top:14px; font-size:13px; color:#ffdff4; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #4b0082, #6b21a8, #9333ea);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: #fff;
+      position: relative;
+    }
+
+    /* Burbujas decorativas */
+    .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .bubble:nth-child(1) { width: 80px; height: 80px; left: 10%; animation-delay: 0s; }
+    .bubble:nth-child(2) { width: 100px; height: 100px; left: 70%; animation-delay: 2s; }
+    .bubble:nth-child(3) { width: 60px; height: 60px; left: 50%; animation-delay: 4s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-30px); }
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.12);
+      padding: 2.5rem;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #e9d5ff;
+      margin-bottom: 1.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input[type="password"] {
+      background: rgba(255, 255, 255, 0.9);
+      color: #333;
+    }
+
+    button {
+      width: 100%;
+      background: #9333ea;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.9rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #7e22ce;
+    }
+
+    .message {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: #d1fae5;
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 2rem 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h2>Restablecer contraseña</h2>
-    <p>Introduce tu nueva contraseña. El enlace es válido 1 hora.</p>
-    <form id="resetForm">
-      <input type="password" id="password" placeholder="Nueva contraseña" required />
-      <input type="password" id="confirm" placeholder="Confirmar contraseña" required />
-      <button type="submit">Actualizar contraseña</button>
-    </form>
-    <div class="note" id="msg"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+  <div class="bubble"></div>
+
+  <div class="container">
+    <h1>Restablecer Contraseña</h1>
+    <p>Ingresa tu nueva contraseña para continuar.</p>
+
+    <input type="password" id="password" placeholder="Nueva contraseña" required />
+    <input type="password" id="confirmPassword" placeholder="Confirmar contraseña" required />
+
+    <button onclick="resetPassword()">Actualizar contraseña</button>
+
+    <div id="msg" class="message"></div>
   </div>
 
   <script>
-    function qs(key) {
-      const u = new URL(window.location.href);
-      return u.searchParams.get(key);
-    }
+    async function resetPassword() {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const msg = document.getElementById("msg");
 
-    const token = qs('token');
-    if (!token) {
-      document.getElementById('msg').textContent = 'Token no encontrado en la URL.';
-      document.getElementById('resetForm').style.display = 'none';
-    }
-
-    document.getElementById('resetForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const pwd = document.getElementById('password').value;
-      const conf = document.getElementById('confirm').value;
-      const msg = document.getElementById('msg');
-
-      if (pwd.length < 6) { msg.textContent = 'La contraseña debe tener al menos 6 caracteres.'; return; }
-      if (pwd !== conf) { msg.textContent = 'Las contraseñas no coinciden.'; return; }
-
-      const res = await fetch('/reset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password: pwd })
-      });
-      const data = await res.json();
-      msg.textContent = data.message || 'Respuesta desconocida';
-      if (data.message && data.message.toLowerCase().includes('actualizada')) {
-        setTimeout(() => window.location.href = '/login.html', 1800);
+      if (!token) {
+        msg.textContent = "❌ Enlace inválido o expirado.";
+        return;
       }
-    });
+
+      if (password.length < 6) {
+        msg.textContent = "La contraseña debe tener al menos 6 caracteres.";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        msg.textContent = "Las contraseñas no coinciden.";
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/reset-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, newPassword: password }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          msg.style.color = "#bbf7d0";
+          msg.textContent = "✅ Contraseña actualizada correctamente. Redirigiendo...";
+          setTimeout(() => {
+            window.location.href = "/login.html";
+          }, 2000);
+        } else {
+          msg.style.color = "#fecaca";
+          msg.textContent = "❌ " + data.message;
+        }
+      } catch (error) {
+        msg.style.color = "#fecaca";
+        msg.textContent = "Error al restablecer la contraseña.";
+        console.error(error);
+      }
+    }
   </script>
 </body>
 </html>
