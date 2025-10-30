@@ -37,7 +37,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors({ origin: true, credentials: true }));
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 // ================================
 // ⚙️ RATE LIMIT
@@ -87,7 +87,7 @@ if (!process.env.SENDINBLUE_API_KEY) {
 }
 
 const sibClient = new SibApiV3Sdk.TransactionalEmailsApi();
-sibClient.authentications["apiKey"].apiKey = process.env.SENDINBLUE_API_KEY;
+sibClient.authentications.apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
 
 // ================================
 // ✅ Asegurar columnas necesarias en tabla users (reset_token, reset_expires)
@@ -195,13 +195,9 @@ app.post("/forgot", async (req, res) => {
 
     const user = result.rows[0];
     const token = crypto.randomBytes(32).toString("hex");
-    const expires = Date.now() + 15 * 60 * 1000; // 15 minutos
+    const expires = Date.now() + 15 * 60 * 1000;
 
-    await db.query("UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3", [
-      token,
-      expires,
-      user.id,
-    ]);
+    await db.query("UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3", [token, expires, user.id]);
 
     const resetLink = `${BASE_URL}/reset.html?token=${token}`;
 
@@ -242,8 +238,7 @@ app.post("/reset", async (req, res) => {
     if (result.rows.length === 0) return res.json({ message: "Token inválido o expirado." });
 
     const user = result.rows[0];
-    if (Number(user.reset_expires) < Date.now())
-      return res.json({ message: "Token expirado." });
+    if (Number(user.reset_expires) < Date.now()) return res.json({ message: "Token expirado." });
 
     const hashed = await bcrypt.hash(password, 10);
     await db.query("UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2", [
@@ -268,6 +263,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, "_")),
 });
+
 const upload = multer({
   storage,
   limits: { fileSize: 25 * 1024 * 1024 },
