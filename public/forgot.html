@@ -150,10 +150,10 @@
       msg.style.color = "#e9d5ff";
 
       try {
-        const response = await fetch("/api/forgot", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+        const res = await fetch('/forgot', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
         });
 
         const data = await response.json();
