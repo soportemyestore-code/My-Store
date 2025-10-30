@@ -157,10 +157,8 @@ app.post("/login", async (req, res) => {
 
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash || "");
-    if (!valid)
-      return res.json({ success: false, message: "Contraseña incorrecta" });
+    if (!valid) return res.json({ success: false, message: "Contraseña incorrecta" });
 
-    // Guardar sesión
     req.session.user = {
       id: user.id,
       username: user.username,
@@ -387,4 +385,6 @@ app.get("/api/apps", async (req, res) => {
 // ================================
 // 🚀 INICIAR SERVIDOR
 // ================================
-app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+});
