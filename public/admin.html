@@ -26,7 +26,7 @@
   </div>
 
   <!-- 🧩 Panel admin -->
-  <div class="admin-panel">
+  <div class="admin-panel" style="display:none;">
     <header>
       <div class="logo-section">
         <img src="logo.png" alt="My Store Logo" class="header-logo" />
@@ -36,11 +36,6 @@
     </header>
 
     <main class="cards-container">
-      <div class="card" onclick="goTo('upload.html')">
-        <h3>📦 Subir nueva app</h3>
-        <p>Agrega una nueva aplicación a la tienda virtual.</p>
-      </div>
-
       <div class="card" onclick="goTo('/')">
         <h3>🛒 Ver tienda</h3>
         <p>Visualiza cómo se muestran las apps al público.</p>
@@ -63,13 +58,37 @@
   </div>
 
   <script>
-    const transition = document.getElementById("pageTransition");
+    // 🌐 Verificar si el usuario tiene sesión y rol admin
+    async function checkAccess() {
+      try {
+        const res = await fetch("/api/auth/session");
+        if (!res.ok) throw new Error("No autorizado");
 
+        const data = await res.json();
+        if (!data.loggedIn || data.role !== "admin") {
+          alert("🚫 Acceso denegado. Solo administradores pueden entrar aquí.");
+          window.location.href = "/login.html";
+          return;
+        }
+
+        // ✅ Mostrar panel
+        document.querySelector(".admin-panel").style.display = "block";
+        document.querySelector(".splash-screen").style.display = "none";
+      } catch (err) {
+        console.error(err);
+        alert("Debes iniciar sesión para acceder al panel de administración.");
+        window.location.href = "/login.html";
+      }
+    }
+
+    // 🌈 Transición entre páginas
+    const transition = document.getElementById("pageTransition");
     function goTo(url) {
       transition.classList.add("active");
       setTimeout(() => (window.location.href = url), 700);
     }
 
+    // 🚪 Cerrar sesión
     function logout() {
       if (confirm("¿Deseas cerrar sesión?")) {
         transition.classList.add("active");
@@ -78,6 +97,9 @@
           .catch(() => alert("Error al cerrar sesión."));
       }
     }
+
+    // ⏳ Iniciar verificación al cargar
+    document.addEventListener("DOMContentLoaded", checkAccess);
   </script>
 </body>
 </html>
