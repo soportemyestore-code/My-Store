@@ -5,7 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Iniciar sesión | MyStore</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <!-- Estilos globales -->
+  <link rel="stylesheet" href="styles/styles.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/animations.css">
 </head>
 <body>
   <!-- Fondo animado -->
@@ -17,45 +21,49 @@
     <div class="bubble"></div>
   </div>
 
-  <!-- Login -->
-  <div class="login-container">
-    <img src="logo.png" alt="MyStore Logo">
-    <h2>Bienvenido a MyStore</h2>
+  <!-- Contenedor principal del login -->
+  <div class="centered" style="min-height: 100vh; z-index: 1;">
+    <div class="card fade-in" style="max-width: 380px; width: 90%; text-align: center;">
+      <img src="logo.png" alt="MyStore Logo" style="width: 80px; margin-bottom: 10px;">
+      <h2 style="color: var(--primary); margin-bottom: 20px;">Bienvenido a MyStore</h2>
 
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="Correo electrónico" required>
-      <input type="password" id="password" placeholder="Contraseña" required>
-      <button type="submit">Iniciar sesión</button>
-    </form>
+      <form id="loginForm">
+        <input type="email" id="email" placeholder="Correo electrónico" required>
+        <input type="password" id="password" placeholder="Contraseña" required>
+        <button type="submit" class="btn">Iniciar sesión</button>
+      </form>
 
-    <p><a href="register.html">¿No tienes cuenta? Regístrate</a></p>
-    <p><a href="forgot.html">¿Olvidaste tu contraseña?</a></p>
+      <p style="margin-top: 10px;">
+        <a href="register.html">¿No tienes cuenta? Regístrate</a>
+      </p>
+      <p><a href="forgot.html">¿Olvidaste tu contraseña?</a></p>
+    </div>
   </div>
 
+  <!-- Script de login -->
   <script>
-    // === Envío de formulario ===
     document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
 
-      const res = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
+      try {
+        const res = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
 
-      if (data.success) window.location.href = "/";
-      else alert(data.message || "Credenciales incorrectas");
-    });
-
-    // === Efecto Parallax para las burbujas ===
-    const background = document.querySelector(".background");
-    document.addEventListener("mousemove", (e) => {
-      const moveX = (e.clientX / window.innerWidth - 0.5) * 30;
-      const moveY = (e.clientY / window.innerHeight - 0.5) * 30;
-      background.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        if (data.success) {
+          window.location.href = "/";
+        } else {
+          alert(data.message || "Credenciales incorrectas");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión con el servidor.");
+      }
     });
   </script>
 </body>
