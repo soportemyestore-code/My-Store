@@ -1,154 +1,240 @@
-/* 🌈 Fondo y burbujas */
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: #fff;
-  overflow: hidden;
-  font-family: 'Poppins', sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* styles-admin.css
+   Estilos limpios y coherentes con el tema global: fondo blanco + burbujas púrpuras,
+   tarjetas translúcidas (glass), animaciones suaves y responsivas.
+*/
+
+/* ===== Reset básico ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; width: 100%; font-family: "Poppins", sans-serif; }
+
+/* ===== Variables (ajustables) ===== */
+:root{
+  --bg: #ffffff;
+  --primary: #7209b7;
+  --secondary: #b5179e;
+  --muted: #6b21a8;
+  --text: #241a35;
+  --glass: rgba(255,255,255,0.72);
+  --glass-2: rgba(255,255,255,0.85);
+  --bubble: rgba(128,0,255,0.12);
+  --card-shadow: 0 8px 30px rgba(58,12,163,0.08);
 }
 
+/* ===== Body & background ===== */
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Contenedor global para poder posicionar burbujas */
+.background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: transparent;
+}
+
+/* Burbujas reutilizables (usa elementos .bubble con estilos inline para tamaño/posición) */
 .bubble {
   position: absolute;
   border-radius: 50%;
-  background: rgba(147, 51, 234, 0.1);
-  animation: float 6s ease-in-out infinite;
+  background: var(--bubble);
+  will-change: transform, opacity;
+  animation: floatUp 22s linear infinite;
   z-index: 0;
+  filter: blur(.5px);
+  transform: translateY(0);
 }
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-25px); }
+@keyframes floatUp {
+  0%   { transform: translateY(20vh) scale(1); opacity: 0.95; }
+  30%  { opacity: 0.9; }
+  70%  { opacity: 0.6; }
+  100% { transform: translateY(-120vh) scale(1.25); opacity: 0; }
 }
 
-/* 🌟 Splash */
-.splash-screen {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #7209b7, #3a0ca3);
+/* ===== Page wrapper ===== */
+.admin-panel {
+  position: relative;
+  z-index: 2;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+/* ===== Header ===== */
+header {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.78));
+  border-radius: 14px;
+  padding: 14px 20px;
+  box-shadow: 0 6px 24px rgba(16,24,40,0.06);
+  backdrop-filter: blur(8px);
+}
+
+.logo-section {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.header-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(58,12,163,0.06);
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  padding: 6px;
+}
+
+.header-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+/* Logout */
+.logout-btn {
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
   color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform .18s ease, box-shadow .18s;
+  box-shadow: 0 6px 18px rgba(181,23,158,0.12);
+}
+.logout-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(149,13,116,0.12); }
+
+/* ===== Cards grid ===== */
+.cards-container {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+/* Card base (clickable) */
+.card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 20px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+  border: 1px solid rgba(118,75,162,0.06);
+  box-shadow: var(--card-shadow);
+  transition: transform .22s cubic-bezier(.2,.9,.3,1), box-shadow .22s, background .22s;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-.splash-logo {
-  width: 120px;
-  margin-bottom: 20px;
-  animation: pop 1s ease-in-out infinite alternate;
-}
-.splash-text { font-size: 1.2rem; opacity: 0.9; }
-@keyframes pop {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1); }
+  gap: 8px;
+  min-height: 110px;
 }
 
-/* ⚡ Transición */
+/* Hover effect */
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 14px 40px rgba(58,12,163,0.12);
+  background: linear-gradient(180deg, rgba(255,255,255,1), rgba(248,244,255,0.96));
+}
+
+/* Decorative accent in card */
+.card::before{
+  content: "";
+  position: absolute;
+  right: -30%;
+  top: -30%;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(147,51,234,0.08), rgba(114,9,183,0.06));
+  transform: rotate(15deg);
+  pointer-events: none;
+  transition: opacity .3s;
+  opacity: 0;
+}
+.card:hover::before { opacity: 1; }
+
+/* Card text */
+.card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--primary);
+}
+.card p {
+  margin: 0;
+  color: #5a3a79;
+  font-size: 0.95rem;
+}
+
+/* Make entire card accessible (keyboard) */
+.card:focus { outline: 3px solid rgba(114,9,183,0.14); transform: translateY(-6px); }
+
+/* ===== Page transition overlay ===== */
 .page-transition {
   position: fixed;
   inset: 0;
-  background: rgba(147, 51, 234, 0.9);
+  background: rgba(255,255,255,0.92);
   display: flex;
-  justify-content: center;
   align-items: center;
-  color: white;
-  font-size: 1.5rem;
+  justify-content: center;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 1.05rem;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.5s;
-  z-index: 998;
+  transition: opacity .35s ease;
+  z-index: 9999;
 }
 .page-transition.active {
   opacity: 1;
   pointer-events: all;
 }
 
-/* 🧩 Panel */
-.admin-panel {
-  z-index: 1;
-  width: 100%;
-  max-width: 1100px;
-  padding: 40px 20px;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-}
-
-.logo-section {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.header-logo {
-  width: 50px;
-  border-radius: 12px;
-}
-
-.logout-btn {
-  background: #9333ea;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-.logout-btn:hover {
-  background: #7e22ce;
-}
-
-/* 🪄 Tarjetas */
-.cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
-}
-
-.card {
-  background: rgba(147, 51, 234, 0.07);
-  border-radius: 15px;
-  padding: 25px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(147, 51, 234, 0.2);
-}
-.card::after {
-  content: "";
-  position: absolute;
+/* ===== Splash (entrance) ===== */
+.splash-screen {
+  position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.15), rgba(58, 12, 163, 0.1));
-  opacity: 0;
-  transition: opacity 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(114,9,183,0.95), rgba(58,12,163,0.95));
+  color: white;
+  z-index: 9998;
 }
-.card:hover::after {
-  opacity: 1;
-}
-.card h3 {
-  margin-bottom: 10px;
-  color: #3a0ca3;
-}
-.card p {
-  color: #5b21b6;
+.splash-logo { width: 96px; border-radius: 12px; margin-bottom: 12px; }
+.splash-text { opacity: .95; }
+
+/* Fade out effect for splash (keep JS control if needed) */
+.splash-screen.hidden { animation: splashFade 0.7s ease forwards; }
+@keyframes splashFade { to { opacity: 0; visibility: hidden; } }
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 720px) {
+  .admin-panel { padding: 12px; margin: 20px 12px; }
+  header { padding: 12px; border-radius: 12px; }
+  .header-title { font-size: 1rem; }
+  .card { padding: 16px; min-height: 100px; }
 }
 
-/* 🦶 Footer */
-footer {
-  text-align: center;
-  margin-top: 40px;
-  font-size: 0.9rem;
-  color: #777;
+/* ===== Small helpers ===== */
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+/* ===== Utility - clickable focus outline removal for mouse but keep for keyboard ===== */
+.card:focus { outline: none; }
+.card:focus-visible { outline: 3px solid rgba(114,9,183,0.14); }
+
+/* ===== Ensure high contrast for links in cards/footer ===== */
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
