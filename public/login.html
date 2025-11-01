@@ -98,31 +98,31 @@
 
   <!-- Script de login -->
   <script>
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
 
-      try {
-        const res = await fetch("/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
+    try {
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // 🔥 NUEVO: para mantener la cookie de sesión
+        body: JSON.stringify({ email, password })
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (data.success) {
-          // Redirige según el rol
-          window.location.href = data.redirect || "/index.html";
-        } else {
-          alert(data.message || "Credenciales incorrectas");
-        }
-      } catch (err) {
-        console.error(err);
-        alert("Error de conexión con el servidor.");
+      if (data.success) {
+        window.location.href = data.redirect; // 🔥 redirige según rol
+      } else {
+        alert(data.message || "Credenciales incorrectas");
       }
-    });
-  </script>
+    } catch (err) {
+      console.error(err);
+      alert("Error de conexión con el servidor.");
+    }
+  });
+</script>
 </body>
 </html>
