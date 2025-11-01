@@ -19,7 +19,6 @@
       0% { transform: translateY(40px); opacity: 0; }
       100% { transform: translateY(0); opacity: 1; }
     }
-
     .lift-up {
       animation: liftUp 0.8s ease-out forwards;
     }
@@ -65,6 +64,47 @@
     a:hover {
       text-decoration: underline;
     }
+
+    /* === POPUP DE BIENVENIDA === */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    .popup {
+      background: white;
+      border-radius: 16px;
+      padding: 30px 40px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      transform: scale(0.8);
+      opacity: 0;
+      animation: popIn 0.4s ease forwards;
+    }
+
+    .popup h3 {
+      color: var(--primary);
+      font-size: 1.4rem;
+      margin-bottom: 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes popIn {
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
   </style>
 </head>
 <body>
@@ -96,33 +136,47 @@
     </div>
   </div>
 
+  <!-- Popup oculto inicialmente -->
+  <div id="welcomePopup" class="popup-overlay" style="display: none;">
+    <div class="popup">
+      <h3>Bienvenido a My Store</h3>
+    </div>
+  </div>
+
   <!-- Script de login -->
   <script>
-  document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
 
-    try {
-      const res = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // 🔥 NUEVO: para mantener la cookie de sesión
-        body: JSON.stringify({ email, password })
-      });
+      try {
+        const res = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include", // Mantiene la cookie de sesión
+          body: JSON.stringify({ email, password })
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (data.success) {
-        window.location.href = data.redirect; // 🔥 redirige según rol
-      } else {
-        alert(data.message || "Credenciales incorrectas");
+        if (data.success) {
+          // 🔥 Mostrar popup de bienvenida
+          const popup = document.getElementById("welcomePopup");
+          popup.style.display = "flex";
+
+          // 🔁 Redirigir después de 2 segundos
+          setTimeout(() => {
+            window.location.href = data.redirect;
+          }, 2000);
+        } else {
+          alert(data.message || "Credenciales incorrectas");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error de conexión con el servidor.");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error de conexión con el servidor.");
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>
