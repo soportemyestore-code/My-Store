@@ -51,31 +51,32 @@
 
   <!-- 🧠 Lógica JS -->
   <script>
-    async function checkSession() {
-      try {
-        const res = await fetch("/api/session", { credentials: "include" });
-        const data = await res.json();
-        if (!data.loggedIn || data.role !== "admin") {
-          window.location.href = "/login.html";
-        }
-      } catch (error) {
-        console.error("Error verificando sesión:", error);
+  async function checkSession() {
+    try {
+      const res = await fetch("/api/session", { credentials: "include" });
+      const data = await res.json();
+      if (!data.loggedIn || data.role !== "admin") {
         window.location.href = "/login.html";
       }
-    }
-
-    function goTo(url) {
-      document.body.classList.add("page-transition");
-      setTimeout(() => (window.location.href = url), 500);
-    }
-
-    async function logout() {
-      if (!confirm("¿Deseas cerrar sesión?")) return;
-      await fetch("/logout", { method: "POST", credentials: "include" });
+    } catch (error) {
+      console.error("Error verificando sesión:", error);
       window.location.href = "/login.html";
     }
+  }
 
-    checkSession();
-  </script>
+  function goTo(url) {
+    document.body.classList.add("page-transition");
+    setTimeout(() => (window.location.href = url), 500);
+  }
+
+  async function logout() {
+    if (!confirm("¿Deseas cerrar sesión?")) return;
+    await fetch("/logout", { method: "POST", credentials: "include" }); 
+    window.location.href = "/login.html";
+  }
+
+  checkSession();
+</script>
 </body>
 </html>
+
