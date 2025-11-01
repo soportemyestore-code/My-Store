@@ -159,6 +159,7 @@ app.post("/login", async (req, res) => {
     const valid = await bcrypt.compare(password, user.password_hash || "");
     if (!valid) return res.json({ success: false, message: "Contraseña incorrecta" });
 
+    // 🔥 NUEVO: guardar la sesión
     req.session.user = {
       id: user.id,
       username: user.username,
@@ -166,7 +167,15 @@ app.post("/login", async (req, res) => {
       email: user.email,
     };
 
-    res.json({ success: true, message: "Inicio de sesión correcto", user: req.session.user });
+    // 🔥 NUEVO: determinar redirección según el rol
+    const redirect = user.role === "admin" ? "/admin.html" : "/index.html";
+
+    res.json({
+      success: true,
+      message: "Inicio de sesión correcto",
+      user: req.session.user,
+      redirect,
+    });
   } catch (err) {
     console.error("❌ /login error:", err);
     res.status(500).json({ success: false, message: "Error interno" });
@@ -176,7 +185,7 @@ app.post("/login", async (req, res) => {
 // ================================
 // 🚪 LOGOUT
 // ================================
-app.post("/api/logout", (req, res) => {
+app.post("/logout", (req, res) => { // 🔥 ruta corregida (coherente con frontend)
   req.session.destroy(() => {
     res.clearCookie("connect.sid");
     res.json({ success: true, message: "Sesión cerrada correctamente" });
@@ -187,8 +196,12 @@ app.post("/api/logout", (req, res) => {
 // 🔎 CONSULTAR SESIÓN ACTUAL
 // ================================
 app.get("/api/session", (req, res) => {
-  if (req.session.user) return res.json(req.session.user);
-  res.json(null);
+  if (req.session.user)
+    return res.json({
+      loggedIn: true,
+      ...req.session.user,
+    });
+  res.json({ loggedIn: false });
 });
 
 // ================================
@@ -214,81 +227,6 @@ app.post("/register", async (req, res) => {
   } catch (err) {
     console.error("❌ /register error:", err);
     res.status(500).json({ success: false, message: "Error interno" });
-  }
-});
-
-// ================================
-// 🔄 OLVIDÉ MI CONTRASEÑA
-// ================================
-app.post("/forgot", async (req, res) => {
-  try {
-    const { email } = req.body;
-    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
-    if (result.rows.length === 0)
-      return res.json({ message: "Si el correo existe, se enviará un enlace de recuperación." });
-
-    const user = result.rows[0];
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires = Date.now() + 15 * 60 * 1000;
-
-    await db.query("UPDATE users SET reset_token=$1, reset_expires=$2 WHERE id=$3", [
-      token,
-      expires,
-      user.id,
-    ]);
-
-    const resetLink = `${BASE_URL}/reset.html?token=${token}`;
-    const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 480px; margin:auto; border:1px solid #ddd; border-radius:10px; padding:20px;">
-        <h2 style="color:#6b21a8;">Mi Store</h2>
-        <p>Hola <b>${user.username}</b>,</p>
-        <p>Haz clic en el siguiente botón para restablecer tu contraseña:</p>
-        <p style="text-align:center; margin:30px 0;">
-          <a href="${resetLink}" style="background:#6b21a8; color:white; padding:10px 20px; border-radius:5px; text-decoration:none;">Restablecer contraseña</a>
-        </p>
-        <p>Este enlace expirará en 15 minutos.</p>
-      </div>
-    `;
-
-    await brevo.sendTransacEmail({
-      sender: { name: "Mi Store", email: "no-reply@mystore.com" },
-      to: [{ email }],
-      subject: "🔐 Recupera tu contraseña - Mi Store",
-      htmlContent: html,
-    });
-
-    res.json({
-      message: "Si el correo existe, se enviará un enlace para restablecer la contraseña.",
-    });
-  } catch (err) {
-    console.error("❌ /forgot error:", err);
-    res.status(500).json({ message: "Error al enviar correo de recuperación." });
-  }
-});
-
-// ================================
-// 🔁 RESTABLECER CONTRASEÑA
-// ================================
-app.post("/reset", async (req, res) => {
-  try {
-    const { token, password } = req.body;
-    const result = await db.query("SELECT * FROM users WHERE reset_token = $1", [token]);
-    if (result.rows.length === 0) return res.json({ message: "Token inválido o expirado." });
-
-    const user = result.rows[0];
-    if (Number(user.reset_expires) < Date.now())
-      return res.json({ message: "Token expirado." });
-
-    const hashed = await bcrypt.hash(password, 10);
-    await db.query(
-      "UPDATE users SET password_hash=$1, reset_token=NULL, reset_expires=NULL WHERE id=$2",
-      [hashed, user.id]
-    );
-
-    res.json({ message: "Contraseña actualizada correctamente." });
-  } catch (err) {
-    console.error("❌ /reset error:", err);
-    res.status(500).json({ message: "Error interno del servidor." });
   }
 });
 
