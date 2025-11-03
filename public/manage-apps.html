@@ -1,452 +1,206 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gestionar Aplicaciones - My Store (PRO)</title>
-  <link rel="stylesheet" href="styles/styles-admin.css">  
-  <link rel="icon" href="logo.png" type="image/png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestionar Aplicaciones</title>
+  <link rel="stylesheet" href="styles-admin.css">
 </head>
 <body>
+  <div class="admin-container">
+    <header class="admin-header">
+      <h1>📱 Gestión de Aplicaciones</h1>
+      <button id="logoutBtn" class="btn-logout">Cerrar sesión</button>
+    </header>
 
-<header class="app-header">
-  <div class="brand">
-    <img src="logo.png" alt="logo"/>
-    <div>
-      <h1>My Store · Panel</h1>
-      <small class="small-muted">Panel · administración</small>
-    </div>
+    <section class="admin-content">
+      <div class="actions">
+        <button id="createBtn" class="btn-primary">➕ Crear nueva app</button>
+      </div>
+
+      <div id="appsList" class="cards-container"></div>
+    </section>
   </div>
 
-  <div class="header-actions">
-    <button class="btn" id="refreshBtn">🔄 Actualizar</button>
-    <button class="btn" id="newBtn" style="background:var(--accent)">➕ Nueva app</button>
-    <a class="btn secondary" href="admin.html">↩️ Volver al panel principal</a>
-  </div>
-</header>
+  <!-- Modal -->
+  <div id="appModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalTitle">Nueva Aplicación</h2>
+      <form id="modalForm">
+        <input type="hidden" id="modalId" />
 
-<main class="container">
-  <div class="topbar">
-    <h2 class="title">📋 Administrar Aplicaciones</h2>
-
-    <div class="controls">
-      <div class="search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35" stroke="#374151" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="5" stroke="#374151" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <input id="searchInput" type="text" placeholder="Buscar por nombre..." />
-      </div>
-
-      <select id="categorySelect" class="select" aria-label="Filtrar por categoría">
-        <option value="">Todas las categorías</option>
-      </select>
-
-      <select id="sortSelect" class="select">
-        <option value="new">Más recientes</option>
-        <option value="old">Más antiguas</option>
-        <option value="name_asc">Nombre A → Z</option>
-        <option value="name_desc">Nombre Z → A</option>
-      </select>
-
-      <button id="editCategoriesBtn" class="tiny-btn">⚙️ Administrar categorías</button>
-      <button id="clearFilter" class="tiny-btn">Limpiar</button>
-    </div>
-  </div>
-
-  <div id="appsGrid" class="apps-grid" aria-live="polite"></div>
-</main>
-
-<div id="toast" class="toast" role="status" aria-live="polite"></div>
-
-<!-- Modal Crear/Editar App -->
-<div id="modalBackdrop" class="modal-backdrop" style="display:none;" aria-hidden="true">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <h3 id="modalTitle">Editar aplicación</h3>
-    <form id="modalForm">
-      <input type="hidden" id="modalId" name="id" />
-      <div class="row">
-        <div style="flex:1;min-width:220px">
-          <label for="modalName">Nombre</label>
-          <input id="modalName" name="name" type="text" placeholder="Nombre de la app" required />
-        </div>
-
-        <div style="width:140px;display:flex;flex-direction:column;align-items:center;gap:8px">
-          <label>Preview</label>
-          <img id="modalPreview" class="preview" src="placeholder.png" alt="preview" />
-          <div id="paidBadge" class="small-muted" style="display:none;">💰 De pago</div>
-        </div>
-      </div>
-
-      <div>
-        <label for="modalDesc">Descripción</label>
-        <textarea id="modalDesc" name="description" rows="4"></textarea>
-      </div>
-
-      <div class="row" style="align-items:center;">
-        <div style="min-width:200px">
-          <label for="modalCategory">Categoría</label>
-          <select id="modalCategory" name="category_id" class="select">
-            <option value="">-- Seleccionar categoría --</option>
-          </select>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:8px">
-          <label for="modalIsPaid">¿Es de pago?</label>
-          <input type="checkbox" id="modalIsPaid" name="is_paid" />
-        </div>
-      </div>
-
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;align-items:center">
-        <div>
-          <label for="modalImage">Imagen (opcional)</label>
-          <input id="modalImage" name="image" type="file" accept="image/*" />
+        <div class="form-row">
+          <div>
+            <label>Nombre</label>
+            <input id="modalName" required />
+          </div>
+          <div>
+            <label>Categoría</label>
+            <select id="modalCategory" required></select>
+          </div>
         </div>
 
         <div>
-          <label for="modalApk">APK (opcional)</label>
-          <input id="modalApk" name="apk" type="file" accept=".apk" />
+          <label>Descripción</label>
+          <textarea id="modalDescription" required></textarea>
         </div>
-      </div>
 
-      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
-        <button type="button" id="modalCancel" class="btn secondary">Cancelar</button>
-        <button type="submit" id="modalSave" class="btn">Guardar cambios</button>
-      </div>
-    </form>
-  </div>
-</div>
+        <div class="form-row">
+          <div>
+            <label><input type="checkbox" id="modalIsPaid" /> ¿Es de pago?</label>
+          </div>
+          <div style="min-width:160px">
+            <label for="modalPrice">💵 Precio (USD)</label>
+            <input id="modalPrice" name="price" type="number" step="0.01" min="0" placeholder="0.00" />
+          </div>
+        </div>
 
-<!-- Modal Editar Categorías -->
-<div id="catModalBackdrop" class="modal-backdrop" style="display:none;" aria-hidden="true">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
-    <h3 id="catModalTitle">Gestionar categorías</h3>
-
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
-      <input id="newCategoryInput" type="text" placeholder="Nombre categoría (ej. Juegos)" style="padding:8px;border-radius:8px;border:1px solid #ddd;flex:1" />
-      <button id="addCategoryBtn" class="btn">Añadir</button>
-    </div>
-
-    <div id="categoriesList" style="display:flex;flex-direction:column;gap:8px"></div>
-
-    <div style="display:flex;justify-content:flex-end;margin-top:12px">
-      <button id="catModalClose" class="btn secondary">Cerrar</button>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Guardar</button>
+          <button type="button" id="cancelBtn" class="btn-secondary">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
-</div>
 
-<script>
-  // ---------- Estado ----------
-  let apps = [];
-  let categories = [];
-  let editingId = null;
-  let lastObjectUrl = null;
+  <script>
+    const appsList = document.getElementById('appsList');
+    const createBtn = document.getElementById('createBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const modal = document.getElementById('appModal');
+    const modalForm = document.getElementById('modalForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalId = document.getElementById('modalId');
+    const modalName = document.getElementById('modalName');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalIsPaid = document.getElementById('modalIsPaid');
+    const modalPrice = document.getElementById('modalPrice');
+    const cancelBtn = document.getElementById('cancelBtn');
 
-  const toastEl = document.getElementById('toast');
-  const appsGrid = document.getElementById('appsGrid');
-
-  function showToast(msg, ok=true){
-    toastEl.textContent = msg;
-    toastEl.style.background = ok ? '#10b981' : '#ef4444';
-    toastEl.classList.add('show');
-    setTimeout(()=> toastEl.classList.remove('show'), 3000);
-  }
-
-  async function safeFetch(path, opts = {}){
-    const res = await fetch(path, { credentials: 'include', ...opts });
-    const ctype = res.headers.get('content-type') || '';
-    if(ctype.includes('application/json')){
-      const json = await res.json();
-      if(!res.ok) throw json;
-      return json;
-    } else {
-      const text = await res.text();
-      if(!res.ok) throw { message: text || 'Error' };
-      return text;
-    }
-  }
-
-  // ---------- CARGAR CATEGORÍAS y POPULAR selects ----------
-  async function loadCategories(){
-    try {
-      categories = await safeFetch('/api/categories');
-    } catch (err) {
-      console.error('Error cargando categorias', err);
-      categories = [];
-    }
-    populateCategorySelects();
-    renderCategoriesList();
-  }
-
-  function populateCategorySelects(){
-    const sel = document.getElementById('categorySelect');
-    const modalSel = document.getElementById('modalCategory');
-    const current = sel.value;
-    sel.innerHTML = '<option value="">Todas las categorías</option>';
-    modalSel.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
-    categories.forEach(c => {
-      const o = document.createElement('option'); o.value = c.id; o.textContent = c.name;
-      sel.appendChild(o);
-      const o2 = o.cloneNode(true);
-      modalSel.appendChild(o2);
+    // Oculta o muestra el campo de precio
+    modalPrice.parentElement.style.display = 'none';
+    modalIsPaid.addEventListener('change', () => {
+      modalPrice.parentElement.style.display = modalIsPaid.checked ? 'block' : 'none';
     });
-    if([...categories.map(c=>String(c.id))].includes(current)) sel.value = current;
-  }
 
-  function renderCategoriesList(){
-    const wrap = document.getElementById('categoriesList');
-    wrap.innerHTML = '';
-    categories.forEach(c=>{
-      const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between';
-      const left = document.createElement('div'); left.textContent = c.name;
-      const btn = document.createElement('button'); btn.className='btn secondary'; btn.textContent='Eliminar';
-      btn.addEventListener('click', ()=> removeCategory(c.id));
-      row.appendChild(left); row.appendChild(btn);
-      wrap.appendChild(row);
+    // Abrir modal para crear
+    createBtn.addEventListener('click', () => openCreate());
+    cancelBtn.addEventListener('click', () => closeModal());
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      location.href = '/';
     });
-  }
 
-  async function addCategory(name){
-    try {
-      const res = await safeFetch('/api/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name }) });
-      categories.push(res);
-      populateCategorySelects();
-      renderCategoriesList();
-      showToast('Categoría añadida');
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || 'Error al agregar categoría', false);
-    }
-  }
-
-  async function removeCategory(id){
-    if(!confirm('Eliminar categoría? Las apps perderán su categoría.')) return;
-    try {
-      await safeFetch(`/api/categories/${id}`, { method: 'DELETE' });
-      categories = categories.filter(c=>c.id !== id);
-      populateCategorySelects();
-      renderCategoriesList();
-      showToast('Categoría eliminada');
-      await fetchApps(); // actualizar apps para mostrar cambios
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || 'Error al eliminar', false);
-    }
-  }
-
-  // ---------- CARGAR APPS ----------
-  async function fetchApps(){
-    try {
-      document.getElementById('refreshBtn').textContent = '⏳ Cargando...';
-      document.getElementById('refreshBtn').disabled = true;
-      const data = await safeFetch('/api/apps');
-      apps = Array.isArray(data) ? data : (data.items || []);
-      renderApps();
-      populateCategorySelects();
-    } catch (err) {
-      console.error(err);
-      showToast(err.message || 'Error cargando apps', false);
-    } finally {
-      document.getElementById('refreshBtn').textContent = '🔄 Actualizar';
-      document.getElementById('refreshBtn').disabled = false;
-    }
-  }
-
-  function renderApps(){
-    const q = document.getElementById('searchInput').value.trim().toLowerCase();
-    const catFilter = document.getElementById('categorySelect').value;
-    let list = apps.filter(a => (a.name && a.name.toLowerCase().includes(q)) || (a.description && a.description.toLowerCase().includes(q)));
-    if(catFilter) list = list.filter(a => String(a.category_id) === String(catFilter));
-
-    const sortVal = document.getElementById('sortSelect').value;
-    if(sortVal==='new') list.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
-    if(sortVal==='old') list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
-    if(sortVal==='name_asc') list.sort((a,b)=> a.name.localeCompare(b.name));
-    if(sortVal==='name_desc') list.sort((a,b)=> b.name.localeCompare(a.name));
-
-    appsGrid.innerHTML = '';
-    if(list.length===0){
-      appsGrid.innerHTML = '<p style="text-align:center;color:var(--muted)">No se encontraron aplicaciones.</p>'; return;
+    function openCreate() {
+      modalId.value = '';
+      modalTitle.textContent = 'Nueva Aplicación';
+      modalName.value = '';
+      modalDescription.value = '';
+      modalCategory.value = '';
+      modalIsPaid.checked = false;
+      modalPrice.value = '';
+      modalPrice.parentElement.style.display = 'none';
+      modal.classList.remove('hidden');
     }
 
-    list.forEach(app=>{
-      const card = document.createElement('div'); card.className='card';
-      const meta = document.createElement('div'); meta.className='meta';
-      const img = document.createElement('img'); img.src = app.image || 'placeholder.png';
-      const info = document.createElement('div'); info.className='info';
-      const h3 = document.createElement('h3'); h3.textContent = app.name;
-      const small = document.createElement('small'); small.textContent = `${app.category_name || 'Sin categoría'} · ${new Date(app.created_at).toLocaleString()}`;
-      info.appendChild(h3); info.appendChild(small);
-      meta.appendChild(img); meta.appendChild(info);
-      card.appendChild(meta);
+    function openEdit(app) {
+      modalId.value = app.id;
+      modalTitle.textContent = 'Editar Aplicación';
+      modalName.value = app.name;
+      modalDescription.value = app.description;
+      modalCategory.value = app.category_id || '';
+      modalIsPaid.checked = app.is_paid;
+      modalPrice.value = app.price || '';
+      modalPrice.parentElement.style.display = app.is_paid ? 'block' : 'none';
+      modal.classList.remove('hidden');
+    }
 
-      const desc = document.createElement('div'); desc.className='desc'; desc.textContent = app.description || '';
-      card.appendChild(desc);
+    function closeModal() {
+      modal.classList.add('hidden');
+    }
 
-      const actions = document.createElement('div'); actions.className='card-actions';
-      const link = document.createElement('a'); link.className='link-apk'; link.href = app.apk || '#'; link.target='_blank'; link.rel='noopener'; link.textContent='⬇️ Descargar APK';
-      actions.appendChild(link);
-
-      if(app.is_paid){
-        const paidTag = document.createElement('div'); paidTag.textContent='💰 Pago'; paidTag.style.marginRight='8px'; paidTag.className='small-muted';
-        actions.appendChild(paidTag);
-      }
-
-      const editBtn = document.createElement('button'); editBtn.className='edit'; editBtn.textContent='✏️ Editar';
-      editBtn.addEventListener('click', ()=> openEdit(app.id));
-      actions.appendChild(editBtn);
-
-      const delBtn = document.createElement('button'); delBtn.className='danger'; delBtn.textContent='🗑️ Eliminar';
-      delBtn.addEventListener('click', ()=> confirmDelete(app.id, delBtn));
-      actions.appendChild(delBtn);
-
-      card.appendChild(actions);
-      appsGrid.appendChild(card);
-    });
-  }
-
-  // ---------- DELETE ----------
-  async function confirmDelete(id, btn){
-    if(!confirm('¿Seguro?')) return;
-    try {
-      btn.disabled = true; btn.textContent = 'Eliminando...';
-      await safeFetch(`/apps/${id}`, { method: 'DELETE' });
-      apps = apps.filter(a=>a.id !== id);
-      renderApps();
-      showToast('Eliminado');
-    } catch (err) {
-      console.error(err); showToast(err.message || 'Error', false);
-    } finally { btn.disabled = false; btn.textContent = '🗑️ Eliminar'; }
-  }
-
-  // ---------- MODAL APP ----------
-  const modalBackdrop = document.getElementById('modalBackdrop');
-  const modalForm = document.getElementById('modalForm');
-  const modalId = document.getElementById('modalId');
-  const modalName = document.getElementById('modalName');
-  const modalDesc = document.getElementById('modalDesc');
-  const modalImage = document.getElementById('modalImage');
-  const modalApk = document.getElementById('modalApk');
-  const modalPreview = document.getElementById('modalPreview');
-  const modalIsPaid = document.getElementById('modalIsPaid');
-  const modalCategory = document.getElementById('modalCategory');
-  const modalSave = document.getElementById('modalSave');
-  const modalCancel = document.getElementById('modalCancel');
-
-  document.getElementById('newBtn').addEventListener('click', openCreate);
-  document.getElementById('refreshBtn').addEventListener('click', fetchApps);
-
-  function openCreate(){
-    editingId = null;
-    modalId.value = '';
-    modalName.value = '';
-    modalDesc.value = '';
-    modalPreview.src = 'placeholder.png';
-    modalImage.value = '';
-    modalApk.value = '';
-    modalIsPaid.checked = false;
-    modalCategory.value = '';
-    document.getElementById('modalTitle').textContent = 'Crear nueva aplicación';
-    showModal(modalBackdrop);
-  }
-
-  function openEdit(id){
-    const app = apps.find(a=>a.id===id);
-    if(!app){ showToast('App no encontrada', false); return; }
-    editingId = id;
-    modalId.value = id;
-    modalName.value = app.name || '';
-    modalDesc.value = app.description || '';
-    modalPreview.src = app.image || 'placeholder.png';
-    modalImage.value = '';
-    modalApk.value = '';
-    modalIsPaid.checked = !!app.is_paid;
-    modalCategory.value = app.category_id || '';
-    document.getElementById('modalTitle').textContent = 'Editar aplicación';
-    showModal(modalBackdrop);
-  }
-
-  function showModal(el){
-    el.style.display = 'flex';
-    el.setAttribute('aria-hidden', 'false');
-    setTimeout(()=> modalName.focus(), 80);
-  }
-  function closeModal(el){
-    el.style.display = 'none';
-    el.setAttribute('aria-hidden', 'true');
-    if(lastObjectUrl){ URL.revokeObjectURL(lastObjectUrl); lastObjectUrl = null; }
-  }
-
-  modalCancel.addEventListener('click', ()=> closeModal(modalBackdrop));
-  modalImage.addEventListener('change', (e)=>{
-    const f = e.target.files[0];
-    if(f){ if(lastObjectUrl) URL.revokeObjectURL(lastObjectUrl); lastObjectUrl = URL.createObjectURL(f); modalPreview.src = lastObjectUrl; }
-  });
-
-  modalForm.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const name = modalName.value.trim();
-    if(!name){ alert('El nombre es obligatorio'); return; }
-    modalSave.disabled = true; modalSave.textContent = '⏳ Guardando...';
-    try {
+    modalForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = modalId.value;
       const fd = new FormData();
-      fd.append('name', name);
-      fd.append('description', modalDesc.value.trim());
-      fd.append('category_id', modalCategory.value || '');
-      fd.append('is_paid', modalIsPaid.checked ? 'true' : 'false');
-      if(modalImage.files[0]) fd.append('image', modalImage.files[0]);
-      if(modalApk.files[0]) fd.append('apk', modalApk.files[0]);
+      fd.append('name', modalName.value);
+      fd.append('description', modalDescription.value);
+      fd.append('category_id', modalCategory.value);
+      fd.append('is_paid', modalIsPaid.checked);
+      fd.append('price', modalIsPaid.checked ? modalPrice.value || '0' : '0');
 
-      let res;
-      if(editingId){
-        res = await fetch(`/apps/${editingId}`, { method: 'PUT', body: fd, credentials: 'include' });
-      } else {
-        res = await fetch('/apps', { method: 'POST', body: fd, credentials: 'include' });
-      }
+      const method = id ? 'PUT' : 'POST';
+      const url = id ? `/api/apps/${id}` : '/api/apps';
 
-      const ctype = res.headers.get('content-type') || '';
-      const data = ctype.includes('application/json') ? await res.json() : await res.text();
+      await fetch(url, { method, body: fd });
+      closeModal();
+      loadApps();
+    });
 
-      if(!res.ok) throw new Error(data.message || JSON.stringify(data));
-      showToast(editingId ? 'Actualización guardada' : 'App creada');
-      closeModal(modalBackdrop);
-      await loadCategories(); // refrescar categorías por si hay cambios
-      await fetchApps();
-    } catch (err) {
-      console.error(err); showToast(err.message || 'Error', false);
-    } finally {
-      modalSave.disabled = false; modalSave.textContent = 'Guardar cambios';
+    async function loadCategories() {
+      const res = await fetch('/api/categories');
+      const categories = await res.json();
+      modalCategory.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     }
-  });
 
-  // ---------- Modal CATEGORIAS ----------
-  const catModal = document.getElementById('catModalBackdrop');
-  const editCategoriesBtn = document.getElementById('editCategoriesBtn');
-  const catModalClose = document.getElementById('catModalClose');
-  const newCategoryInput = document.getElementById('newCategoryInput');
-  const addCategoryBtn = document.getElementById('addCategoryBtn');
+    async function loadApps() {
+      const res = await fetch('/api/apps');
+      const apps = await res.json();
+      renderApps(apps);
+    }
 
-  editCategoriesBtn.addEventListener('click', ()=> { catModal.style.display = 'flex'; catModal.setAttribute('aria-hidden','false'); newCategoryInput.focus(); });
-  catModalClose.addEventListener('click', ()=> { catModal.style.display = 'none'; catModal.setAttribute('aria-hidden','true'); });
-  addCategoryBtn.addEventListener('click', async ()=>{
-    const v = newCategoryInput.value.trim(); if(!v) return;
-    await addCategory(v); newCategoryInput.value = '';
-  });
+    function renderApps(apps) {
+      appsList.innerHTML = '';
+      apps.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'card';
 
-  // ---------- filtros & búsqueda ----------
-  document.getElementById('searchInput').addEventListener('input', ()=> renderApps());
-  document.getElementById('categorySelect').addEventListener('change', ()=> renderApps());
-  document.getElementById('sortSelect').addEventListener('change', ()=> renderApps());
-  document.getElementById('clearFilter').addEventListener('click', ()=>{
-    document.getElementById('searchInput').value = '';
-    document.getElementById('categorySelect').value = '';
-    document.getElementById('sortSelect').value = 'new';
-    renderApps();
-  });
+        const title = document.createElement('h3');
+        title.textContent = app.name;
 
-  // ---------- Inicializar ----------
-  (async function init(){
-    await loadCategories();
-    await fetchApps();
-  })();
-</script>
+        const desc = document.createElement('p');
+        desc.textContent = app.description;
 
+        const info = document.createElement('div');
+        info.className = 'app-info';
+        info.innerHTML = `
+          <span>${app.category_name || 'Sin categoría'}</span>
+          <span>${app.is_paid ? `💵 $${app.price}` : '🆓 Gratis'}</span>
+        `;
+
+        // Info adicional: descargas y estrellas
+        const stats = document.createElement('div');
+        stats.className = 'app-stats';
+        const downloads = `⬇️ ${app.downloads || 0}`;
+        const stars = '⭐'.repeat(Math.round(app.rating || 0)) + '☆'.repeat(5 - Math.round(app.rating || 0));
+        stats.innerHTML = `<span>${downloads}</span><span>${stars}</span>`;
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const editBtn = document.createElement('button');
+        editBtn.textContent = '✏️ Editar';
+        editBtn.className = 'btn-edit';
+        editBtn.onclick = () => openEdit(app);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑️ Eliminar';
+        delBtn.className = 'btn-delete';
+        delBtn.onclick = async () => {
+          if (confirm(`¿Eliminar "${app.name}"?`)) {
+            await fetch(`/api/apps/${app.id}`, { method: 'DELETE' });
+            loadApps();
+          }
+        };
+
+        actions.append(editBtn, delBtn);
+        card.append(title, desc, info, stats, actions);
+        appsList.appendChild(card);
+      });
+    }
+
+    loadCategories();
+    loadApps();
+  </script>
 </body>
 </html>
