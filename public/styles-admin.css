@@ -135,7 +135,7 @@ html, body {
 } 
 /* === CARDS === */
 .cards-container {
-  position: relative;
+  position: fixed;
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -151,7 +151,7 @@ html, body {
   backdrop-filter: blur(20px);
   border-radius: 18px;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
-  padding: 200px 200px;
+  padding: 24px 22x;
   cursor: pointer;
   transition: all 0.4s ease;
   border: 1.5px solid rgba(114, 9, 183, 0.15);
