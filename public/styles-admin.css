@@ -151,7 +151,7 @@ html, body {
   backdrop-filter: blur(20px);
   border-radius: 18px;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
-  padding: 24px 22px;
+  padding: 12px 12px;
   cursor: pointer;
   transition: all 0.4s ease;
   border: 1.5px solid rgba(114, 9, 183, 0.15);
