@@ -135,7 +135,7 @@ html, body {
 } 
 /* === CARDS === */
 .cards-container {
-  position: relative;
+  position: absolute;
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
