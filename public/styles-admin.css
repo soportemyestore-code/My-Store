@@ -138,11 +138,11 @@ html, body {
   position: relative;
   z-index: 5;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 25px;
-  padding: 180px 8% 60px 8%; /* menos espacio arriba, más abajo */
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); /* 🔹 más pequeñas */
+  gap: 20px; /* 🔹 menor separación entre tarjetas */
+  padding: 80px 8% 60px 8%; /* 🔹 reduce el espacio superior */
   flex: 1;
-  margin-top: 0; /* elimina posibles márgenes */
+  margin-top: 0;
 }
 
 /* Tarjeta base */
@@ -150,13 +150,13 @@ html, body {
   position: relative;
   background: rgba(255, 255, 255, 0.35);
   backdrop-filter: blur(20px);
-  border-radius: 18px;
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
-  padding: 24px 20px;
+  border-radius: 16px;
+  box-shadow: 0 3px 18px rgba(0, 0, 0, 0.08);
+  padding: 18px 16px; /* 🔹 un poco menos de relleno interno */
   cursor: pointer;
   transition: all 0.4s ease;
   border: 1.5px solid rgba(114, 9, 183, 0.15);
-  min-height: 140px;
+  min-height: 120px; /* 🔹 altura más compacta */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -164,6 +164,7 @@ html, body {
   overflow: hidden;
   isolation: isolate;
 }
+
 
 /* 🔮 Capa de brillo animada */
 .card::before {
