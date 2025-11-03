@@ -140,7 +140,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 25px;
-  padding: 30px 8% 60px 8%; /* menos espacio arriba, más abajo */
+  padding: 180px 8% 60px 8%; /* menos espacio arriba, más abajo */
   flex: 1;
   margin-top: 0; /* elimina posibles márgenes */
 }
