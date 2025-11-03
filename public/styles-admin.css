@@ -139,8 +139,9 @@ html, body {
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); /* 🔹 más pequeñas */
+  grid-auto-rows: 1fr; /* Todas las filas tienen misma altura */
   gap: 20px; /* 🔹 menor separación entre tarjetas */
-  padding: 80px 8% 60px 8%; /* 🔹 reduce el espacio superior */
+  padding: 40px 8% 300px 8%; /*reduce el espacio superior */
   flex: 1;
   margin-top: 0;
 }
