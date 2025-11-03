@@ -139,9 +139,10 @@ html, body {
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 30px;
-  padding: 60px 10%;
-  flex: 1; /* asegura que el footer quede al fondo */
+  gap: 25px;
+  padding: 30px 8% 60px 8%; /* menos espacio arriba, más abajo */
+  flex: 1;
+  margin-top: 0; /* elimina posibles márgenes */
 }
 
 /* Tarjeta base */
@@ -151,11 +152,11 @@ html, body {
   backdrop-filter: blur(20px);
   border-radius: 18px;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
-  padding: 24px 22x;
+  padding: 24px 20px;
   cursor: pointer;
   transition: all 0.4s ease;
   border: 1.5px solid rgba(114, 9, 183, 0.15);
-  min-height: 150px;
+  min-height: 140px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -198,9 +199,9 @@ html, body {
 
 /* Contenido */
 .card h3 {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   color: var(--text-color);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-weight: 600;
   position: relative;
   z-index: 1;
@@ -216,8 +217,8 @@ html, body {
 
 /* 🪄 Hover: animación + profundidad */
 .card:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 15px 45px rgba(114, 9, 183, 0.35);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 35px rgba(114, 9, 183, 0.3);
   border-color: var(--primary);
 }
 
@@ -234,13 +235,10 @@ html, body {
 
 /* 🌈 Animación del brillo */
 @keyframes shimmer {
-  0% {
-    left: -75%;
-  }
-  100% {
-    left: 125%;
-  }
+  0% { left: -75%; }
+  100% { left: 125%; }
 }
+
 
 /* === FOOTER === */ 
 .admin-footer { 
