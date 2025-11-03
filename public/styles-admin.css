@@ -135,14 +135,14 @@ html, body {
 } 
 /* === CARDS === */
 .cards-container {
-  position: absolute;
+  position: relative;
   z-index: 5;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 25px;
   padding: 180px 8% 60px 8%; /* menos espacio arriba, más abajo */
   flex: 1;
-  margin-top: 0; /* elimina posibles márgenes */
+  margin-top: 2rem; /* elimina posibles márgenes */
 }
 
 /* Tarjeta base */
