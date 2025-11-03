@@ -3,205 +3,347 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gestionar Aplicaciones</title>
-  <link rel="stylesheet" href="styles/styles-admin.css">
-  <link rel="icon" href="logo.png" type="image/png" >
+  <title>Gestionar Aplicaciones - My Store</title>
+  <link rel="stylesheet" href="styles-admin.css">
+  <link rel="icon" href="logo.png" type="image/png">
+  <style>
+    /* ==== COMPLEMENTO DE ESTILOS CRUD ==== */
+    main.container {
+      position: relative;
+      z-index: 5;
+      padding: 30px 8% 120px 8%;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.35);
+      border-radius: 12px;
+      padding: 10px 14px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(114, 9, 183, 0.2);
+    }
+    .search-box input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 1rem;
+      color: var(--text-color);
+      width: 180px;
+    }
+    .select, .tiny-btn, .btn {
+      border-radius: 12px;
+      border: 1.5px solid rgba(114, 9, 183, 0.2);
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all .3s ease;
+    }
+    .btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+    }
+    .btn:hover { background: var(--secondary); transform: scale(1.05); }
+    .btn.secondary { background: rgba(255,255,255,0.5); color: var(--text-color); }
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .app-card {
+      position: relative;
+      background: rgba(255,255,255,0.35);
+      border: 1.5px solid rgba(114,9,183,0.15);
+      border-radius: 16px;
+      padding: 16px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 3px 18px rgba(0,0,0,0.08);
+      transition: all 0.3s ease;
+    }
+    .app-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(114,9,183,0.25);
+    }
+    .app-card h3 {
+      margin-bottom: 6px;
+      color: var(--text-color);
+    }
+    .app-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    .app-desc { font-size: 0.9rem; color: #444; margin: 8px 0; }
+    .app-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 8px;
+    }
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    /* Modal translúcido */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      backdrop-filter: blur(5px);
+    }
+    .modal {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(25px);
+      border-radius: 16px;
+      border: 1.5px solid rgba(114,9,183,0.2);
+      padding: 20px;
+      width: 90%;
+      max-width: 700px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    }
+    .modal h3 { color: var(--text-color); margin-bottom: 12px; }
+    .modal .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .modal input, .modal textarea, .modal select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(114,9,183,0.2);
+      outline: none;
+      background: rgba(255,255,255,0.6);
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 15px;
+    }
+  </style>
 </head>
 <body>
-  <div class="admin-container">
-    <header class="admin-header">
-      <h1>📱 Gestión de Aplicaciones</h1>
-      <button id="logoutBtn" class="btn-logout">Cerrar sesión</button>
-    </header>
-
-    <section class="admin-content">
-      <div class="actions">
-        <button id="createBtn" class="btn-primary">➕ Crear nueva app</button>
-      </div>
-
-      <div id="appsList" class="cards-container"></div>
-    </section>
+  <div class="background">
+    <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+    <div class="bubble"></div><div class="bubble"></div>
   </div>
 
-  <!-- Modal -->
-  <div id="appModal" class="modal hidden">
-    <div class="modal-content">
-      <h2 id="modalTitle">Nueva Aplicación</h2>
-      <form id="modalForm">
-        <input type="hidden" id="modalId" />
+  <header class="admin-header">
+    <div class="header-left">
+      <img src="logo.png" alt="logo" class="header-logo" />
+      <h1>Gestionar Aplicaciones</h1>
+    </div>
+    <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+  </header>
 
-        <div class="form-row">
-          <div>
+  <main class="container">
+    <div class="topbar">
+      <h2 style="color:var(--text-color)">📋 Administrar Apps</h2>
+      <div class="controls">
+        <div class="search-box">
+          🔍 <input type="text" id="searchInput" placeholder="Buscar app...">
+        </div>
+        <select id="categorySelect" class="select"></select>
+        <button class="tiny-btn" id="refreshBtn">🔄 Actualizar</button>
+        <a href="admin.html" class="tiny-btn">↩️ Volver</a>
+        <button class="btn" id="newBtn">➕ Nueva app</button>
+      </div>
+    </div>
+    <div id="appsGrid" class="apps-grid"></div>
+  </main>
+
+  <footer class="admin-footer">© 2025 My Store — Panel de administración</footer>
+
+  <!-- Modal Crear/Editar -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h3 id="modalTitle">Nueva Aplicación</h3>
+      <form id="modalForm">
+        <input type="hidden" id="modalId">
+        <div class="row">
+          <div style="flex:1;">
             <label>Nombre</label>
-            <input id="modalName" required />
+            <input id="modalName" required>
           </div>
-          <div>
+          <div style="flex:1;">
             <label>Categoría</label>
-            <select id="modalCategory" required></select>
+            <select id="modalCategory"></select>
           </div>
         </div>
-
         <div>
           <label>Descripción</label>
-          <textarea id="modalDescription" required></textarea>
+          <textarea id="modalDesc" rows="3"></textarea>
         </div>
-
-        <div class="form-row">
-          <div>
-            <label><input type="checkbox" id="modalIsPaid" /> ¿Es de pago?</label>
-          </div>
+        <div class="row" style="align-items:center;">
+          <label><input type="checkbox" id="modalIsPaid"> ¿Es de pago?</label>
           <div style="min-width:160px">
             <label for="modalPrice">💵 Precio (USD)</label>
-            <input id="modalPrice" name="price" type="number" step="0.01" min="0" placeholder="0.00" />
+            <input id="modalPrice" type="number" step="0.01" min="0" placeholder="0.00">
           </div>
         </div>
-
-        <div class="form-actions">
-          <button type="submit" class="btn-primary">Guardar</button>
-          <button type="button" id="cancelBtn" class="btn-secondary">Cancelar</button>
+        <div class="modal-actions">
+          <button type="button" class="btn secondary" id="modalCancel">Cancelar</button>
+          <button type="submit" class="btn">Guardar</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    const appsList = document.getElementById('appsList');
-    const createBtn = document.getElementById('createBtn');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const modal = document.getElementById('appModal');
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/session', { credentials: 'include' });
+        const data = await res.json();
+        if (!data.loggedIn || data.role !== 'admin') location.href = '/login.html';
+      } catch (e) {
+        location.href = '/login.html';
+      }
+    }
+    checkSession();
+
+    const appsGrid = document.getElementById('appsGrid');
+    const modalBackdrop = document.getElementById('modalBackdrop');
     const modalForm = document.getElementById('modalForm');
     const modalTitle = document.getElementById('modalTitle');
     const modalId = document.getElementById('modalId');
     const modalName = document.getElementById('modalName');
-    const modalDescription = document.getElementById('modalDescription');
+    const modalDesc = document.getElementById('modalDesc');
     const modalCategory = document.getElementById('modalCategory');
     const modalIsPaid = document.getElementById('modalIsPaid');
     const modalPrice = document.getElementById('modalPrice');
-    const cancelBtn = document.getElementById('cancelBtn');
+    const modalCancel = document.getElementById('modalCancel');
 
-    // Oculta o muestra el campo de precio
-    modalPrice.parentElement.style.display = 'none';
-    modalIsPaid.addEventListener('change', () => {
-      modalPrice.parentElement.style.display = modalIsPaid.checked ? 'block' : 'none';
-    });
+    let apps = [];
+    let categories = [];
+    let editingId = null;
 
-    // Abrir modal para crear
-    createBtn.addEventListener('click', () => openCreate());
-    cancelBtn.addEventListener('click', () => closeModal());
-    logoutBtn.addEventListener('click', async () => {
-      await fetch('/api/logout', { method: 'POST' });
-      location.href = '/';
-    });
-
-    function openCreate() {
-      modalId.value = '';
-      modalTitle.textContent = 'Nueva Aplicación';
-      modalName.value = '';
-      modalDescription.value = '';
-      modalCategory.value = '';
-      modalIsPaid.checked = false;
-      modalPrice.value = '';
-      modalPrice.parentElement.style.display = 'none';
-      modal.classList.remove('hidden');
+    async function safeFetch(url, opts={}){
+      const res = await fetch(url, { credentials:'include', ...opts });
+      const json = await res.json();
+      if(!res.ok) throw new Error(json.message||'Error');
+      return json;
     }
 
-    function openEdit(app) {
-      modalId.value = app.id;
-      modalTitle.textContent = 'Editar Aplicación';
-      modalName.value = app.name;
-      modalDescription.value = app.description;
-      modalCategory.value = app.category_id || '';
-      modalIsPaid.checked = app.is_paid;
-      modalPrice.value = app.price || '';
-      modalPrice.parentElement.style.display = app.is_paid ? 'block' : 'none';
-      modal.classList.remove('hidden');
+    async function loadCategories(){
+      try {
+        categories = await safeFetch('/api/categories');
+        modalCategory.innerHTML = categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+      } catch(e){ categories=[]; }
     }
 
-    function closeModal() {
-      modal.classList.add('hidden');
+    async function fetchApps(){
+      const data = await safeFetch('/api/apps');
+      apps = data;
+      renderApps();
     }
 
-    modalForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = modalId.value;
-      const fd = new FormData();
-      fd.append('name', modalName.value);
-      fd.append('description', modalDescription.value);
-      fd.append('category_id', modalCategory.value);
-      fd.append('is_paid', modalIsPaid.checked);
-      fd.append('price', modalIsPaid.checked ? modalPrice.value || '0' : '0');
+    function renderApps(){
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const cat = document.getElementById('categorySelect').value;
+      let list = apps.filter(a => a.name.toLowerCase().includes(q));
+      if(cat) list = list.filter(a => String(a.category_id)===String(cat));
 
-      const method = id ? 'PUT' : 'POST';
-      const url = id ? `/api/apps/${id}` : '/api/apps';
-
-      await fetch(url, { method, body: fd });
-      closeModal();
-      loadApps();
-    });
-
-    async function loadCategories() {
-      const res = await fetch('/api/categories');
-      const categories = await res.json();
-      modalCategory.innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-    }
-
-    async function loadApps() {
-      const res = await fetch('/api/apps');
-      const apps = await res.json();
-      renderApps(apps);
-    }
-
-    function renderApps(apps) {
-      appsList.innerHTML = '';
-      apps.forEach(app => {
+      appsGrid.innerHTML = '';
+      list.forEach(app => {
         const card = document.createElement('div');
-        card.className = 'card';
-
-        const title = document.createElement('h3');
-        title.textContent = app.name;
-
-        const desc = document.createElement('p');
-        desc.textContent = app.description;
-
-        const info = document.createElement('div');
-        info.className = 'app-info';
-        info.innerHTML = `
-          <span>${app.category_name || 'Sin categoría'}</span>
-          <span>${app.is_paid ? `💵 $${app.price}` : '🆓 Gratis'}</span>
-        `;
-
-        // Info adicional: descargas y estrellas
-        const stats = document.createElement('div');
-        stats.className = 'app-stats';
-        const downloads = `⬇️ ${app.downloads || 0}`;
-        const stars = '⭐'.repeat(Math.round(app.rating || 0)) + '☆'.repeat(5 - Math.round(app.rating || 0));
-        stats.innerHTML = `<span>${downloads}</span><span>${stars}</span>`;
-
-        const actions = document.createElement('div');
-        actions.className = 'actions';
-        const editBtn = document.createElement('button');
-        editBtn.textContent = '✏️ Editar';
-        editBtn.className = 'btn-edit';
-        editBtn.onclick = () => openEdit(app);
-
-        const delBtn = document.createElement('button');
-        delBtn.textContent = '🗑️ Eliminar';
-        delBtn.className = 'btn-delete';
-        delBtn.onclick = async () => {
-          if (confirm(`¿Eliminar "${app.name}"?`)) {
-            await fetch(`/api/apps/${app.id}`, { method: 'DELETE' });
-            loadApps();
-          }
-        };
-
-        actions.append(editBtn, delBtn);
-        card.append(title, desc, info, stats, actions);
-        appsList.appendChild(card);
+        card.className = 'app-card';
+        card.innerHTML = `
+          <h3>${app.name}</h3>
+          <div class="app-meta"><span>${app.category_name||'Sin categoría'}</span><span>${app.is_paid ? '💰 De pago' : '🆓 Gratis'}</span></div>
+          <p class="app-desc">${app.description||''}</p>
+          <div class="app-stats"><span>⬇️ ${app.downloads||0} descargas</span><span>${'⭐'.repeat(Math.round(app.rating||0))}</span></div>
+          <div class="actions">
+            <button class="btn secondary" onclick="openEdit(${app.id})">✏️ Editar</button>
+            <button class="btn secondary" style="color:#fff;background:#d43f3f;" onclick="deleteApp(${app.id})">🗑️ Eliminar</button>
+          </div>`;
+        appsGrid.appendChild(card);
       });
     }
 
+    function openCreate(){
+      editingId=null;
+      modalId.value=''; modalName.value=''; modalDesc.value=''; modalCategory.value='';
+      modalIsPaid.checked=false; modalPrice.value='';
+      modalPrice.parentElement.style.display='none';
+      modalTitle.textContent='Nueva Aplicación';
+      modalBackdrop.style.display='flex';
+    }
+
+    function openEdit(id){
+      const app = apps.find(a=>a.id===id);
+      if(!app) return;
+      editingId=id;
+      modalId.value=id;
+      modalName.value=app.name; modalDesc.value=app.description||'';
+      modalCategory.value=app.category_id||'';
+      modalIsPaid.checked=!!app.is_paid;
+      modalPrice.value=app.price||'';
+      modalPrice.parentElement.style.display=app.is_paid?'block':'none';
+      modalTitle.textContent='Editar Aplicación';
+      modalBackdrop.style.display='flex';
+    }
+
+    modalIsPaid.addEventListener('change',()=>{
+      modalPrice.parentElement.style.display = modalIsPaid.checked ? 'block':'none';
+    });
+    modalCancel.addEventListener('click',()=>modalBackdrop.style.display='none');
+
+    modalForm.addEventListener('submit',async e=>{
+      e.preventDefault();
+      const fd = new FormData();
+      fd.append('name', modalName.value);
+      fd.append('description', modalDesc.value);
+      fd.append('category_id', modalCategory.value);
+      fd.append('is_paid', modalIsPaid.checked);
+      fd.append('price', modalIsPaid.checked?modalPrice.value||'0':'0');
+
+      const method = editingId ? 'PUT':'POST';
+      const url = editingId ? `/api/apps/${editingId}`:'/api/apps';
+      await fetch(url,{ method, body:fd, credentials:'include' });
+      modalBackdrop.style.display='none';
+      fetchApps();
+    });
+
+    async function deleteApp(id){
+      if(!confirm('¿Eliminar esta app?')) return;
+      await fetch(`/api/apps/${id}`,{ method:'DELETE', credentials:'include' });
+      fetchApps();
+    }
+
+    document.getElementById('newBtn').addEventListener('click',openCreate);
+    document.getElementById('refreshBtn').addEventListener('click',fetchApps);
+    document.getElementById('searchInput').addEventListener('input',renderApps);
+    document.getElementById('categorySelect').addEventListener('change',renderApps);
+
     loadCategories();
-    loadApps();
+    fetchApps();
   </script>
 </body>
 </html>
