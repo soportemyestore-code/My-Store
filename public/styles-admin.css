@@ -6,10 +6,10 @@
   padding: 0;
 }
 
+/* === ESTRUCTURA PRINCIPAL === */
 html, body {
   width: 100%;
   height: 100%;
-  margin: 0;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -18,6 +18,9 @@ html, body {
 
 main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centra las tarjetas verticalmente si hay pocas */
 }
 
 /* === VARIABLES === */
@@ -151,17 +154,114 @@ main {
 /* === FOOTER === */
 .admin-footer {
   text-align: center;
-  padding: 15px 0;
-  color: white;
+  padding: 18px 0;
+  color: var(--text-light);
   font-size: 0.9rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  background-color: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-  position: relative;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  backdrop-filter: blur(10px);
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.1);
+  margin-top: auto; /* 💡 mantiene el footer en el fondo siempre */
 }
 
 /* === TRANSICIÓN PÁGINA === */
 body.page-transition {
   transition: opacity 0.5s ease;
   opacity: 0;
+}
+
+/* === RESPONSIVE DESIGN === */
+
+/* --- Tablets (hasta 1024px) --- */
+@media (max-width: 1024px) {
+  .admin-header {
+    padding: 15px 25px;
+  }
+
+  .admin-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .cards-container {
+    padding: 40px 8%;
+    gap: 25px;
+  }
+
+  .card {
+    padding: 25px;
+  }
+}
+
+/* --- Móviles grandes (hasta 768px) --- */
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .header-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .admin-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .logout-btn {
+    align-self: flex-end;
+    font-size: 0.9rem;
+    padding: 8px 14px;
+  }
+
+  .cards-container {
+    grid-template-columns: 1fr;
+    padding: 40px 6%;
+  }
+
+  .card {
+    padding: 22px;
+  }
+
+  .card h3 {
+    font-size: 1.2rem;
+  }
+
+  .card p {
+    font-size: 0.9rem;
+  }
+}
+
+/* --- Móviles pequeños (hasta 480px) --- */
+@media (max-width: 480px) {
+  .admin-header {
+    padding: 12px 20px;
+  }
+
+  .admin-header h1 {
+    font-size: 1rem;
+  }
+
+  .logout-btn {
+    font-size: 0.85rem;
+  }
+
+  .cards-container {
+    padding: 35px 5%;
+    gap: 20px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .admin-footer {
+    font-size: 0.8rem;
+    padding: 14px 0;
+  }
 }
