@@ -140,7 +140,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 30px;
-  padding: 200px 20%;
+  padding: 200px 8%;
   flex: 1; /* asegura que el footer quede al fondo */
 }
 
@@ -151,7 +151,7 @@ html, body {
   backdrop-filter: blur(20px);
   border-radius: 18px;
   box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
-  padding: 24px 22px;
+  padding: 200px 200px;
   cursor: pointer;
   transition: all 0.4s ease;
   border: 1.5px solid rgba(114, 9, 183, 0.15);
