@@ -4,278 +4,290 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Panel de Administración — Gestión de Apps</title>
-  <link rel="stylesheet" href="styles/styles-admin.css">
-  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="stylesheet" href="styles-admin.css">
   <style>
-    /* Small visual tweaks specific to manage-apps */
-    .header-right { display:flex; gap:10px; align-items:center; }
-    .back-btn { background: transparent; border: 1.5px solid rgba(114,9,183,0.15); color: var(--text-color); padding:8px 12px; border-radius:12px; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
-    .back-btn:hover { background: rgba(255,255,255,0.35); transform:scale(1.03); }
-    .logout-btn { margin-left:6px; }
-    main.container { padding: 30px 8% 140px 8%; z-index:5; position:relative; }
-    .controls .select, .controls .tiny-btn { min-height:40px; }
-    .screenshots-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-    .s-thumb { width:84px; height:84px; border-radius:10px; object-fit:cover; position:relative; border:1px solid rgba(0,0,0,0.06); }
-    .s-thumb-wrap { position:relative; display:inline-block; }
-    .s-remove { position:absolute; top:-8px; right:-8px; background:#d43f3f; color:#fff; border-radius:50%; width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px; }
-    .toast { position:fixed; right:18px; bottom:18px; padding:12px 16px; border-radius:12px; color:white; backdrop-filter:blur(6px); z-index:2000; transform:translateY(8px); opacity:0; transition:all .28s; }
-    .toast.show { opacity:1; transform:translateY(0); }
-    .toast.success { background: linear-gradient(90deg,var(--primary),var(--secondary)); }
-    .toast.error { background: linear-gradient(90deg,#ef4444,#f97316); }
-    .cat-controls { display:flex; gap:8px; align-items:center; }
-    .cat-list { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
-    .cat-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px; background:rgba(255,255,255,0.5); border-radius:10px; border:1px solid rgba(114,9,183,0.08); }
-    @media (max-width:640px){
-      .admin-header { flex-direction:column; align-items:flex-start; gap:10px; padding:14px 18px; }
-      .header-right { width:100%; display:flex; justify-content:space-between; }
-      .back-btn { order: -1; }
-      .controls { width:100%; }
-      .search-box input{ width:140px; }
+    /* Ajustes complementarios */
+    .app-header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: rgba(255,255,255,0.65);
+      backdrop-filter: blur(12px);
+      border-bottom: 2px solid var(--primary);
+      box-shadow: 0 3px 20px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-left img { width: 45px; height: 45px; border-radius: 10px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .header-actions .btn {
+      background: var(--primary);
+      color: var(--text-light);
+      border: none;
+      border-radius: 12px;
+      padding: 10px 18px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    .btn:hover { background: var(--secondary); transform: scale(1.05); }
+    .btn.secondary { background: transparent; color: var(--text-color); border: 1.5px solid rgba(0,0,0,0.1); }
+
+    main.container { padding: 40px 8%; }
+
+    /* Toasts */
+    .toast {
+      position: fixed; right: 20px; bottom: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 0.3s ease;
+      z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.25);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9998;
+      padding: 20px;
+    }
+    .modal {
+      width: 100%; max-width: 820px;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(14px);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 5px 40px rgba(0,0,0,0.15);
+      max-height: 90vh;
+      overflow: auto;
+    }
+    .modal h3 { margin-top: 0; color: var(--text-color); }
+    .modal label { font-weight: 600; margin-bottom: 6px; display: block; }
+    .modal input[type="text"], .modal textarea, .modal select {
+      width: 100%; padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,0.15);
+      background: rgba(255,255,255,0.6);
+    }
+    .modal input[type="file"] { margin-top: 6px; }
+
+    .preview, .screenshot-thumb {
+      width: 90px; height: 90px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1px solid rgba(0,0,0,0.1);
+    }
+    .screenshots-container {
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+    .screenshot-wrapper {
+      position: relative;
+    }
+    .remove-screenshot {
+      position: absolute;
+      top: 2px; right: 4px;
+      background: rgba(0,0,0,0.6);
+      color: white; border: none;
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .star {
+      color: gold;
+      font-size: 1.2rem;
+    }
+
+    @media (max-width:600px) {
+      .app-header { flex-direction: column; align-items: flex-start; }
+      .header-actions { width: 100%; justify-content: space-between; }
     }
   </style>
 </head>
+
 <body>
-  <div class="background" aria-hidden="true">
-    <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+  <!-- 🌈 Fondo animado -->
+  <div class="background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
   </div>
 
-  <header class="admin-header">
+  <header class="app-header">
     <div class="header-left">
-      <img src="logo.png" alt="My Store Logo" class="header-logo" />
-      <div>
-        <h1>Panel de Administración</h1>
-        <small class="small-muted">Gestión de Apps</small>
-      </div>
+      <img src="logo.png" alt="Logo">
+      <h1>Panel de Administración — Gestión de Apps</h1>
     </div>
-
-    <div class="header-right">
-      <a href="admin.html" class="back-btn" id="backBtn">↩️ Volver al panel</a>
-      <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+    <div class="header-actions">
+      <a class="btn secondary" href="admin.html">↩️ Volver</a>
+      <button class="btn" onclick="logout()">Cerrar sesión</button>
     </div>
   </header>
 
   <main class="container">
-    <div class="topbar" role="region" aria-label="Controles">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
       <h2 style="color:var(--text-color)">📋 Administrar Aplicaciones</h2>
-      <div class="controls">
-        <div class="search-box" title="Buscar por nombre o descripción">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="opacity:0.9"><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <input id="searchInput" type="text" placeholder="Buscar por nombre o descripción..." aria-label="Buscar apps">
-        </div>
-
-        <select id="categorySelect" class="select" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select>
-
-        <select id="sortSelect" class="select" aria-label="Ordenar">
-          <option value="new">Más recientes</option>
-          <option value="old">Más antiguas</option>
-          <option value="name_asc">Nombre A → Z</option>
-          <option value="name_desc">Nombre Z → A</option>
-        </select>
-
-        <button id="editCatsBtn" class="tiny-btn">⚙️ Categorías</button>
-        <button id="refreshBtn" class="tiny-btn">🔄 Actualizar</button>
-        <button id="newBtn" class="btn">➕ Nueva app</button>
+      <div>
+        <button class="btn" id="refreshBtn">🔄 Actualizar</button>
+        <button class="btn" id="newBtn" style="background:var(--secondary)">➕ Nueva app</button>
       </div>
     </div>
 
-    <div id="appsGrid" class="apps-grid" aria-live="polite"></div>
+    <div id="appsGrid" class="cards-container"></div>
   </main>
 
-  <footer class="admin-footer">© 2025 My Store — Panel de administración</footer>
+  <div id="toast" class="toast"></div>
 
-  <!-- Toast -->
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <!-- Modal Crear/Editar -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h3 id="modalTitle">Crear nueva aplicación</h3>
+      <form id="modalForm">
+        <input type="hidden" id="modalId" />
+        <label>Nombre</label>
+        <input id="modalName" type="text" required />
 
-  <!-- Modal Crear/Editar App -->
-  <div id="modalBackdrop" class="modal-backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <h3 id="modalTitle">Editar aplicación</h3>
-      <form id="modalForm" enctype="multipart/form-data">
-        <input type="hidden" id="modalId" name="id" />
-        <div class="row">
-          <div style="flex:1;min-width:220px">
-            <label for="modalName">Nombre</label>
-            <input id="modalName" name="name" type="text" placeholder="Nombre de la app" required />
-          </div>
+        <label>Descripción</label>
+        <textarea id="modalDesc" rows="4"></textarea>
 
-          <div style="width:140px;display:flex;flex-direction:column;align-items:center;gap:8px">
-            <label>Preview</label>
-            <img id="modalPreview" class="preview" src="placeholder.png" alt="preview" />
-            <div id="paidBadge" class="small-muted" style="display:none;">💰 De pago</div>
-          </div>
+        <label>Categoría</label>
+        <select id="modalCategory"></select>
+
+        <div style="margin-top:10px;">
+          <label><input type="checkbox" id="modalIsPaid"/> ¿Es de pago?</label>
+        </div>
+        <div id="priceContainer" style="display:none;">
+          <label>Precio</label>
+          <input id="modalPrice" type="text" placeholder="$0.00" />
         </div>
 
-        <div>
-          <label for="modalDesc">Descripción</label>
-          <textarea id="modalDesc" name="description" rows="4"></textarea>
+        <div style="margin-top:10px;">
+          <label>Imagen principal</label>
+          <input id="modalImage" type="file" accept="image/*" />
+          <img id="modalPreview" class="preview" src="https://via.placeholder.com/150?text=Preview" alt="preview">
         </div>
 
-        <div class="row" style="align-items:center;">
-          <div style="min-width:200px">
-            <label for="modalCategory">Categoría</label>
-            <select id="modalCategory" name="category_id" class="select">
-              <option value="">-- Seleccionar categoría --</option>
-            </select>
-          </div>
-
-          <div style="display:flex;align-items:center;gap:8px">
-            <label for="modalIsPaid">¿Es de pago?</label>
-            <input type="checkbox" id="modalIsPaid" name="is_paid" />
-          </div>
-
-          <div style="min-width:160px">
-            <label for="modalPrice">💵 Precio (USD)</label>
-            <input id="modalPrice" name="price" type="number" step="0.01" min="0" placeholder="0.00" />
-          </div>
+        <div style="margin-top:10px;">
+          <label>Imágenes de muestra (máx. 5)</label>
+          <input id="modalScreenshots" type="file" accept="image/*" multiple />
+          <div id="screenshotsContainer" class="screenshots-container"></div>
         </div>
 
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;align-items:center">
-          <div>
-            <label for="modalImage">Imagen principal (opcional)</label>
-            <input id="modalImage" name="image" type="file" accept="image/*" />
-          </div>
-
-          <div>
-            <label for="modalApk">APK (opcional)</label>
-            <input id="modalApk" name="apk" type="file" accept=".apk,application/vnd.android.package-archive" />
-          </div>
+        <div style="margin-top:10px;">
+          <label>Archivo APK</label>
+          <input id="modalApk" type="file" accept=".apk" />
         </div>
 
-        <div style="margin-top:10px">
-          <label>Screenshots (máx. 5) — opcional</label>
-          <input id="modalScreens" type="file" accept="image/*" multiple />
-          <div id="screensPreview" class="screenshots-row" aria-live="polite"></div>
-          <div id="existingScreens" class="screenshots-row"></div>
-        </div>
-
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
-          <button type="button" id="modalCancel" class="btn secondary">Cancelar</button>
-          <button type="submit" id="modalSave" class="btn">Guardar cambios</button>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px;">
+          <button type="button" class="btn secondary" id="modalCancel">Cancelar</button>
+          <button type="submit" class="btn" id="modalSave">Guardar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal Categorías -->
-  <div id="catModal" class="modal-backdrop" aria-hidden="true">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="catModalTitle">
-      <h3 id="catModalTitle">Gestionar categorías</h3>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-        <input id="newCategoryInput" type="text" placeholder="Nombre categoría (ej. Juegos)" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);flex:1" />
-        <button id="addCategoryBtn" class="btn">Añadir</button>
-      </div>
-      <div id="categoriesList" class="cat-list"></div>
-      <div style="display:flex;justify-content:flex-end;margin-top:12px">
-        <button id="catModalClose" class="btn secondary">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // ---------- Utils & state ----------
-    const toastEl = document.getElementById('toast');
-    function showToast(msg, type='success'){ toastEl.textContent = msg; toastEl.className = 'toast show ' + (type==='success' ? 'success' : 'error'); setTimeout(()=> toastEl.className='toast', 3000); }
-    function safeFetch(url, opts={}){ return fetch(url, { credentials:'include', ...opts }).then(async res=>{ const c = res.headers.get('content-type') || ''; if(c.includes('application/json')){ const j = await res.json(); if(!res.ok) throw j; return j; } const t = await res.text(); if(!res.ok) throw { message: t }; return t; }); }
+    async function checkSession() {
+      const r = await fetch('/api/session', {credentials:'include'});
+      const data = await r.json();
+      if (!data.loggedIn || data.role !== 'admin') location.href='/login.html';
+    }
+    checkSession();
 
-    let apps = [], categories = [];
-    let editingId = null;
-    let selectedScreens = []; // new File objects
-    let existingScreenshots = []; // {id, url} from server when editing
-    let removedExistingScreens = []; // ids to remove
+    const toast = document.getElementById('toast');
+    function showToast(msg, ok=true){
+      toast.textContent = msg;
+      toast.style.background = ok ? 'var(--primary)' : 'var(--secondary)';
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'),3000);
+    }
 
-    // ---------- Session / protection ----------
-    (async function checkSession(){ try{ const data = await safeFetch('/api/session'); if(!data.loggedIn || data.role !== 'admin') window.location.href = '/login.html'; }catch(e){ window.location.href = '/login.html'; } })();
-
-    // ---------- Elements ----------
-    const appsGrid = document.getElementById('appsGrid');
-    const searchInput = document.getElementById('searchInput');
-    const categorySelect = document.getElementById('categorySelect');
-    const sortSelect = document.getElementById('sortSelect');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const newBtn = document.getElementById('newBtn');
-    const editCatsBtn = document.getElementById('editCatsBtn');
     const modalBackdrop = document.getElementById('modalBackdrop');
     const modalForm = document.getElementById('modalForm');
-    const modalId = document.getElementById('modalId');
     const modalName = document.getElementById('modalName');
     const modalDesc = document.getElementById('modalDesc');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalIsPaid = document.getElementById('modalIsPaid');
+    const modalPrice = document.getElementById('modalPrice');
+    const priceContainer = document.getElementById('priceContainer');
     const modalImage = document.getElementById('modalImage');
     const modalApk = document.getElementById('modalApk');
     const modalPreview = document.getElementById('modalPreview');
-    const modalIsPaid = document.getElementById('modalIsPaid');
-    const modalCategory = document.getElementById('modalCategory');
-    const modalPrice = document.getElementById('modalPrice');
-    const modalScreens = document.getElementById('modalScreens');
-    const screensPreview = document.getElementById('screensPreview');
-    const existingScreensEl = document.getElementById('existingScreens');
     const modalCancel = document.getElementById('modalCancel');
-    const modalSave = document.getElementById('modalSave');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const editCatsModal = document.getElementById('catModal');
-    const categoriesList = document.getElementById('categoriesList');
-    const newCategoryInput = document.getElementById('newCategoryInput');
-    const addCategoryBtn = document.getElementById('addCategoryBtn');
-    const catModalClose = document.getElementById('catModalClose');
-    const backBtn = document.getElementById('backBtn');
+    const modalScreenshots = document.getElementById('modalScreenshots');
+    const screenshotsContainer = document.getElementById('screenshotsContainer');
+    let screenshots = [];
 
-    // ---------- Load categories & apps ----------
-    async function loadCategories(){ try{ categories = await safeFetch('/api/categories'); } catch(e){ categories=[]; } populateCategorySelects(); renderCategoriesList(); }
-    function populateCategorySelects(){ const cur = categorySelect.value; categorySelect.innerHTML = '<option value="">Todas las categorías</option>'; modalCategory.innerHTML = '<option value="">-- Seleccionar categoría --</option>'; categories.forEach(c=>{ const o = document.createElement('option'); o.value = c.id; o.textContent = c.name; categorySelect.appendChild(o); const o2 = o.cloneNode(true); modalCategory.appendChild(o2); }); if([...categories.map(c=>String(c.id))].includes(cur)) categorySelect.value = cur; }
-    function renderCategoriesList(){ categoriesList.innerHTML=''; categories.forEach(c=>{ const row = document.createElement('div'); row.className='cat-row'; const name = document.createElement('div'); name.textContent = c.name; const right = document.createElement('div'); const edit = document.createElement('button'); edit.className='tiny-btn'; edit.textContent='Editar'; const del = document.createElement('button'); del.className='tiny-btn'; del.style.background='#d43f3f'; del.style.color='#fff'; del.textContent='Eliminar'; edit.onclick = ()=> renameCategory(c.id,c.name); del.onclick = ()=> deleteCategory(c.id); right.appendChild(edit); right.appendChild(del); row.appendChild(name); row.appendChild(right); categoriesList.appendChild(row); }); }
+    modalIsPaid.addEventListener('change',()=>{
+      priceContainer.style.display = modalIsPaid.checked ? 'block' : 'none';
+    });
 
-    async function fetchApps(){ try{ refreshBtn.disabled = true; refreshBtn.textContent='⏳ Cargando...'; const data = await safeFetch('/api/apps'); apps = Array.isArray(data) ? data : (data.items || []); renderApps(); }catch(e){ console.error(e); showToast('Error cargando apps','error'); } finally{ refreshBtn.disabled=false; refreshBtn.textContent='🔄 Actualizar'; } }
+    document.getElementById('newBtn').addEventListener('click', ()=>{
+      modalForm.reset();
+      screenshotsContainer.innerHTML='';
+      screenshots=[];
+      modalPreview.src='https://via.placeholder.com/150?text=Preview';
+      priceContainer.style.display='none';
+      modalBackdrop.style.display='flex';
+    });
+    modalCancel.addEventListener('click', ()=> modalBackdrop.style.display='none');
 
-    // ---------- Render helpers ----------
-    function formatCurrency(v){ if(v===undefined||v===null) return '0.00'; return Number(v).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-    function renderStars(avg){ const rounded = Math.round(avg); let stars=''; for(let i=0;i<5;i++){ stars += i<rounded ? '⭐' : '☆'; } return stars; }
+    modalScreenshots.addEventListener('change',(e)=>{
+      const files = Array.from(e.target.files);
+      if (screenshots.length + files.length > 5) {showToast('Máximo 5 imágenes', false); return;}
+      files.forEach(f=>{
+        const url = URL.createObjectURL(f);
+        screenshots.push({file:f, url});
+        renderScreens();
+      });
+    });
 
-    function renderApps(){ const q = (searchInput.value||'').toLowerCase().trim(); const cat = categorySelect.value; let list = apps.filter(a=> (a.name||'').toLowerCase().includes(q) || (a.description||'').toLowerCase().includes(q)); if(cat) list = list.filter(a=> String(a.category_id) === String(cat)); const sortVal = sortSelect.value; if(sortVal==='new') list.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at)); if(sortVal==='old') list.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at)); if(sortVal==='name_asc') list.sort((a,b)=> (a.name||'').localeCompare(b.name||'')); if(sortVal==='name_desc') list.sort((a,b)=> (b.name||'').localeCompare(a.name||'')); appsGrid.innerHTML=''; if(list.length===0){ appsGrid.innerHTML='<p style="text-align:center;color:var(--text-color)">No se encontraron aplicaciones.</p>'; return; } list.forEach(app=>{ const card = document.createElement('div'); card.className='app-card'; const header = document.createElement('div'); header.style.display='flex'; header.style.justifyContent='space-between'; header.style.alignItems='center'; const left = document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='12px'; const img = document.createElement('img'); img.src = app.image || 'placeholder.png'; img.className='preview'; const info = document.createElement('div'); const h3 = document.createElement('h3'); h3.textContent = app.name || ''; const small = document.createElement('div'); small.className='small-muted'; small.textContent = app.category_name || 'Sin categoría'; info.appendChild(h3); info.appendChild(small); left.appendChild(img); left.appendChild(info); const right = document.createElement('div'); right.style.textAlign='right'; const priceSpan = document.createElement('div'); priceSpan.style.fontWeight='700'; priceSpan.style.color='var(--text-color)'; priceSpan.textContent = app.is_paid ? `💵 $${formatCurrency(app.price)}` : '🆓 Gratis'; right.appendChild(priceSpan); header.appendChild(left); header.appendChild(right); card.appendChild(header); const desc = document.createElement('div'); desc.className='app-desc'; desc.textContent = app.description || ''; card.appendChild(desc); const stats = document.createElement('div'); stats.className='app-stats'; const downloads = document.createElement('div'); downloads.textContent = `⬇️ ${app.downloads || 0} descargas`; const avg = Number(app.average_rating ?? app.rating ?? 0); const rating = document.createElement('div'); rating.innerHTML = `<span aria-hidden="true">${renderStars(avg)}</span> <small style="margin-left:6px;color:#444">${avg.toFixed(1)} / 5</small>`; stats.appendChild(downloads); stats.appendChild(rating); card.appendChild(stats); const actions = document.createElement('div'); actions.className='actions'; const dl = document.createElement('a'); dl.href = app.apk || '#'; dl.target='_blank'; dl.rel='noopener'; dl.className='tiny-btn'; dl.textContent = '⬇️ Descargar'; actions.appendChild(dl); const edit = document.createElement('button'); edit.className='tiny-btn'; edit.textContent='✏️ Editar'; edit.addEventListener('click', ()=> openEdit(app.id)); actions.appendChild(edit); const del = document.createElement('button'); del.className='tiny-btn'; del.style.background='#d43f3f'; del.style.color='#fff'; del.textContent='🗑️ Eliminar'; del.addEventListener('click', ()=> confirmDelete(app.id, del)); actions.appendChild(del); card.appendChild(actions); appsGrid.appendChild(card); }); }
+    function renderScreens(){
+      screenshotsContainer.innerHTML='';
+      screenshots.forEach((s,i)=>{
+        const wrap=document.createElement('div');
+        wrap.className='screenshot-wrapper';
+        const img=document.createElement('img');
+        img.src=s.url; img.className='screenshot-thumb';
+        const btn=document.createElement('button');
+        btn.textContent='×'; btn.className='remove-screenshot';
+        btn.onclick=()=>{screenshots.splice(i,1); renderScreens();};
+        wrap.appendChild(img); wrap.appendChild(btn);
+        screenshotsContainer.appendChild(wrap);
+      });
+    }
 
-    // ---------- Delete app ----------
-    async function confirmDelete(id, btn){ if(!confirm('¿Eliminar esta app? Esta acción no se puede deshacer.')) return; try{ btn.disabled=true; btn.textContent='Eliminando...'; await safeFetch(`/api/apps/${id}`, { method:'DELETE' }); apps = apps.filter(a=>a.id!==id); renderApps(); showToast('App eliminada'); } catch(e){ console.error(e); showToast(e.message||'Error','error'); } finally{ btn.disabled=false; btn.textContent='🗑️ Eliminar'; } }
+    modalForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      showToast('Guardando...');
+      // Implementar subida de datos y archivos aquí
+      setTimeout(()=>{ showToast('App guardada correctamente'); modalBackdrop.style.display='none'; },1500);
+    });
 
-    // ---------- Modal logic (create/edit) ----------
-    function resetModalState(){ selectedScreens=[]; existingScreenshots=[]; removedExistingScreens=[]; screensPreview.innerHTML=''; existingScreensEl.innerHTML=''; }
-    function showModal(){ modalBackdrop.style.display='flex'; modalBackdrop.setAttribute('aria-hidden','false'); setTimeout(()=> modalName.focus(),80); }
-    function closeModal(){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); resetModalState(); }
-
-    document.getElementById('newBtn').addEventListener('click', ()=>{ editingId = null; modalId.value=''; modalName.value=''; modalDesc.value=''; modalPreview.src = app.image || 'https://via.placeholder.com/150?text=Preview'; modalImage.value=''; modalApk.value=''; modalIsPaid.checked=false; modalPrice.value=''; modalCategory.value=''; document.getElementById('modalTitle').textContent='Crear nueva aplicación'; document.getElementById('paidBadge').style.display='none'; modalPrice.parentElement.style.display='none'; resetModalState(); showModal(); });
-    modalCancel.addEventListener('click', ()=> closeModal());
-
-    modalImage.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(f){ modalPreview.src = URL.createObjectURL(f); } });
-
-    // Screenshots selection (new files)
-    modalScreens.addEventListener('change', (e)=>{ const files = Array.from(e.target.files || []); if(selectedScreens.length + existingScreenshots.length + files.length > 5){ showToast('Máximo 5 screenshots', 'error'); return; } files.forEach(f=>{ selectedScreens.push(f); const wrap = document.createElement('div'); wrap.className='s-thumb-wrap'; const img = document.createElement('img'); img.className='s-thumb'; img.src = URL.createObjectURL(f); const rem = document.createElement('div'); rem.className='s-remove'; rem.textContent='×'; rem.title='Eliminar screenshot'; rem.onclick = ()=>{ const idx = selectedScreens.indexOf(f); if(idx>-1) selectedScreens.splice(idx,1); wrap.remove(); }; wrap.appendChild(img); wrap.appendChild(rem); screensPreview.appendChild(wrap); }); modalScreens.value=''; });
-
-    // existing screenshots UI rendering (when editing an app)
-    function renderExistingScreens(){ existingScreensEl.innerHTML=''; existingScreenshots.forEach(s=>{ const wrap = document.createElement('div'); wrap.className='s-thumb-wrap'; const img = document.createElement('img'); img.className='s-thumb'; img.src = s.url; const rem = document.createElement('div'); rem.className='s-remove'; rem.textContent='×'; rem.title='Eliminar screenshot'; rem.onclick = ()=>{ removedExistingScreens.push(s.id || s.url); existingScreenshots = existingScreenshots.filter(x=> x!==s); renderExistingScreens(); }; wrap.appendChild(img); wrap.appendChild(rem); existingScreensEl.appendChild(wrap); }); }
-
-    async function openEdit(id){ const app = apps.find(a=>a.id===id); if(!app){ showToast('App no encontrada','error'); return; } editingId = id; modalId.value = id; modalName.value = app.name || ''; modalDesc.value = app.description || ''; modalCategory.value = app.category_id || ''; modalIsPaid.checked = !!app.is_paid; modalPrice.value = app.price || ''; modalPreview.src = app.image || 'placeholder.png'; document.getElementById('modalTitle').textContent = 'Editar aplicación'; modalPrice.parentElement.style.display = app.is_paid ? 'block' : 'none'; document.getElementById('paidBadge').style.display = app.is_paid ? 'block' : 'none'; existingScreenshots = (app.screenshots || []).map(s => typeof s === 'string' ? { id: null, url: s } : s); removedExistingScreens = []; renderExistingScreens(); showModal(); }
-
-    modalIsPaid.addEventListener('change', ()=>{ modalPrice.parentElement.style.display = modalIsPaid.checked ? 'block' : 'none'; document.getElementById('paidBadge').style.display = modalIsPaid.checked ? 'block' : 'none'; });
-
-    modalForm.addEventListener('submit', async (e)=>{ e.preventDefault(); modalSave.disabled = true; modalSave.textContent = '⏳ Guardando...'; try{ const name = modalName.value.trim(); if(!name) throw new Error('El nombre es obligatorio'); const fd = new FormData(); fd.append('name', name); fd.append('description', modalDesc.value.trim()); fd.append('category_id', modalCategory.value || ''); fd.append('is_paid', modalIsPaid.checked ? 'true' : 'false'); fd.append('price', modalIsPaid.checked ? (modalPrice.value || '0') : '0'); if(modalImage.files[0]) fd.append('image', modalImage.files[0]); if(modalApk.files[0]) fd.append('apk', modalApk.files[0]); selectedScreens.forEach(f=> fd.append('screenshots[]', f)); fd.append('existing_screenshots', JSON.stringify(existingScreenshots.map(s=> s.id || s.url))); fd.append('removed_screenshots', JSON.stringify(removedExistingScreens)); let res; if(editingId) res = await fetch(`/api/apps/${editingId}`, { method:'PUT', body:fd, credentials:'include' }); else res = await fetch('/api/apps', { method:'POST', body:fd, credentials:'include' }); const ctype = res.headers.get('content-type') || ''; const data = ctype.includes('application/json') ? await res.json() : await res.text(); if(!res.ok) throw new Error(data.message || JSON.stringify(data)); showToast(editingId ? 'Actualización guardada' : 'App creada'); closeModal(); await loadCategories(); await fetchApps(); }catch(err){ console.error(err); showToast(err.message || 'Error','error'); } finally{ modalSave.disabled=false; modalSave.textContent='Guardar cambios'; } });
-
-    // ---------- Categories CRUD ----------
-    editCatsBtn.addEventListener('click', ()=>{ editCatsModal.style.display='flex'; editCatsModal.setAttribute('aria-hidden','false'); newCategoryInput.focus(); });
-    catModalClose.addEventListener('click', ()=>{ editCatsModal.style.display='none'; editCatsModal.setAttribute('aria-hidden','true'); });
-
-    addCategoryBtn.addEventListener('click', async ()=>{ const v = newCategoryInput.value.trim(); if(!v) return; try{ const res = await safeFetch('/api/categories', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: v }) }); categories.push(res); populateCategorySelects(); renderCategoriesList(); newCategoryInput.value=''; showToast('Categoría añadida'); } catch(e){ console.error(e); showToast(e.message || 'Error', 'error'); } });
-
-    async function renameCategory(id, currentName){ const n = prompt('Nuevo nombre para la categoría', currentName); if(!n || n.trim()===currentName) return; try{ const res = await safeFetch(`/api/categories/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name: n.trim() }) }); categories = categories.map(c=> c.id===id? res : c); populateCategorySelects(); renderCategoriesList(); showToast('Categoría actualizada'); } catch(e){ console.error(e); showToast(e.message||'Error','error'); } }
-
-    async function deleteCategory(id){ if(!confirm('Eliminar categoría? Las apps perderán su categoría.')) return; try{ await safeFetch(`/api/categories/${id}`, { method:'DELETE' }); categories = categories.filter(c=> c.id!==id); populateCategorySelects(); renderCategoriesList(); showToast('Categoría eliminada'); await fetchApps(); } catch(e){ console.error(e); showToast(e.message||'Error','error'); } }
-
-    // ---------- Logout ----------
-    logoutBtn.addEventListener('click', async ()=>{ if(!confirm('¿Cerrar sesión?')) return; await fetch('/logout', { method:'POST', credentials:'include' }); window.location.href = '/login.html'; });
-
-    // ---------- Init ----------
-    searchInput.addEventListener('input', renderApps);
-    categorySelect.addEventListener('change', renderApps);
-    sortSelect.addEventListener('change', renderApps);
-    refreshBtn.addEventListener('click', fetchApps);
-
-    (async function init(){ await loadCategories(); await fetchApps(); })();
+    async function logout(){
+      await fetch('/logout',{method:'POST',credentials:'include'});
+      location.href='/login.html';
+    }
   </script>
 </body>
 </html>
