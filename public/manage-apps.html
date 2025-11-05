@@ -239,7 +239,7 @@
     function showModal(){ modalBackdrop.style.display='flex'; modalBackdrop.setAttribute('aria-hidden','false'); setTimeout(()=> modalName.focus(),80); }
     function closeModal(){ modalBackdrop.style.display='none'; modalBackdrop.setAttribute('aria-hidden','true'); resetModalState(); }
 
-    document.getElementById('newBtn').addEventListener('click', ()=>{ editingId = null; modalId.value=''; modalName.value=''; modalDesc.value=''; modalPreview.src='placeholder.png'; modalImage.value=''; modalApk.value=''; modalIsPaid.checked=false; modalPrice.value=''; modalCategory.value=''; document.getElementById('modalTitle').textContent='Crear nueva aplicación'; document.getElementById('paidBadge').style.display='none'; modalPrice.parentElement.style.display='none'; resetModalState(); showModal(); });
+    document.getElementById('newBtn').addEventListener('click', ()=>{ editingId = null; modalId.value=''; modalName.value=''; modalDesc.value=''; modalPreview.src = app.image || 'https://via.placeholder.com/150?text=Preview'; modalImage.value=''; modalApk.value=''; modalIsPaid.checked=false; modalPrice.value=''; modalCategory.value=''; document.getElementById('modalTitle').textContent='Crear nueva aplicación'; document.getElementById('paidBadge').style.display='none'; modalPrice.parentElement.style.display='none'; resetModalState(); showModal(); });
     modalCancel.addEventListener('click', ()=> closeModal());
 
     modalImage.addEventListener('change', (e)=>{ const f = e.target.files[0]; if(f){ modalPreview.src = URL.createObjectURL(f); } });
