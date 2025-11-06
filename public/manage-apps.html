@@ -465,6 +465,8 @@
   const modalCategory = document.getElementById('modalCategory');
   const modalSave = document.getElementById('modalSave');
   const modalCancel = document.getElementById('modalCancel');
+  modalCancel.addEventListener('click', () => closeModal(modalBackdrop));
+
 
   document.getElementById('newBtn').addEventListener('click', openCreate);
   document.getElementById('refreshBtn').addEventListener('click', fetchApps);
