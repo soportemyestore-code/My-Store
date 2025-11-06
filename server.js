@@ -358,6 +358,28 @@ app.post(
 );
 
 // ================================
+// 🗑️ ELIMINAR APP (solo admin)
+// ================================
+app.delete("/api/apps/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    // Verificar si existe
+    const existing = await db.query("SELECT * FROM apps WHERE id = $1", [id]);
+    if (existing.rows.length === 0)
+      return res.status(404).json({ message: "App no encontrada." });
+
+    // Eliminar de la base de datos
+    await db.query("DELETE FROM apps WHERE id = $1", [id]);
+    res.json({ message: "App eliminada correctamente." });
+  } catch (err) {
+    console.error("❌ /api/apps/:id DELETE error:", err);
+    res.status(500).json({ message: "Error al eliminar la app." });
+  }
+});
+
+
+// ================================
 // 📋 LISTAR APPS
 // ================================
 app.get("/api/apps", async (req, res) => {
@@ -382,3 +404,4 @@ app.get("/api/apps", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
