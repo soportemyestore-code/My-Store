@@ -189,6 +189,10 @@
 
           <div style="display:flex;align-items:center;gap:8px">
             <label for="modalIsPaid">¿Es de pago?</label>
+            <div id="priceField" style="display:none;">
+              <label for="modalPrice">Precio (USD)</label>
+              <input id="modalPrice" name="price" type="number" step="0.01" min="0" placeholder="Ej. 1.99" />
+            </div>
             <input type="checkbox" id="modalIsPaid" name="is_paid" />
           </div>
 
@@ -633,8 +637,8 @@
       fd.append('description', modalDesc.value.trim());
       fd.append('category', modalCategory.value || '');
       fd.append('is_paid', modalIsPaid.checked ? 'true' : 'false');
+      if (modalIsPaid.checked && modalPrice.value) fd.append('price', modalPrice.value);
       if(modalVersion.value) fd.append('version', modalVersion.value.trim());
-
       if(modalImage.files[0]) fd.append('image', modalImage.files[0]);
       if(modalApk.files[0]) fd.append('apk', modalApk.files[0]);
 
@@ -713,6 +717,33 @@
   // ---------- botones header ----------
   document.getElementById('refreshBtn').addEventListener('click', fetchApps);
   document.getElementById('newBtn').addEventListener('click', openCreate);
+
+  // === Mostrar/ocultar campo de precio ===
+const priceField = document.getElementById('priceField');
+const modalPrice = document.getElementById('modalPrice');
+modalIsPaid.addEventListener('change', () => {
+  priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
+});
+
+// Mostrarlo también si se abre una app que ya es de pago
+function openEdit(id) {
+  const app = apps.find(a => a.id === id);
+  if (!app) { showToast('App no encontrada', false); return; }
+  editingId = id;
+  modalId.value = id;
+  modalName.value = app.name || '';
+  modalVersion.value = app.version || '';
+  modalDesc.value = app.description || '';
+  modalPreview.src = app.image || (app.images && app.images[0]) || 'placeholder.png';
+  modalIsPaid.checked = !!app.is_paid;
+  priceField.style.display = modalIsPaid.checked ? 'block' : 'none'; // 👈
+  modalPrice.value = app.price || '';
+  modalCategory.value = app.category || app.category_id || '';
+  modalImages.value = '';
+  imagesPreview.innerHTML = '';
+  ...
+}
+
 
   // ---------- Inicializar ----------
   (async function init(){
