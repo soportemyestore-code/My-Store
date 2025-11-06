@@ -233,8 +233,7 @@ app.post("/register", async (req, res) => {
 // ===========================
 // 📁 CATEGORÍAS API ENDPOINTS
 // ===========================
-const express = require("express");
-const app = express();
+
 app.use(express.json());
 
 let categories = [
@@ -471,5 +470,6 @@ app.get("/api/apps", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
 
 
