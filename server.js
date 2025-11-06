@@ -271,7 +271,6 @@ app.delete("/api/categories/:id", (req, res) => {
   res.json({ message: "Categoría eliminada" });
 });
 
-
 // ================================
 // 🚀 SUBIDA DE APPS (solo admin)
 // ================================
@@ -286,84 +285,93 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB máx
   fileFilter: (req, file, cb) => {
     if (
       file.mimetype.startsWith("image/") ||
       file.mimetype === "application/vnd.android.package-archive"
-    )
-      cb(null, true);
+    ) cb(null, true);
     else cb(new Error("Tipo de archivo no permitido"));
   },
+}).fields([
+  { name: "image", maxCount: 1 },   // imagen principal
+  { name: "images", maxCount: 5 },  // galería
+  { name: "apk", maxCount: 1 }      // apk
+]);
+
+// --- Ruta para crear app (solo admin) ---
+app.post("/api/apps", requireAdmin, upload, async (req, res) => {
+  try {
+    const { name, description, category, is_paid, price, version } = req.body;
+    if (!name) return res.status(400).json({ message: "El nombre es obligatorio." });
+
+    const mainImageFile = req.files?.image?.[0];
+    const galleryFiles = req.files?.images || [];
+    const apkFile = req.files?.apk?.[0];
+
+    if (!apkFile) return res.status(400).json({ message: "El archivo APK es obligatorio." });
+    if (galleryFiles.length < 3)
+      return res.status(400).json({ message: "Sube al menos 3 imágenes de muestra." });
+    if (galleryFiles.length > 5)
+      return res.status(400).json({ message: "Máximo 5 imágenes permitidas." });
+
+    // 🔹 Subir imagen principal (si existe)
+    let mainImageUrl = null;
+    if (mainImageFile) {
+      const mainRes = await cloudinary.uploader.upload(mainImageFile.path, {
+        folder: "mi_store/apps/main",
+      });
+      mainImageUrl = mainRes.secure_url;
+    }
+
+    // 🔹 Subir imágenes de galería
+    const galleryUploads = galleryFiles.map(f =>
+      cloudinary.uploader.upload(f.path, { folder: "mi_store/apps/gallery" })
+    );
+    const galleryResults = await Promise.all(galleryUploads);
+    const galleryUrls = galleryResults.map(r => r.secure_url);
+
+    // 🔹 Subir APK (raw)
+    const apkUpload = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: "raw", folder: "mi_store/apks" },
+        (err, result) => (err ? reject(err) : resolve(result))
+      );
+      fs.createReadStream(apkFile.path).pipe(stream);
+    });
+
+    // 🔹 Limpiar archivos temporales
+    const allFiles = [mainImageFile, ...galleryFiles, apkFile].filter(Boolean);
+    for (const f of allFiles) {
+      try { fs.unlinkSync(f.path); } catch (_) {}
+    }
+
+    // 🔹 Insertar en la base de datos
+    const insert = await db.query(
+      `INSERT INTO apps (name, description, image, images, apk, category, is_paid, price, version, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
+       RETURNING *`,
+      [
+        name,
+        description,
+        mainImageUrl || galleryUrls[0] || null,  // usa la principal o la primera de la galería
+        JSON.stringify(galleryUrls),
+        apkUpload.secure_url,
+        category,
+        is_paid === "true",
+        price || 0,
+        version || null,
+      ]
+    );
+
+    res.json({ message: "✅ App subida con éxito", app: insert.rows[0] });
+  } catch (err) {
+    console.error("❌ /api/apps POST error:", err);
+    res.status(500).json({ message: err.message || "Error al subir la aplicación." });
+  }
 });
 
-// --- Ruta para crear app con gallery (images[] up to 5) ---
-app.post(
-  "/api/apps",            // ruta RESTful coherente
-  requireAdmin,
-  upload.fields([
-    { name: "images" },   // varios archivos: images[]
-    { name: "apk", maxCount: 1 } // apk único
-  ]),
-  async (req, res) => {
-    try {
-      const { name, description, category, is_paid, version } = req.body;
 
-      // Validaciones básicas
-      const filesImages = req.files?.images || [];
-      const apkFiles = req.files?.apk || [];
-
-      if (!name) return res.status(400).json({ message: "El nombre es obligatorio." });
-      if (!apkFiles.length) return res.status(400).json({ message: "APK requerido." });
-
-      // Validar cantidad de imágenes (mín 3 - máx 5)
-      if (filesImages.length < 3) return res.status(400).json({ message: "Sube al menos 3 imágenes de muestra." });
-      if (filesImages.length > 5) return res.status(400).json({ message: "Máximo 5 imágenes permitidas." });
-
-      // Subir imágenes a Cloudinary (en paralelo)
-      const uploadImagePromises = filesImages.map(f =>
-        cloudinary.uploader.upload(f.path, { folder: "mi_store/apps" })
-      );
-      const imagesResults = await Promise.all(uploadImagePromises);
-      const imageUrls = imagesResults.map(r => r.secure_url);
-
-      // Subir APK (como raw) por stream
-      const apkUpload = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { resource_type: "raw", folder: "mi_store/apks" },
-          (err, result) => (err ? reject(err) : resolve(result))
-        );
-        createReadStream(apkFiles[0].path).pipe(stream);
-      });
-
-      // Limpiar archivos temporales
-      filesImages.forEach(f => { try { fs.unlinkSync(f.path); } catch(e){/* ignore */} });
-      try { fs.unlinkSync(apkFiles[0].path); } catch(e){}
-
-      // Insertar en DB: guardamos images como JSONB (arreglo de URLs) y version
-      const insert = await db.query(
-        `INSERT INTO apps (name, description, image, images, apk, category, is_paid, version, created_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,NOW())
-         RETURNING *`,
-        [
-          name,
-          description,
-          imageUrls[0] || null,       // mantén un "main image" por compatibilidad (primer elemento)
-          JSON.stringify(imageUrls),  // images como JSON array
-          apkUpload.secure_url,
-          category,
-          is_paid === "true",
-          version || null
-        ]
-      );
-
-      res.json({ message: "App subida con éxito", app: insert.rows[0] });
-    } catch (err) {
-      console.error("❌ /api/apps POST error:", err);
-      res.status(500).json({ message: "Error al subir aplicación" });
-    }
-  }
-);
 
 app.put(
   "/api/apps/:id",
@@ -470,6 +478,7 @@ app.get("/api/apps", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
 
 
 
