@@ -1,5 +1,5 @@
 // ================================
-// 🧩 MI STORE - BACKEND PRODUCCIÓN (CON SESIONES Y ROLES)
+// 🧩 MI STORE - BACKEND PRODUCCIÓN (ESM)
 // ================================
 
 import express from "express";
@@ -12,7 +12,6 @@ import fs, { createReadStream } from "fs";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import multer from "multer";
-import crypto from "crypto";
 import { v2 as cloudinary } from "cloudinary";
 import db from "./db.js";
 import path from "path";
@@ -103,16 +102,14 @@ console.log("✅ Cloudinary configurado correctamente");
 // 🛡️ MIDDLEWARES DE AUTENTICACIÓN
 // ================================
 function requireLogin(req, res, next) {
-  if (!req.session.user) {
+  if (!req.session.user)
     return res.status(401).json({ message: "No autorizado. Inicia sesión." });
-  }
   next();
 }
 
 function requireAdmin(req, res, next) {
-  if (!req.session.user || req.session.user.role !== "admin") {
+  if (!req.session.user || req.session.user.role !== "admin")
     return res.status(403).json({ message: "Acceso denegado. Solo administradores." });
-  }
   next();
 }
 
@@ -159,7 +156,6 @@ app.post("/login", async (req, res) => {
     const valid = await bcrypt.compare(password, user.password_hash || "");
     if (!valid) return res.json({ success: false, message: "Contraseña incorrecta" });
 
-    // 🔥 NUEVO: guardar la sesión
     req.session.user = {
       id: user.id,
       username: user.username,
@@ -167,7 +163,6 @@ app.post("/login", async (req, res) => {
       email: user.email,
     };
 
-    // 🔥 NUEVO: determinar redirección según el rol
     const redirect = user.role === "admin" ? "/admin.html" : "/index.html";
 
     res.json({
@@ -185,7 +180,7 @@ app.post("/login", async (req, res) => {
 // ================================
 // 🚪 LOGOUT
 // ================================
-app.post("/logout", (req, res) => { // 🔥 ruta corregida (coherente con frontend)
+app.post("/logout", (req, res) => {
   req.session.destroy(() => {
     res.clearCookie("connect.sid");
     res.json({ success: true, message: "Sesión cerrada correctamente" });
@@ -233,9 +228,6 @@ app.post("/register", async (req, res) => {
 // ===========================
 // 📁 CATEGORÍAS API ENDPOINTS
 // ===========================
-
-app.use(express.json());
-
 let categories = [
   { id: 1, name: "Juegos" },
   { id: 2, name: "Educación" },
@@ -243,30 +235,22 @@ let categories = [
   { id: 4, name: "Entretenimiento" },
 ];
 
-// ✅ Obtener todas las categorías
-app.get("/api/categories", (req, res) => {
-  res.json(categories);
-});
+app.get("/api/categories", (req, res) => res.json(categories));
 
-// ✅ Crear nueva categoría
 app.post("/api/categories", (req, res) => {
   const { name } = req.body;
   if (!name) return res.status(400).json({ message: "El nombre es obligatorio" });
-
   const exists = categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
   if (exists) return res.status(400).json({ message: "Ya existe una categoría con ese nombre" });
-
   const newCat = { id: Date.now(), name };
   categories.push(newCat);
   res.status(201).json(newCat);
 });
 
-// ✅ Eliminar categoría por id
 app.delete("/api/categories/:id", (req, res) => {
   const id = parseInt(req.params.id);
   const idx = categories.findIndex((c) => c.id === id);
   if (idx === -1) return res.status(404).json({ message: "Categoría no encontrada" });
-
   categories.splice(idx, 1);
   res.json({ message: "Categoría eliminada" });
 });
@@ -285,172 +269,93 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB máx
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
   fileFilter: (req, file, cb) => {
     if (
       file.mimetype.startsWith("image/") ||
       file.mimetype === "application/vnd.android.package-archive"
-    ) cb(null, true);
+    )
+      cb(null, true);
     else cb(new Error("Tipo de archivo no permitido"));
   },
-}).fields([
-  { name: "image", maxCount: 1 },   // imagen principal
-  { name: "images", maxCount: 5 },  // galería
-  { name: "apk", maxCount: 1 }      // apk
-]);
-
-// --- Ruta para crear app (solo admin) ---
-app.post("/api/apps", requireAdmin, upload, async (req, res) => {
-  try {
-    const { name, description, category, is_paid, price, version } = req.body;
-    if (!name) return res.status(400).json({ message: "El nombre es obligatorio." });
-
-    const mainImageFile = req.files?.image?.[0];
-    const galleryFiles = req.files?.images || [];
-    const apkFile = req.files?.apk?.[0];
-
-    if (!apkFile) return res.status(400).json({ message: "El archivo APK es obligatorio." });
-    if (galleryFiles.length < 3)
-      return res.status(400).json({ message: "Sube al menos 3 imágenes de muestra." });
-    if (galleryFiles.length > 5)
-      return res.status(400).json({ message: "Máximo 5 imágenes permitidas." });
-
-    // 🔹 Subir imagen principal (si existe)
-    let mainImageUrl = null;
-    if (mainImageFile) {
-      const mainRes = await cloudinary.uploader.upload(mainImageFile.path, {
-        folder: "mi_store/apps/main",
-      });
-      mainImageUrl = mainRes.secure_url;
-    }
-
-    // 🔹 Subir imágenes de galería
-    const galleryUploads = galleryFiles.map(f =>
-      cloudinary.uploader.upload(f.path, { folder: "mi_store/apps/gallery" })
-    );
-    const galleryResults = await Promise.all(galleryUploads);
-    const galleryUrls = galleryResults.map(r => r.secure_url);
-
-    // 🔹 Subir APK (raw)
-    const apkUpload = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { resource_type: "raw", folder: "mi_store/apks" },
-        (err, result) => (err ? reject(err) : resolve(result))
-      );
-      fs.createReadStream(apkFile.path).pipe(stream);
-    });
-
-    // 🔹 Limpiar archivos temporales
-    const allFiles = [mainImageFile, ...galleryFiles, apkFile].filter(Boolean);
-    for (const f of allFiles) {
-      try { fs.unlinkSync(f.path); } catch (_) {}
-    }
-
-    // 🔹 Insertar en la base de datos
-    const insert = await db.query(
-      `INSERT INTO apps (name, description, image, images, apk, category, is_paid, price, version, created_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW())
-       RETURNING *`,
-      [
-        name,
-        description,
-        mainImageUrl || galleryUrls[0] || null,  // usa la principal o la primera de la galería
-        JSON.stringify(galleryUrls),
-        apkUpload.secure_url,
-        category,
-        is_paid === "true",
-        price || 0,
-        version || null,
-      ]
-    );
-
-    res.json({ message: "✅ App subida con éxito", app: insert.rows[0] });
-  } catch (err) {
-    console.error("❌ /api/apps POST error:", err);
-    res.status(500).json({ message: err.message || "Error al subir la aplicación." });
-  }
 });
 
-
-
-app.put(
-  "/api/apps/:id",
+app.post(
+  "/api/apps",
   requireAdmin,
   upload.fields([
-    { name: "images" }, // opcional
-    { name: "apk", maxCount: 1 } // opcional
+    { name: "image", maxCount: 1 },
+    { name: "images", maxCount: 5 },
+    { name: "apk", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
-      const id = req.params.id;
-      const { name, description, category, is_paid, version } = req.body;
-      const filesImages = req.files?.images || [];
-      const apkFiles = req.files?.apk || [];
+      const { name, description, category, is_paid, price, version } = req.body;
 
-      // Obtener app actual
-      const cur = await db.query("SELECT * FROM apps WHERE id = $1", [id]);
-      if (cur.rows.length === 0) return res.status(404).json({ message: "App no encontrada" });
-      const appRow = cur.rows[0];
+      const mainImageFile = req.files?.image?.[0];
+      const galleryFiles = req.files?.images || [];
+      const apkFile = req.files?.apk?.[0];
 
-      let imageUrls = appRow.images || []; // existing array (JSONB)
-      if (typeof imageUrls === 'string') {
-        try { imageUrls = JSON.parse(imageUrls); } catch(e){ imageUrls = []; }
-      }
+      if (!name) return res.status(400).json({ message: "El nombre es obligatorio." });
+      if (!apkFile) return res.status(400).json({ message: "El archivo APK es obligatorio." });
+      if (galleryFiles.length < 3)
+        return res.status(400).json({ message: "Sube al menos 3 imágenes de muestra." });
+      if (galleryFiles.length > 5)
+        return res.status(400).json({ message: "Máximo 5 imágenes permitidas." });
 
-      // Si suben nuevas imágenes, reemplazamos (validar 3-5)
-      if (filesImages.length) {
-        if (filesImages.length < 3) return res.status(400).json({ message: "Sube al menos 3 imágenes de muestra." });
-        if (filesImages.length > 5) return res.status(400).json({ message: "Máximo 5 imágenes permitidas." });
-
-        const uploadImagePromises = filesImages.map(f =>
-          cloudinary.uploader.upload(f.path, { folder: "mi_store/apps" })
-        );
-        const imagesResults = await Promise.all(uploadImagePromises);
-        imageUrls = imagesResults.map(r => r.secure_url);
-
-        // limpiar temporales
-        filesImages.forEach(f => { try { fs.unlinkSync(f.path); } catch(e){} });
-      }
-
-      // Si suben APK, reemplazar
-      let apkUrl = appRow.apk;
-      if (apkFiles.length) {
-        const apkUpload = await new Promise((resolve, reject) => {
-          const stream = cloudinary.uploader.upload_stream(
-            { resource_type: "raw", folder: "mi_store/apks" },
-            (err, result) => (err ? reject(err) : resolve(result))
-          );
-          createReadStream(apkFiles[0].path).pipe(stream);
+      // 🔹 Subir imagen principal
+      let mainImageUrl = null;
+      if (mainImageFile) {
+        const mainRes = await cloudinary.uploader.upload(mainImageFile.path, {
+          folder: "mi_store/apps/main",
         });
-        apkUrl = apkUpload.secure_url;
-        try { fs.unlinkSync(apkFiles[0].path); } catch(e){}
+        mainImageUrl = mainRes.secure_url;
       }
 
-      // Actualizar row (incluye version y images JSONB)
-      const updated = await db.query(
-        `UPDATE apps SET name=$1, description=$2, image=$3, images=$4, apk=$5, category=$6, is_paid=$7, version=$8, updated_at=NOW()
-         WHERE id=$9 RETURNING *`,
+      // 🔹 Subir galería
+      const galleryUploads = galleryFiles.map(f =>
+        cloudinary.uploader.upload(f.path, { folder: "mi_store/apps/gallery" })
+      );
+      const galleryResults = await Promise.all(galleryUploads);
+      const galleryUrls = galleryResults.map(r => r.secure_url);
+
+      // 🔹 Subir APK
+      const apkUpload = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { resource_type: "raw", folder: "mi_store/apks" },
+          (err, result) => (err ? reject(err) : resolve(result))
+        );
+        createReadStream(apkFile.path).pipe(stream);
+      });
+
+      // 🔹 Limpiar archivos temporales
+      const allFiles = [mainImageFile, ...galleryFiles, apkFile].filter(Boolean);
+      for (const f of allFiles) try { fs.unlinkSync(f.path); } catch (_) {}
+
+      // 🔹 Guardar en BD
+      const insert = await db.query(
+        `INSERT INTO apps (name, description, image, images, apk, category, is_paid, price, version, created_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW()) RETURNING *`,
         [
-          name ?? appRow.name,
-          description ?? appRow.description,
-          imageUrls[0] ?? appRow.image,
-          JSON.stringify(imageUrls),
-          apkUrl,
-          category ?? appRow.category,
-          (typeof is_paid !== 'undefined') ? (is_paid === 'true') : appRow.is_paid,
-          version ?? appRow.version,
-          id
+          name,
+          description,
+          mainImageUrl || galleryUrls[0] || null,
+          JSON.stringify(galleryUrls),
+          apkUpload.secure_url,
+          category,
+          is_paid === "true",
+          price || 0,
+          version || null,
         ]
       );
 
-      res.json({ message: "App actualizada", app: updated.rows[0] });
+      res.json({ message: "✅ App subida con éxito", app: insert.rows[0] });
     } catch (err) {
-      console.error("❌ /api/apps/:id PUT error:", err);
-      res.status(500).json({ message: "Error al actualizar aplicación" });
+      console.error("❌ /api/apps POST error:", err);
+      res.status(500).json({ message: err.message || "Error al subir la aplicación." });
     }
   }
 );
-
 
 // ================================
 // 📋 LISTAR APPS
@@ -471,14 +376,9 @@ app.get("/api/apps", async (req, res) => {
   }
 });
 
-
 // ================================
 // 🚀 INICIAR SERVIDOR
 // ================================
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
-
-
-
-
