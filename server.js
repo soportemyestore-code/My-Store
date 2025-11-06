@@ -230,6 +230,49 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// ===========================
+// 📁 CATEGORÍAS API ENDPOINTS
+// ===========================
+const express = require("express");
+const app = express();
+app.use(express.json());
+
+let categories = [
+  { id: 1, name: "Juegos" },
+  { id: 2, name: "Educación" },
+  { id: 3, name: "Productividad" },
+  { id: 4, name: "Entretenimiento" },
+];
+
+// ✅ Obtener todas las categorías
+app.get("/api/categories", (req, res) => {
+  res.json(categories);
+});
+
+// ✅ Crear nueva categoría
+app.post("/api/categories", (req, res) => {
+  const { name } = req.body;
+  if (!name) return res.status(400).json({ message: "El nombre es obligatorio" });
+
+  const exists = categories.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  if (exists) return res.status(400).json({ message: "Ya existe una categoría con ese nombre" });
+
+  const newCat = { id: Date.now(), name };
+  categories.push(newCat);
+  res.status(201).json(newCat);
+});
+
+// ✅ Eliminar categoría por id
+app.delete("/api/categories/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const idx = categories.findIndex((c) => c.id === id);
+  if (idx === -1) return res.status(404).json({ message: "Categoría no encontrada" });
+
+  categories.splice(idx, 1);
+  res.json({ message: "Categoría eliminada" });
+});
+
+
 // ================================
 // 🚀 SUBIDA DE APPS (solo admin)
 // ================================
@@ -428,4 +471,5 @@ app.get("/api/apps", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
 
