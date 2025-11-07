@@ -104,7 +104,7 @@
           </div>
           <div style="width:140px;display:flex;flex-direction:column;align-items:center;gap:8px">
             <label>Preview</label>
-            <img id="modalPreview" class="preview-thumb" src="img/placeholder.png" alt="preview" />
+            <img id="modalPreview" class="preview-thumb" src="placeholder.png" alt="preview" />
             <div id="paidBadge" class="small-muted" style="display:none;">💰 De pago</div>
           </div>
         </div>
@@ -147,16 +147,16 @@
             <input id="modalImage" name="image" type="file" accept="image/*" />
           </div>
 
+          <div style="min-width:160px">
+            <label for="modalApk" required>APK de la app</label>
+            <input id="modalApk" name="apk" type="file" accept=".apk,application/vnd.android.package-archive" />
+            <div id="apkName" style="font-size:.85rem;color:var(--muted);margin-top:6px"></div>
+          </div>
+
           <div style="flex:1;min-width:260px">
             <label for="modalImages">Imágenes de muestra (3 a 5) <small style="color:var(--muted)">(se reemplazarán si subes nuevas)</small></label>
             <input id="modalImages" name="images" type="file" accept="image/*" multiple />
             <div id="imagesPreview" class="image-preview-list"></div>
-          </div>
-
-          <div style="min-width:160px">
-            <label for="modalApk" required>APK </label>
-            <input id="modalApk" name="apk" type="file" accept=".apk,application/vnd.android.package-archive" />
-            <div id="apkName" style="font-size:.85rem;color:var(--muted);margin-top:6px"></div>
           </div>
         </div>
 
