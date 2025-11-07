@@ -55,7 +55,7 @@
 
   <header class="admin-header" role="banner">
     <div class="header-left">
-      <img src="logo.png" alt="logo" class="header-logo" />
+      <img src="img/logo.png" alt="logo" class="header-logo" />
       <div>
         <h1>My Store · Panel</h1>
         <small class="small-muted">Panel · administración de apps</small>
@@ -453,8 +453,7 @@
       const info = document.createElement('div'); info.className='info';
       const h3 = document.createElement('h3'); h3.textContent = app.name;
       const small = document.createElement('div'); small.className='meta-small'; small.textContent = `${app.category || 'Sin categoría'} · ${app.created_at ? new Date(app.created_at).toLocaleString() : ''}`;
-      const desc = document.createElement('p'); desc.className='desc'; desc.textContent = app.description || '';
-
+      
       const priceTag = document.createElement('p');
       priceTag.className = 'meta-small price-badge';
       priceTag.textContent = app.is_paid ? `💰 $${formatPrice(app.price)}` : 'Gratis';
@@ -481,7 +480,7 @@
       const delBtn = document.createElement('button'); delBtn.className='btn danger'; delBtn.textContent='🗑️ Eliminar'; delBtn.addEventListener('click', ()=> confirmDelete(app.id, delBtn));
       actions.appendChild(dl); actions.appendChild(view); actions.appendChild(editBtn); actions.appendChild(delBtn);
 
-      info.appendChild(h3); info.appendChild(small); info.appendChild(desc); info.appendChild(priceTag); info.appendChild(ratingWrap); info.appendChild(actions);
+      info.appendChild(h3); info.appendChild(small); info.appendChild(priceTag); info.appendChild(ratingWrap); info.appendChild(actions);
       card.appendChild(img); card.appendChild(info);
       appsGrid.appendChild(card);
     });
