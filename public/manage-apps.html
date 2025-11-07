@@ -763,6 +763,27 @@
     priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
   });
 
+  
+  async function checkSession() {
+    try {
+      const res = await fetch("/api/session", { credentials: "include" });
+      const data = await res.json();
+      if (!data.loggedIn || data.role !== "admin") {
+        window.location.href = "/login.html";
+      }
+    } catch (error) {
+      console.error("Error verificando sesión:", error);
+      window.location.href = "/login.html";
+    }
+  }
+
+  function goTo(url) {
+    document.body.classList.add("page-transition");
+    setTimeout(() => (window.location.href = url), 500);
+  }
+
+    checkSession();
+  
   // ---------- Inicializar ----------
   (async function init(){
     await loadCategories();
