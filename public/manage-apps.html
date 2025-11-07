@@ -412,6 +412,10 @@
       const h3 = document.createElement('h3'); h3.textContent = app.name;
       const small = document.createElement('div'); small.className='meta-small'; small.textContent = `${app.category || 'Sin categoría'} · ${new Date(app.created_at).toLocaleString()}`;
       const desc = document.createElement('p'); desc.className='desc'; desc.textContent = app.description || '';
+      const priceTag = document.createElement('p');
+      priceTag.className = 'meta-small';
+      priceTag.style.fontWeight = 'bold';
+      priceTag.textContent = app.is_paid ? `💰 $${app.price}` : 'Gratis';
 
       // rating
       const ratingWrap = document.createElement('div'); ratingWrap.style.display='flex'; ratingWrap.style.gap='8px'; ratingWrap.style.alignItems='center';
@@ -432,7 +436,7 @@
       const delBtn = document.createElement('button'); delBtn.className='btn danger'; delBtn.textContent='🗑️ Eliminar'; delBtn.addEventListener('click', ()=> confirmDelete(app.id, delBtn));
       actions.appendChild(dl); actions.appendChild(view); actions.appendChild(editBtn); actions.appendChild(delBtn);
 
-      info.appendChild(h3); info.appendChild(small); info.appendChild(desc); info.appendChild(ratingWrap); info.appendChild(actions);
+      info.appendChild(h3); info.appendChild(small); info.appendChild(desc); info.appendChild(priceTag); info.appendChild(ratingWrap); info.appendChild(actions);
       card.appendChild(img); card.appendChild(info);
       appsGrid.appendChild(card);
     });
@@ -509,21 +513,45 @@
     showModal(modalBackdrop);
   }
 
-  function openEdit(id){
-    const app = apps.find(a=>a.id===id);
-    if(!app){ showToast('App no encontrada', false); return; }
-    editingId = id;
-    modalId.value = id;
-    modalName.value = app.name || '';
-    modalVersion.value = app.version || '';
-    modalDesc.value = app.description || '';
-    modalPreview.src = app.image || (app.images && app.images[0]) || 'placeholder.png';
-    modalIsPaid.checked = !!app.is_paid;
-    modalCategory.value = app.category || app.category_id || '';
-    modalImages.value = '';
-    imagesPreview.innerHTML = '';
+ function openEdit(id){
+  const app = apps.find(a=>a.id===id);
+  if(!app){ showToast('App no encontrada', false); return; }
+  editingId = id;
+  modalId.value = id;
+  modalName.value = app.name || '';
+  modalVersion.value = app.version || '';
+  modalDesc.value = app.description || '';
+  modalPreview.src = app.image || (app.images && app.images[0]) || 'placeholder.png';
+  modalIsPaid.checked = !!app.is_paid;
+  
+  // 👇 Añade esto:
+  priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
+  modalPrice.value = app.price || '';
 
-    // show existing images in preview area (these are preserved unless user uploads new ones)
+  modalCategory.value = app.category || app.category_id || '';
+  modalImages.value = '';
+  imagesPreview.innerHTML = '';
+
+  const imgs = app.images && Array.isArray(app.images) ? app.images : (app.images ? JSON.parse(app.images) : []);
+  imgs.forEach((u, idx) => {
+    const wrap = createImagePreviewElement(null, u, true);
+    if(wrap) {
+      wrap.dataset.remote = 'true';
+      wrap.dataset.src = u;
+      imagesPreview.appendChild(wrap);
+    }
+  });
+
+  const avg = parseFloat(app.average_rating || 0);
+  const pct = Math.max(0, Math.min(100, (avg/5)*100));
+  document.querySelector('.stars .filled').style.width = pct + '%';
+  document.getElementById('ratingText').textContent = (isNaN(avg) ? '0.0' : Number(avg).toFixed(1)) + ' / 5';
+
+  document.getElementById('modalTitle').textContent = 'Editar aplicación';
+  showModal(modalBackdrop);
+}
+
+  // show existing images in preview area (these are preserved unless user uploads new ones)
     const imgs = app.images && Array.isArray(app.images) ? app.images : (app.images ? JSON.parse(app.images) : []);
     imgs.forEach((u, idx) => {
       const wrap = createImagePreviewElement(null, u, true);
@@ -693,6 +721,7 @@
       <p style="color:var(--muted)">${app.description || ''}</p>
       <p><strong>Versión:</strong> ${app.version || '—'}</p>
       <p><strong>Categoría:</strong> ${app.category || '—'}</p>
+      <p><strong>Precio:</strong> ${app.is_paid ? `$${app.price}` : 'Gratis'}</p>
       <div class="gallery"></div>
     `;
     const gal = detailContent.querySelector('.gallery');
@@ -724,26 +753,6 @@ const modalPrice = document.getElementById('modalPrice');
 modalIsPaid.addEventListener('change', () => {
   priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
 });
-
-// Mostrarlo también si se abre una app que ya es de pago
-function openEdit(id) {
-  const app = apps.find(a => a.id === id);
-  if (!app) { showToast('App no encontrada', false); return; }
-  editingId = id;
-  modalId.value = id;
-  modalName.value = app.name || '';
-  modalVersion.value = app.version || '';
-  modalDesc.value = app.description || '';
-  modalPreview.src = app.image || (app.images && app.images[0]) || 'placeholder.png';
-  modalIsPaid.checked = !!app.is_paid;
-  priceField.style.display = modalIsPaid.checked ? 'block' : 'none'; // 👈
-  modalPrice.value = app.price || '';
-  modalCategory.value = app.category || app.category_id || '';
-  modalImages.value = '';
-  imagesPreview.innerHTML = '';
-
-}
-
 
   // ---------- Inicializar ----------
   (async function init(){
