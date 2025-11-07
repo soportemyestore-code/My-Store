@@ -104,7 +104,7 @@
           </div>
           <div style="width:140px;display:flex;flex-direction:column;align-items:center;gap:8px">
             <label>Preview</label>
-            <img id="modalPreview" class="preview-thumb" src="placeholder.png" alt="preview" />
+            <img id="modalPreview" class="preview-thumb" src="img/placeholder.png" alt="preview" />
             <div id="paidBadge" class="small-muted" style="display:none;">💰 De pago</div>
           </div>
         </div>
@@ -143,7 +143,7 @@
 
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
           <div style="flex:1;min-width:220px">
-            <label for="modalImage">Imagen principal (opcional)</label>
+            <label for="modalImage" required> Icono de la app</label>
             <input id="modalImage" name="image" type="file" accept="image/*" />
           </div>
 
@@ -154,7 +154,7 @@
           </div>
 
           <div style="min-width:160px">
-            <label for="modalApk">APK (opcional)</label>
+            <label for="modalApk" required>APK </label>
             <input id="modalApk" name="apk" type="file" accept=".apk,application/vnd.android.package-archive" />
             <div id="apkName" style="font-size:.85rem;color:var(--muted);margin-top:6px"></div>
           </div>
@@ -678,7 +678,7 @@
       const fd = new FormData();
       fd.append('name', name);
       fd.append('description', modalDesc.value.trim());
-      fd.append('category', modalCategory.value || '');
+      fd.append('category', modalCategory.options[modalCategory.selectedIndex].text);
       fd.append('is_paid', modalIsPaid.checked ? 'true' : 'false');
       if (modalIsPaid.checked && modalPrice.value) fd.append('price', modalPrice.value);
       if(modalVersion.value) fd.append('version', modalVersion.value.trim());
