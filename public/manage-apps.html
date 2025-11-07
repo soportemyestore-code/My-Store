@@ -569,7 +569,14 @@
     priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
     modalPrice.value = app.price ?? '';
 
-    modalCategory.value = app.category || app.category_id || '';
+    //modalCategory.value = app.category || app.category_id || '';
+    // ✅ Seleccionar la categoría por nombre
+    const categorySelect = modalCategory;
+    const foundOption = Array.from(categorySelect.options)
+      .find(opt => opt.text === app.category || opt.text === app.category_name);
+
+    categorySelect.value = foundOption ? foundOption.value : '';
+    
     modalImages.value = '';
     imagesPreview.innerHTML = '';
 
