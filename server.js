@@ -357,6 +357,61 @@ app.post(
   }
 );
 
+// ---------- ACTUALIZAR APP ----------
+app.put('/api/apps/:id', upload.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'images', maxCount: 5 },
+  { name: 'apk', maxCount: 1 }
+]), async (req, res) => {
+  const { id } = req.params;
+  const { name, description, version, category, is_paid, price } = req.body;
+
+  try {
+    // Buscar app actual
+    const result = await pool.query('SELECT * FROM apps WHERE id = $1', [id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'App no encontrada' });
+    }
+
+    const current = result.rows[0];
+    const imageUrl = req.files?.image?.[0] ? `/uploads/${req.files.image[0].filename}` : current.image;
+    const apkUrl = req.files?.apk?.[0] ? `/uploads/${req.files.apk[0].filename}` : current.apk;
+
+    // Procesar imágenes de muestra
+    let images = [];
+    if (req.files?.images?.length) {
+      images = req.files.images.map(f => `/uploads/${f.filename}`);
+    } else {
+      images = current.images || [];
+    }
+
+    const updated = await pool.query(`
+      UPDATE apps
+      SET name=$1, description=$2, version=$3, category=$4, is_paid=$5, price=$6,
+          image=$7, images=$8, apk=$9, updated_at=NOW()
+      WHERE id=$10
+      RETURNING *;
+    `, [
+      name || current.name,
+      description || current.description,
+      version || current.version,
+      category || current.category,
+      is_paid === 'true',
+      price || current.price,
+      imageUrl,
+      JSON.stringify(images),
+      apkUrl,
+      id
+    ]);
+
+    res.json(updated.rows[0]);
+  } catch (err) {
+    console.error('❌ PUT /api/apps error:', err);
+    res.status(500).json({ message: 'Error al actualizar la app' });
+  }
+});
+
+
 // ================================
 // 🗑️ ELIMINAR APP (solo admin)
 // ================================
@@ -404,4 +459,5 @@ app.get("/api/apps", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
 
