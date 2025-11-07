@@ -289,7 +289,7 @@
       const right = document.createElement('div');
       const editBtn = document.createElement('button'); editBtn.className='btn secondary'; editBtn.textContent='Editar';
       editBtn.addEventListener('click', ()=> openEditCategory(c));
-      const delBtn = document.createElement('button'); delBtn.className='btn danger'; delBtn.textContent='Eliminar';
+      const delBtn = document.createElement('button'); delBtn.className='btn succes'; delBtn.textContent='Eliminar';
       delBtn.addEventListener('click', ()=> removeCategory(c.id));
       right.appendChild(editBtn); right.appendChild(delBtn);
       row.appendChild(left); row.appendChild(right);
