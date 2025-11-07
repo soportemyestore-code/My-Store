@@ -5,101 +5,45 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Gestionar Aplicaciones - My Store</title>
   <link rel="stylesheet" href="styles/styles-admin.css" />
-   
   <style>
     /* Ajustes específicos para este archivo */
-    :root {
-      --muted: #6b7280;
-      --card-gap: 18px;
-    }
-
+    :root { --muted: #6b7280; --card-gap: 18px; --price-color: #b45309; }
     main.container { max-width:1200px; margin:20px auto; padding:0 18px 80px; }
-
-    .topbar {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:16px;
-      padding: 10px 0;
-    }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; padding: 10px 0; }
     .title { margin:0; color:var(--text-color); font-size:1.35rem; }
-
     .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
-    .controls input[type="text"], .controls select {
-      padding:10px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.9);
-      font-size:0.95rem;
-    }
+    .controls input[type="text"], .controls select { padding:10px 12px; border-radius:10px; border:1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.9); font-size:0.95rem; }
     .controls .tiny { padding:8px 10px; border-radius:10px; border:none; background:var(--primary); color:var(--text-light); cursor:pointer; }
-
-    /* Grid: 2 tarjetas por fila en desktop, responsive */
-    .apps-grid {
-      display:grid;
-      gap:var(--card-gap);
-      grid-template-columns: repeat(2, 1fr);
-      align-items:start;
-    }
-    @media (max-width:920px) {
-      .apps-grid { grid-template-columns: repeat(1, 1fr); }
-    }
-
-    .card {
-      position:relative;
-      background: rgba(255,255,255,0.35);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      box-shadow: 0 6px 20px rgba(2,6,23,0.06);
-      padding: 16px;
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      transition: transform .28s ease, box-shadow .28s ease;
-      border: 1.5px solid rgba(114,9,183,0.06);
-    }
+    .apps-grid { display:grid; gap:var(--card-gap); grid-template-columns: repeat(2, 1fr); align-items:start; }
+    @media (max-width:920px) { .apps-grid { grid-template-columns: repeat(1, 1fr); } }
+    .card { position:relative; background: rgba(255,255,255,0.35); backdrop-filter: blur(12px); border-radius: 16px; box-shadow: 0 6px 20px rgba(2,6,23,0.06); padding: 16px; display:flex; gap:12px; align-items:flex-start; transition: transform .28s ease, box-shadow .28s ease; border: 1.5px solid rgba(114,9,183,0.06); }
     .card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(114,9,183,0.12); border-color:var(--primary); }
-
     .card .thumb { width:92px; height:92px; border-radius:12px; object-fit:cover; flex-shrink:0; border:1px solid rgba(0,0,0,0.06); }
     .card .info { flex:1; display:flex; flex-direction:column; gap:6px; }
     .card h3 { margin:0; color:var(--text-color); font-size:1.05rem; }
     .card p.desc { margin:0; color:#374151; font-size:0.95rem; line-height:1.35; }
     .meta-small { font-size:.85rem; color:var(--muted); }
-
+    .price-badge { font-weight:700; color:var(--price-color); }
     .card .actions { display:flex; gap:8px; margin-top:8px; align-items:center; flex-wrap:wrap; }
     .btn { padding:8px 12px; border-radius:10px; border:none; cursor:pointer; background:var(--primary); color:var(--text-light); }
     .btn.secondary { background:transparent; border:1px solid rgba(0,0,0,0.08); color:var(--text-color); }
     .btn.danger { background:var(--danger); color:white; }
-
+    .btn[disabled] { opacity:.6; cursor:not-allowed; }
     /* Toast */
     .toast { position:fixed; right:18px; bottom:18px; background:#10b981; color:white; padding:12px 18px; border-radius:10px; opacity:0; transform:translateY(8px); transition:all .32s; z-index:9999; }
     .toast.show { opacity:1; transform:translateY(0); }
-
-    /* Modal translúcido (usar estilo similar a styles-admin.css) */
-    .modal-backdrop {
-      position:fixed; inset:0; background:rgba(2,6,23,0.45); display:none; align-items:center; justify-content:center; z-index:9998; padding:20px;
-    }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(2,6,23,0.45); display:none; align-items:center; justify-content:center; z-index:9998; padding:20px; }
     .modal-backdrop.show { display:flex; }
-    .modal {
-      width:100%; max-width:920px; background:rgba(255,255,255,0.95); border-radius:12px; padding:18px; box-shadow:0 20px 60px rgba(2,6,23,0.35); max-height:92vh; overflow:auto;
-    }
+    .modal { width:100%; max-width:920px; background:rgba(255,255,255,0.95); border-radius:12px; padding:18px; box-shadow:0 20px 60px rgba(2,6,23,0.35); max-height:92vh; overflow:auto; }
     .modal h3 { margin:0 0 10px 0; color:var(--text-color); }
     .modal .row { display:flex; gap:12px; margin-bottom:12px; align-items:center; flex-wrap:wrap; }
     .preview-thumb { width:72px; height:72px; border-radius:8px; object-fit:cover; border:1px solid rgba(0,0,0,0.06); }
-
-    /* Image previews */
     .image-preview-list { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-
-    /* Stars read-only */
     .stars { position:relative; display:inline-block; font-size:18px; color:rgba(0,0,0,0.15); }
     .stars .filled { position:absolute; top:0; left:0; height:100%; overflow:hidden; color:#ffbf00; white-space:nowrap; pointer-events:none; }
-
-    /* Details modal small gallery */
     .gallery { display:flex; gap:8px; flex-wrap:wrap; }
     .gallery img { width:120px; height:120px; object-fit:cover; border-radius:10px; }
-
-    @media (max-width:520px) {
-      .controls { width:100%; justify-content:flex-start; gap:8px; }
-    }
+    @media (max-width:520px) { .controls { width:100%; justify-content:flex-start; gap:8px; } }
   </style>
 </head>
 <body>
@@ -182,7 +126,8 @@
         <div class="row" style="align-items:center;">
           <div style="min-width:200px">
             <label for="modalCategory">Categoría</label>
-            <select id="modalCategory" name="category_id">
+            <!-- name="category" para alinear con backend -->
+            <select id="modalCategory" name="category">
               <option value="">-- Seleccionar categoría --</option>
             </select>
           </div>
@@ -315,12 +260,13 @@
     if(sel) sel.innerHTML = '<option value="">Todas las categorías</option>';
     if(modalSel) modalSel.innerHTML = '<option value="">-- Seleccionar categoría --</option>';
     categories.forEach(c => {
+      const val = (c.name !== undefined) ? c.name : (c.id ?? '');
       if(sel){
-        const o = document.createElement('option'); o.value = c.name; o.textContent = c.name;
+        const o = document.createElement('option'); o.value = val; o.textContent = c.name || val;
         sel.appendChild(o);
       }
       if(modalSel){
-        const o2 = document.createElement('option'); o2.value = c.name; o2.textContent = c.name;
+        const o2 = document.createElement('option'); o2.value = val; o2.textContent = c.name || val;
         modalSel.appendChild(o2);
       }
     });
@@ -332,9 +278,9 @@
     wrap.innerHTML = '';
     categories.forEach(c=>{
       const row = document.createElement('div'); row.style.display='flex'; row.style.justifyContent='space-between'; row.style.alignItems='center';
-      const left = document.createElement('div'); left.textContent = c.name;
+      const left = document.createElement('div'); left.textContent = c.name || c;
       const btn = document.createElement('button'); btn.className='btn secondary'; btn.textContent='Eliminar';
-      btn.addEventListener('click', ()=> removeCategory(c.id));
+      btn.addEventListener('click', ()=> removeCategory(c.id ?? c.name));
       row.appendChild(left); row.appendChild(btn);
       wrap.appendChild(row);
     });
@@ -343,7 +289,9 @@
   async function addCategory(name){
     try {
       const res = await safeFetch('/api/categories', { method: 'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ name }) });
-      categories.push(res);
+      // backend may return the created category object; if so push it, otherwise refetch.
+      if (res && res.name) categories.push(res);
+      else categories.push({ id: Date.now(), name });
       populateCategorySelects();
       renderCategoriesList();
       showToast('Categoría añadida');
@@ -357,7 +305,7 @@
     if(!confirm('Eliminar categoría? Las apps perderán su categoría.')) return;
     try {
       await safeFetch(`/api/categories/${id}`, { method: 'DELETE' });
-      categories = categories.filter(c=>c.id !== id);
+      categories = categories.filter(c=> (c.id ?? c.name) !== id && c.name !== id);
       populateCategorySelects();
       renderCategoriesList();
       showToast('Categoría eliminada');
@@ -386,6 +334,12 @@
     }
   }
 
+  function formatPrice(val){
+    const num = Number(val);
+    if (Number.isFinite(num)) return num.toFixed(2);
+    return '0.00';
+  }
+
   function renderApps(){
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
     const catFilter = document.getElementById('categorySelect').value;
@@ -405,17 +359,20 @@
 
     list.forEach(app=>{
       const card = document.createElement('div'); card.className='card';
-      const img = document.createElement('img'); img.className='thumb'; img.src = app.image || (app.images && app.images[0]) || 'placeholder.png';
+      const img = document.createElement('img'); img.className='thumb'; 
+      let firstImg = null;
+      try { firstImg = (app.image || (app.images && (Array.isArray(app.images) ? app.images[0] : (JSON.parse(app.images||'[]')||[])[0])) ) || 'placeholder.png'; } catch(e){ firstImg = app.image || 'placeholder.png'; }
+      img.src = firstImg;
       img.alt = app.name || 'app';
 
       const info = document.createElement('div'); info.className='info';
       const h3 = document.createElement('h3'); h3.textContent = app.name;
-      const small = document.createElement('div'); small.className='meta-small'; small.textContent = `${app.category || 'Sin categoría'} · ${new Date(app.created_at).toLocaleString()}`;
+      const small = document.createElement('div'); small.className='meta-small'; small.textContent = `${app.category || 'Sin categoría'} · ${app.created_at ? new Date(app.created_at).toLocaleString() : ''}`;
       const desc = document.createElement('p'); desc.className='desc'; desc.textContent = app.description || '';
+
       const priceTag = document.createElement('p');
-      priceTag.className = 'meta-small';
-      priceTag.style.fontWeight = 'bold';
-      priceTag.textContent = app.is_paid ? `💰 $${app.price}` : 'Gratis';
+      priceTag.className = 'meta-small price-badge';
+      priceTag.textContent = app.is_paid ? `💰 $${formatPrice(app.price)}` : 'Gratis';
 
       // rating
       const ratingWrap = document.createElement('div'); ratingWrap.style.display='flex'; ratingWrap.style.gap='8px'; ratingWrap.style.alignItems='center';
@@ -430,7 +387,10 @@
 
       // actions
       const actions = document.createElement('div'); actions.className='actions';
-      const dl = document.createElement('a'); dl.className='btn secondary'; dl.href = app.apk || '#'; dl.target='_blank'; dl.rel='noopener'; dl.textContent = '⬇️ APK';
+      const dl = document.createElement('a'); dl.className='btn secondary';
+      if (app.apk) { dl.href = app.apk; dl.target='_blank'; dl.rel='noopener'; dl.textContent = '⬇️ APK'; }
+      else { dl.href = '#'; dl.textContent = '— APK —'; dl.classList.add('secondary'); dl.style.opacity = .6; dl.style.pointerEvents = 'none'; }
+
       const view = document.createElement('button'); view.className='btn'; view.textContent='🔍 Ver detalles'; view.addEventListener('click', ()=> openDetail(app.id));
       const editBtn = document.createElement('button'); editBtn.className='btn'; editBtn.textContent='✏️ Editar'; editBtn.addEventListener('click', ()=> openEdit(app.id));
       const delBtn = document.createElement('button'); delBtn.className='btn danger'; delBtn.textContent='🗑️ Eliminar'; delBtn.addEventListener('click', ()=> confirmDelete(app.id, delBtn));
@@ -473,8 +433,9 @@
   const modalCategory = document.getElementById('modalCategory');
   const modalSave = document.getElementById('modalSave');
   const modalCancel = document.getElementById('modalCancel');
+  const priceField = document.getElementById('priceField');
+  const modalPrice = document.getElementById('modalPrice');
   modalCancel.addEventListener('click', () => closeModal(modalBackdrop));
-
 
   document.getElementById('newBtn').addEventListener('click', openCreate);
   document.getElementById('refreshBtn').addEventListener('click', fetchApps);
@@ -508,50 +469,30 @@
     modalPreview.src = 'placeholder.png';
     document.getElementById('modalTitle').textContent = 'Crear nueva aplicación';
     imagesPreview.innerHTML = '';
+    priceField.style.display = 'none';
     document.querySelector('.stars .filled').style.width = '0%';
     document.getElementById('ratingText').textContent = '0.0 / 5';
     showModal(modalBackdrop);
   }
 
- function openEdit(id){
-  const app = apps.find(a=>a.id===id);
-  if(!app){ showToast('App no encontrada', false); return; }
-  editingId = id;
-  modalId.value = id;
-  modalName.value = app.name || '';
-  modalVersion.value = app.version || '';
-  modalDesc.value = app.description || '';
-  modalPreview.src = app.image || (app.images && app.images[0]) || 'placeholder.png';
-  modalIsPaid.checked = !!app.is_paid;
-  
-  // 👇 Añade esto:
-  priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
-  modalPrice.value = app.price || '';
+  function openEdit(id){
+    const app = apps.find(a=>a.id===id);
+    if(!app){ showToast('App no encontrada', false); return; }
+    editingId = id;
+    modalId.value = id;
+    modalName.value = app.name || '';
+    modalVersion.value = app.version || '';
+    modalDesc.value = app.description || '';
+    try { modalPreview.src = app.image || (app.images && (Array.isArray(app.images) ? app.images[0] : (JSON.parse(app.images||'[]')||[])[0])) || 'placeholder.png'; } catch(e){ modalPreview.src = app.image || 'placeholder.png'; }
+    modalIsPaid.checked = !!app.is_paid;
+    priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
+    modalPrice.value = app.price ?? '';
 
-  modalCategory.value = app.category || app.category_id || '';
-  modalImages.value = '';
-  imagesPreview.innerHTML = '';
+    modalCategory.value = app.category || app.category_id || '';
+    modalImages.value = '';
+    imagesPreview.innerHTML = '';
 
-  const imgs = app.images && Array.isArray(app.images) ? app.images : (app.images ? JSON.parse(app.images) : []);
-  imgs.forEach((u, idx) => {
-    const wrap = createImagePreviewElement(null, u, true);
-    if(wrap) {
-      wrap.dataset.remote = 'true';
-      wrap.dataset.src = u;
-      imagesPreview.appendChild(wrap);
-    }
-  });
-
-  const avg = parseFloat(app.average_rating || 0);
-  const pct = Math.max(0, Math.min(100, (avg/5)*100));
-  document.querySelector('.stars .filled').style.width = pct + '%';
-  document.getElementById('ratingText').textContent = (isNaN(avg) ? '0.0' : Number(avg).toFixed(1)) + ' / 5';
-
-  document.getElementById('modalTitle').textContent = 'Editar aplicación';
-  showModal(modalBackdrop);
-}
-
-  // show existing images in preview area (these are preserved unless user uploads new ones)
+    // show existing images in preview area (these are preserved unless user uploads new ones)
     const imgs = app.images && Array.isArray(app.images) ? app.images : (app.images ? JSON.parse(app.images) : []);
     imgs.forEach((u, idx) => {
       const wrap = createImagePreviewElement(null, u, true);
@@ -570,6 +511,7 @@
 
     document.getElementById('modalTitle').textContent = 'Editar aplicación';
     showModal(modalBackdrop);
+  }
 
   // ---------- Image previews handling ----------
   function createImagePreviewElement(file, url = null, removable = true){
@@ -646,7 +588,7 @@
     const name = modalName.value.trim();
     if(!name){ alert('El nombre es obligatorio'); return; }
 
-    // compute counts
+    // compute counts (remote images left + selected files)
     const remoteImgs = Array.from(imagesPreview.children).filter(n => n.dataset && n.dataset.remote === 'true').map(n=>n.dataset.src);
     const totalImagesCount = remoteImgs.length + selectedFiles.length;
 
@@ -669,7 +611,10 @@
       if(modalImage.files[0]) fd.append('image', modalImage.files[0]);
       if(modalApk.files[0]) fd.append('apk', modalApk.files[0]);
 
-      // if editing and no new selectedFiles => do not append images (backend will keep existing)
+      // Send existing remote images array as helper for backend (backend must parse req.body.existing_images if you want to remove others)
+      fd.append('existing_images', JSON.stringify(remoteImgs));
+
+      // if editing and no new selectedFiles => do not append images (backend will keep/handle existing images)
       if(selectedFiles.length){
         selectedFiles.forEach(f => fd.append('images', f));
       }
@@ -720,7 +665,7 @@
       <p style="color:var(--muted)">${app.description || ''}</p>
       <p><strong>Versión:</strong> ${app.version || '—'}</p>
       <p><strong>Categoría:</strong> ${app.category || '—'}</p>
-      <p><strong>Precio:</strong> ${app.is_paid ? `$${app.price}` : 'Gratis'}</p>
+      <p><strong>Precio:</strong> ${app.is_paid ? `$${formatPrice(app.price)}` : 'Gratis'}</p>
       <div class="gallery"></div>
     `;
     const gal = detailContent.querySelector('.gallery');
@@ -747,11 +692,9 @@
   document.getElementById('newBtn').addEventListener('click', openCreate);
 
   // === Mostrar/ocultar campo de precio ===
-const priceField = document.getElementById('priceField');
-const modalPrice = document.getElementById('modalPrice');
-modalIsPaid.addEventListener('change', () => {
-  priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
-});
+  modalIsPaid.addEventListener('change', () => {
+    priceField.style.display = modalIsPaid.checked ? 'block' : 'none';
+  });
 
   // ---------- Inicializar ----------
   (async function init(){
