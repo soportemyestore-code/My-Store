@@ -9,143 +9,191 @@
   <link rel="stylesheet" href="styles/animations.css">
 
   <style>
-    header {
-      position: sticky;
-      top: 0;
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(12px);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      z-index: 10;
-    }
+  /* --- HEADER --- */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000; /* aseguramos que quede por encima de todo */
+  }
 
-    header h1 {
-      color: var(--primary);
-      font-size: 1.4rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
+  header h1 {
+    color: var(--primary);
+    font-size: 1.4rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
 
-    .login-btn {
-      background: linear-gradient(135deg, var(--secondary), var(--primary));
-      border: none;
-      color: white;
-      padding: 0.7rem 1.4rem;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: transform 0.3s ease;
-    }
+  .login-btn {
+    background: linear-gradient(135deg, var(--secondary), var(--primary));
+    border: none;
+    color: white;
+    padding: 0.7rem 1.4rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+  }
 
-    .login-btn:hover {
-      transform: scale(1.05);
-    }
+  .login-btn:hover {
+    transform: scale(1.05);
+  }
 
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1rem;
-      padding: 1.5rem 1rem;
-      z-index: 10;
-    }
+  /* --- FILTROS --- */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem 1rem;
+    margin-top: 90px; /* espacio para el header fijo */
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    z-index: 900;
+    position: relative;
+  }
 
-    .filters input, .filters select {
-      border: 2px solid #b5179e20;
-      border-radius: 10px;
-      padding: 0.8rem 1rem;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
+  .filters input,
+  .filters select {
+    border: 2px solid #b5179e30;
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--text-color);
+  }
 
-    .filters input:focus, .filters select:focus {
-      border-color: var(--secondary);
-      box-shadow: 0 0 10px rgba(181, 23, 158, 0.3);
-    }
+  .filters input:focus,
+  .filters select:focus {
+    border-color: var(--secondary);
+    box-shadow: 0 0 10px rgba(181, 23, 158, 0.3);
+    outline: none;
+  }
 
+  /* --- GRID DE APPS --- */
+  .app-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    max-width: 1000px;
+    margin: 1rem auto 3rem;
+    position: relative;
+    z-index: 10;
+  }
+
+  @media (min-width: 600px) {
     .app-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 1rem;
-      padding: 1rem;
-      max-width: 1000px;
-      margin: 0 auto 2rem;
-      position: relative;
-      z-index: 10;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
+  }
 
-    @media (min-width: 600px) {
-      .app-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      }
-    }
+  .app-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    padding-bottom: 0.8rem;
+  }
 
-    .app-card {
-      background: rgba(255, 255, 255, 0.85);
-      border-radius: 20px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      text-align: center;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      cursor: pointer;
-      padding-bottom: 0.8rem;
-    }
+  .app-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  }
 
-    .app-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
+  .app-card img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+    border-bottom: 2px solid var(--primary);
+  }
 
-    .app-card img {
-      width: 100%;
-      aspect-ratio: 1/1;
-      object-fit: cover;
-      border-bottom: 2px solid var(--primary);
-    }
+  .app-card h3 {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-top: 0.5rem;
+  }
 
-    .app-card h3 {
-      font-size: 1rem;
-      color: var(--text-color);
-      margin-top: 0.5rem;
-    }
+  .app-card .price {
+    color: var(--secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
 
-    .app-card .price {
-      color: var(--secondary);
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
+  .stars {
+    color: #fbbf24;
+    margin-top: 0.3rem;
+  }
 
-    .stars {
-      color: #fbbf24;
-      margin-top: 0.3rem;
-    }
+  /* --- FOOTER --- */
+  footer {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    padding: 2rem 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 10;
+  }
 
-    footer {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      padding: 2rem 1rem;
-      text-align: center;
-      font-size: 0.9rem;
-      color: var(--text-color);
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-      position: relative;
-      z-index: 10;
-    }
+  footer a {
+    color: var(--primary);
+    text-decoration: none;
+  }
 
-    footer a {
-      color: var(--primary);
-      text-decoration: none;
-    }
+  footer a:hover {
+    color: var(--secondary);
+  }
 
-    footer a:hover {
-      color: var(--secondary);
+  /* --- HEADER SCROLL EFFECT --- */
+  header.scrolled {
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  header img {
+    height: 45px;
+    transition: height 0.3s ease;
+  }
+
+  header.scrolled img {
+    height: 35px;
+  }
+   
+</style>
+
+<script>
+  // --- EFECTO DE CABECERA STICKY ---
+  window.addEventListener("scroll", () => {
+    const header = document.querySelector("header");
+    if (window.scrollY > 50) {
+      header.classList.add("scrolled");
+    } else {
+      header.classList.remove("scrolled");
     }
-  </style>
+  });
+</script>
+  
 </head>
 <body>
   <!-- Fondo animado -->
@@ -282,6 +330,7 @@
   </script>
 </body>
 </html>
+
 
 
 
