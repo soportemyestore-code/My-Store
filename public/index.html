@@ -6,235 +6,167 @@
   <title>My Store | Tienda de Apps</title>
   <link rel="icon" href="img/logo.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="animation.css">
 
   <style>
-    /* === RESETEO Y BASE === */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #e0e7ff, #ede9fe);
-      color: #1e1b4b;
-      overflow-x: hidden;
-    }
-
-    /* === ANIMACIONES GLOBALES === */
-    .fade-in { animation: fadeIn 1s ease-out; }
-    .slide-up { animation: slideUp 0.8s ease-out; }
-    .pulse { animation: pulse 2s infinite ease-in-out; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.05); opacity: 0.9; }
-    }
-
-    /* === BURBUJAS === */
-    .bubbles {
-      position: fixed;
-      width: 100%;
-      height: 100%;
-      top: 0;
-      left: 0;
-      overflow: hidden;
-      z-index: 0;
-    }
-    .bubble {
-      position: absolute;
-      bottom: -100px;
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      animation: rise 20s infinite ease-in;
-    }
-    @keyframes rise {
-      0% { transform: translateY(0) scale(1); opacity: 1; }
-      100% { transform: translateY(-1200px) scale(1.3); opacity: 0; }
-    }
-
-    /* === HEADER === */
     header {
-      position: relative;
+      position: sticky;
+      top: 0;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       z-index: 10;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      padding: 1rem 1.5rem;
+    }
+
+    header h1 {
+      color: var(--primary);
+      font-size: 1.4rem;
+      font-weight: 600;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    header img {
-      height: 45px;
-    }
-    header h3 {
-      font-weight: 700;
-      color: #312e81;
-      font-size: 1.2rem;
+      gap: 0.6rem;
     }
 
     .login-btn {
-      background: #4f46e5;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
       border: none;
       color: white;
-      padding: 0.6rem 1.2rem;
+      padding: 0.7rem 1.4rem;
       border-radius: 25px;
       cursor: pointer;
-      transition: 0.3s;
-    }
-    .login-btn:hover {
-      background: #3730a3;
+      font-size: 1rem;
+      transition: transform 0.3s ease;
     }
 
-    /* === FILTROS === */
+    .login-btn:hover {
+      transform: scale(1.05);
+    }
+
     .filters {
-      position: relative;
-      z-index: 10;
-      max-width: 1200px;
-      margin: 1.5rem auto;
-      padding: 0 1rem;
       display: flex;
       flex-wrap: wrap;
+      justify-content: center;
       gap: 1rem;
-      justify-content: space-between;
-    }
-    .filters input, .filters select {
-      padding: 0.7rem 1rem;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-      font-size: 1rem;
-      flex: 1;
-      min-width: 150px;
-      background: white;
-      transition: box-shadow 0.3s ease;
-    }
-    .filters input:focus, .filters select:focus {
-      outline: none;
-      box-shadow: 0 0 0 3px #c7d2fe;
+      padding: 1.5rem 1rem;
+      z-index: 10;
     }
 
-    /* === GRID DE APPS === */
+    .filters input, .filters select {
+      border: 2px solid #b5179e20;
+      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .filters input:focus, .filters select:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 10px rgba(181, 23, 158, 0.3);
+    }
+
     .app-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+      max-width: 1000px;
+      margin: 0 auto 2rem;
       position: relative;
       z-index: 10;
-      max-width: 1200px;
-      margin: 2rem auto;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 1rem;
-      padding: 0 1rem;
+    }
+
+    @media (min-width: 600px) {
+      .app-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
     }
 
     .app-card {
-      background: white;
+      background: rgba(255, 255, 255, 0.85);
       border-radius: 20px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
       text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+      padding-bottom: 0.8rem;
     }
 
     .app-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
     .app-card img {
-      width: 80px;
-      height: 80px;
+      width: 100%;
+      aspect-ratio: 1/1;
       object-fit: cover;
-      margin: 1rem auto 0.5rem;
-      border-radius: 20%;
+      border-bottom: 2px solid var(--primary);
     }
 
-    .app-title {
-      font-size: 0.95rem;
+    .app-card h3 {
+      font-size: 1rem;
+      color: var(--text-color);
+      margin-top: 0.5rem;
+    }
+
+    .app-card .price {
+      color: var(--secondary);
       font-weight: 600;
-      margin: 0.4rem 0;
-      color: #1e1b4b;
-    }
-
-    .price {
-      font-size: 0.85rem;
-      font-weight: bold;
-      color: #4f46e5;
+      font-size: 0.9rem;
     }
 
     .stars {
       color: #fbbf24;
-      font-size: 0.8rem;
       margin-top: 0.3rem;
     }
 
-    /* === FOOTER === */
     footer {
       background: rgba(255, 255, 255, 0.8);
       backdrop-filter: blur(10px);
       padding: 2rem 1rem;
       text-align: center;
+      font-size: 0.9rem;
+      color: var(--text-color);
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
       position: relative;
       z-index: 10;
     }
-    footer p {
-      color: #444;
-      font-size: 0.9rem;
-      margin: 0.2rem 0;
-    }
+
     footer a {
-      color: #4f46e5;
+      color: var(--primary);
       text-decoration: none;
     }
-    .fa-whatsapp {
-      color: #25D366;
-    }
 
-    /* === RESPONSIVE === */
-    @media (max-width: 768px) {
-      header {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      .filters {
-        flex-direction: column;
-      }
-      .app-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.8rem;
-      }
-      .app-card img {
-        width: 60px;
-        height: 60px;
-      }
-      .app-title {
-        font-size: 0.85rem;
-      }
+    footer a:hover {
+      color: var(--secondary);
     }
   </style>
 </head>
 <body>
-  <div class="bubbles"></div>
+  <!-- Fondo animado -->
+  <div class="background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
 
   <header class="fade-in">
-    <img src="img/logo.png" alt="Mi Store" />
-    <h3>My Store</h3>
-    <button class="login-btn" id="sessionBtn"></button>
+    <h1><img src="img/logo.png" alt="logo" style="height:40px;"> My Store</h1>
+    <button id="authBtn" class="login-btn slide-up">Iniciar sesión</button>
   </header>
 
-  <section class="filters slide-up">
-    <input type="text" id="searchInput" placeholder="Buscar app por nombre..." />
+  <section class="filters fade-in">
+    <input type="text" id="searchInput" placeholder="Buscar app..." />
     <select id="categoryFilter">
-      <option value="">Todas las categorías</option>
+      <option value="">Categorías</option>
     </select>
     <select id="priceFilter">
       <option value="">Todas</option>
@@ -243,9 +175,9 @@
     </select>
   </section>
 
-  <section class="app-grid fade-in" id="appGrid"></section>
+  <section class="app-grid" id="appGrid"></section>
 
-  <footer class="slide-up">
+  <footer class="fade-in">
     <p><strong>Desarrollado por:</strong></p>
     <p>Darwin Mercado — <a href="mailto:darwinmercadoospino@gmail.com">darwinmercadoospino@gmail.com</a></p>
     <p>Aynner Florez — <a href="mailto:ajoseflorez@uniguajira.edu.co">ajoseflorez@uniguajira.edu.co</a></p>
@@ -253,38 +185,39 @@
   </footer>
 
   <script>
-    // === Fondo burbujas ===
-    const bubbles = document.querySelector(".bubbles");
-    for (let i = 0; i < 15; i++) {
+    // Fondo animado
+    const bubbles = document.querySelector(".background");
+    for (let i = 0; i < 10; i++) {
       const b = document.createElement("div");
       b.classList.add("bubble");
-      b.style.width = b.style.height = Math.random() * 60 + 20 + "px";
+      b.style.width = b.style.height = Math.random() * 80 + 40 + "px";
       b.style.left = Math.random() * 100 + "%";
-      b.style.animationDuration = Math.random() * 15 + 10 + "s";
+      b.style.animationDelay = Math.random() * 8 + "s";
       bubbles.appendChild(b);
     }
 
-    // === Control de sesión ===
-    const sessionBtn = document.getElementById("sessionBtn");
-    const user = localStorage.getItem("user");
+    // Autenticación simulada
+    const authBtn = document.getElementById("authBtn");
+    const isLoggedIn = localStorage.getItem("logged") === "true";
 
-    if (user) {
-      sessionBtn.textContent = "Cerrar sesión";
-      sessionBtn.onclick = () => {
-        localStorage.removeItem("user");
-        location.reload();
+    function updateAuthButton() {
+      authBtn.textContent = isLoggedIn ? "Cerrar sesión" : "Iniciar sesión";
+      authBtn.onclick = () => {
+        if (isLoggedIn) {
+          localStorage.removeItem("logged");
+          location.reload();
+        } else {
+          window.location.href = "login.html";
+        }
       };
-    } else {
-      sessionBtn.textContent = "Iniciar sesión";
-      sessionBtn.onclick = () => window.location.href = "login.html";
     }
+    updateAuthButton();
 
-    // === App Grid ===
+    // --- Apps ---
     const appGrid = document.getElementById("appGrid");
     const searchInput = document.getElementById("searchInput");
     const categoryFilter = document.getElementById("categoryFilter");
     const priceFilter = document.getElementById("priceFilter");
-
     let apps = [];
 
     async function loadApps() {
@@ -309,7 +242,6 @@
       const search = searchInput.value.toLowerCase();
       const cat = categoryFilter.value;
       const price = priceFilter.value;
-
       const filtered = apps.filter(app => {
         const matchesSearch = app.name.toLowerCase().includes(search);
         const matchesCat = !cat || app.category === cat;
@@ -323,16 +255,14 @@
       appGrid.innerHTML = "";
       filtered.forEach(app => {
         const card = document.createElement("div");
-        card.classList.add("app-card", "slide-up");
+        card.classList.add("app-card", "fade-in");
         card.onclick = () => window.location.href = `app-details.html?id=${app.id}`;
-
         card.innerHTML = `
           <img src="${app.image}" alt="${app.name}" />
-          <h3 class="app-title">${app.name}</h3>
-          <div class="stars">${renderStars(app.average_rating || 0)}</div>
+          <h3>${app.name}</h3>
           <div class="price">${app.is_paid ? "De pago" : "Gratis"}</div>
+          <div class="stars">${renderStars(app.average_rating || 0)}</div>
         `;
-
         appGrid.appendChild(card);
       });
     }
@@ -349,7 +279,6 @@
     searchInput.addEventListener("input", renderApps);
     categoryFilter.addEventListener("change", renderApps);
     priceFilter.addEventListener("change", renderApps);
-
     loadApps();
   </script>
 </body>
