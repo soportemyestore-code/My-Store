@@ -70,3 +70,55 @@ html, body {
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.15);
   padding: 30px;
 }
+
+/* === MODAL DE CIERRE DE SESIÓN === */
+.logout-modal {
+  display: none; /* Oculto por defecto */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+}
+
+.logout-modal.active {
+  display: flex;
+}
+
+.logout-modal-content {
+  max-width: 400px;
+  text-align: center;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  color: var(--text-color);
+}
+
+.logout-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.logout-buttons .btn {
+  flex: 1;
+}
+
+.logout-buttons .cancel {
+  background: #ccc;
+  color: #333;
+}
+
+.logout-buttons .cancel:hover {
+  transform: scale(1.02);
+  background: #bbb;
+}
+
+
