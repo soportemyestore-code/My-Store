@@ -302,7 +302,8 @@
         card.innerHTML = `
           <img src="${app.image}" alt="${app.name}" />
           <h3>${app.name}</h3>
-          <div class="price">${app.is_paid ? "Usd " "${app.price}" : "Gratis"}</div>
+          <h3>${app.price}</h3>
+          <div class="price">${app.is_paid ? "${app.price}" : "Gratis"}</div>
           <div class="stars">${renderStars(app.average_rating || 0)}</div>
         `;
         appGrid.appendChild(card);
@@ -370,6 +371,7 @@ checkSession();
   
 </body>
 </html>
+
 
 
 
