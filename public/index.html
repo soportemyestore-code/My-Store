@@ -294,26 +294,27 @@
         return matchesSearch && matchesCat && matchesPrice;
       });
 
-      appGrid.innerHTML = "";
-filtered.forEach(app => {
-  const card = document.createElement("div");
-  card.classList.add("app-card", "fade-in");
-  card.onclick = () => window.location.href = `app-details.html?id=${app.id}`;
+     appGrid.innerHTML = "";
+     filtered.forEach(app => {
+        const card = document.createElement("div");
+        card.classList.add("app-card", "fade-in");
+        card.onclick = () => window.location.href = `app-details.html?id=${app.id}`;
 
-  const priceLabel = app.is_paid
-    ? `$${parseFloat(app.price).toFixed(2)}`
-    : "Gratis";
+        const priceLabel = app.is_paid
+        ? `$${parseFloat(app.price).toFixed(2)}`
+        : "Gratis";
 
-  card.innerHTML = `
-    <div class="badge-price">${priceLabel}</div>
-    <img src="${app.image}" alt="${app.name}" />
-    <div class="app-info">
-      <h3 class="app-title">${app.name}</h3>
-      <div class="stars">${renderStars(app.average_rating || 0)}</div>
-    </div>
-  `;
+        card.innerHTML = `
+        <div class="badge-price ${app.is_paid ? '' : 'free'}">${priceLabel}</div>
+        <img src="${app.image}" alt="${app.name}" />
+        <div class="app-info">
+        <h3 class="app-title">${app.name}</h3>
+        <div class="stars">${renderStars(app.average_rating || 0)}</div>
+        </div>
+        `;
   appGrid.appendChild(card);
-});
+  });
+
 
 
       
@@ -380,6 +381,7 @@ checkSession();
   
 </body>
 </html>
+
 
 
 
