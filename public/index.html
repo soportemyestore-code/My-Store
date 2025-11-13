@@ -230,6 +230,19 @@
     <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/573013150359" target="_blank"> <img src="img/whatsapp.svg" style="width: 13px;"> +57 301 315 0359</a></p>
   </footer>
 
+  <!-- 🔒 Modal de confirmación de cierre de sesión -->
+<div class="logout-modal" id="logoutModal">
+  <div class="logout-modal-content card fade-in">
+    <h3>¿Deseas cerrar sesión?</h3>
+    <p>Tu sesión actual se cerrará y deberás volver a iniciar sesión para continuar.</p>
+    <div class="logout-buttons">
+      <button id="confirmLogout" class="btn">Sí, cerrar sesión</button>
+      <button id="cancelLogout" class="btn cancel">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+
   <script>
     // Fondo animado
     const bubbles = document.querySelector(".background");
@@ -320,16 +333,23 @@ async function checkSession() {
     if (data.loggedIn) {
       // Usuario autenticado
       loginBtn.textContent = "Cerrar sesión";
-      
-      //loginBtn.onclick = async () => {
-        //const logout = await fetch("/api/logout", { method: "POST" });
-      async function logout() {
-        await fetch("/logout", { method: "POST", credentials: "include" }); 
-        }
+      loginBtn.onclick = () => {
+        document.getElementById("logoutModal").classList.add("active");
+      };
+
+      // Eventos del modal
+      document.getElementById("confirmLogout").onclick = async () => {
+        const logout = await fetch("/logout", { method: "POST" });
         if (logout.ok) {
-          window.location.reload();
-        };
-      //};
+          loginBtn.textContent = "Cerrando sesión...";
+          setTimeout(() => window.location.reload(), 600);
+        }
+      };
+
+      document.getElementById("cancelLogout").onclick = () => {
+        document.getElementById("logoutModal").classList.remove("active");
+      };
+
     } else {
       // Usuario no autenticado
       loginBtn.textContent = "Iniciar sesión";
@@ -344,9 +364,13 @@ async function checkSession() {
 
 checkSession();
 
+
   </script>
+
+  
 </body>
 </html>
+
 
 
 
