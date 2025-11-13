@@ -7,244 +7,203 @@
   <link rel="icon" href="img/logo.png" type="image/png">
   <link rel="stylesheet" href="styles/styles.css">
   <link rel="stylesheet" href="styles/animations.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <style>
-  /* --- HEADER --- */
-  header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 2rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000; /* aseguramos que quede por encima de todo */
-  }
-
-  header h1 {
-    color: var(--primary);
-    font-size: 1.4rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .login-btn {
-    background: linear-gradient(135deg, var(--secondary), var(--primary));
-    border: none;
-    color: white;
-    padding: 0.7rem 1.4rem;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: transform 0.3s ease;
-  }
-
-  .login-btn:hover {
-    transform: scale(1.05);
-  }
-
-  /* --- FILTROS --- */
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-    padding: 1.5rem 1rem;
-    margin-top: 90px; /* espacio para el header fijo */
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(10px);
-    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-    z-index: 900;
-    position: relative;
-  }
-
-  .filters input,
-  .filters select {
-    border: 2px solid #b5179e30;
-    border-radius: 10px;
-    padding: 0.8rem 1rem;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    background: rgba(255, 255, 255, 0.8);
-    color: var(--text-color);
-  }
-
-  .filters input:focus,
-  .filters select:focus {
-    border-color: var(--secondary);
-    box-shadow: 0 0 10px rgba(181, 23, 158, 0.3);
-    outline: none;
-  }
-
-  /* --- GRID DE APPS --- */
-  .app-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-    max-width: 1000px;
-    margin: 1rem auto 3rem;
-    position: relative;
-    z-index: 10;
-  }
-
-  @media (min-width: 600px) {
-    .app-grid {
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    /* --- CABECERA --- */
+    header {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 1000;
     }
-  }
 
-  .app-card {
-    background: rgba(255, 255, 255, 0.85);
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-    padding-bottom: 0.8rem;
-  }
-
-  .app-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  }
-
-  .app-card img {
-    width: 100%;
-    aspect-ratio: 1/1;
-    object-fit: cover;
-    border-bottom: 2px solid var(--primary);
-  }
-
-  .app-card h3 {
-    font-size: 1rem;
-    color: var(--text-color);
-    margin-top: 0.5rem;
-  }
-
-  .app-card .price {
-    color: var(--secondary);
-    font-weight: 600;
-    font-size: 0.9rem;
-  }
-
-  .stars {
-    color: #fbbf24;
-    margin-top: 0.3rem;
-  }
-
-  /* --- FOOTER --- */
-  footer {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
-    padding: 2rem 1rem;
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--text-color);
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-    position: relative;
-    z-index: 10;
-  }
-
-  footer a {
-    color: var(--primary);
-    text-decoration: none;
-  }
-
-  footer a:hover {
-    color: var(--secondary);
-  }
-
-  /* --- HEADER SCROLL EFFECT --- */
-  header.scrolled {
-    padding: 0.5rem 1.5rem;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(15px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease;
-  }
-
-  header img {
-    height: 45px;
-    transition: height 0.3s ease;
-  }
-
-  header.scrolled img {
-    height: 35px;
-  }
-   
-</style>
-
-<script>
-  // --- EFECTO DE CABECERA STICKY ---
-  window.addEventListener("scroll", () => {
-    const header = document.querySelector("header");
-    if (window.scrollY > 50) {
-      header.classList.add("scrolled");
-    } else {
-      header.classList.remove("scrolled");
+    header h1 {
+      color: var(--primary);
+      font-size: 1.4rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
     }
-  });
-</script>
-  
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      border: none;
+      color: white;
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: transform 0.3s ease;
+    }
+
+    .btn:hover { transform: scale(1.05); }
+    .btn.admin { background: linear-gradient(135deg, #06b6d4, #0284c7); }
+    .btn.donate { background: linear-gradient(135deg, #22c55e, #16a34a); }
+
+    /* --- MODAL DONATIVO --- */
+    .donate-modal,
+    .logout-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.4s ease;
+    }
+    .donate-modal.active,
+    .logout-modal.active { display: flex; }
+
+    .donate-modal-content {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      box-shadow: 0 5px 30px rgba(0,0,0,0.2);
+      padding: 2rem;
+      max-width: 350px;
+      text-align: center;
+      animation: slideUp 0.5s ease;
+    }
+
+    .donate-modal-content h3 {
+      color: var(--primary);
+      margin-bottom: 1rem;
+    }
+
+    .donate-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.7rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .donate-option {
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      color: white;
+      padding: 0.6rem 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: transform 0.3s ease, background 0.3s ease;
+    }
+
+    .donate-option:hover {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    .donate-option.other {
+      grid-column: span 3;
+      background: rgba(255,255,255,0.2);
+      color: var(--text-color);
+      border: 2px dashed var(--primary);
+    }
+
+    .donate-input {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 10px;
+      border: 1px solid var(--secondary);
+      margin-top: 0.8rem;
+      display: none;
+    }
+
+    .donate-buttons {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+
+    .btn.cancel {
+      background: #ccc;
+      color: #333;
+    }
+  </style>
 </head>
+
 <body>
-  <!-- Fondo animado -->
   <div class="background">
-    <div class="bubble"></div>
-    <div class="bubble"></div>
-    <div class="bubble"></div>
-    <div class="bubble"></div>
-    <div class="bubble"></div>
+    <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
   </div>
 
   <header class="fade-in">
     <h1><img src="img/logo.png" alt="logo" style="height:40px;"> My Store</h1>
-    <button id="authBtn" class="login-btn slide-up">Iniciar sesión</button>
+    <div class="header-actions">
+      <button id="donateBtn" class="btn donate">Donar</button>
+      <button id="authBtn" class="btn slide-up">Iniciar sesión</button>
+    </div>
   </header>
 
   <section class="filters fade-in">
     <input type="text" id="searchInput" placeholder="Buscar app..." />
-    <select id="categoryFilter">
-      <option value="">Todas las Categorías</option>
-    </select>
-    <select id="priceFilter">
-      <option value="">Todas</option>
-      <option value="free">Gratis</option>
-      <option value="paid">De pago</option>
-    </select>
+    <select id="categoryFilter"><option value="">Todas las Categorías</option></select>
+    <select id="priceFilter"><option value="">Todas</option><option value="free">Gratis</option><option value="paid">De pago</option></select>
   </section>
 
   <section class="app-grid" id="appGrid"></section>
 
   <footer class="fade-in">
     <p><strong> © 2025 My Store </strong></p>
-    <p>Soporte y atención al cliente: <a href="mailto:soportemyestore@gmail.com"> soportemyestore@gmail.com </a></p>
-    <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/573013150359" target="_blank"> <img src="img/whatsapp.svg" style="width: 13px;"> +57 301 315 0359</a></p>
+    <p>Soporte: <a href="mailto:soportemyestore@gmail.com"> soportemyestore@gmail.com </a></p>
+    <p><img src="img/whatsapp.svg" style="width: 13px;"> <a href="https://wa.me/573013150359" target="_blank"> +57 301 315 0359</a></p>
   </footer>
 
-  <!-- 🔒 Modal de confirmación de cierre de sesión -->
-<div class="logout-modal" id="logoutModal">
-  <div class="logout-modal-content card fade-in">
-    <h3>¿Deseas cerrar sesión?</h3>
-    <p>Tu sesión actual se cerrará y deberás volver a iniciar sesión para continuar.</p>
-    <div class="logout-buttons">
-      <button id="confirmLogout" class="btn">Sí, cerrar sesión</button>
-      <button id="cancelLogout" class="btn cancel">Cancelar</button>
+  <!-- 🔒 Logout Modal -->
+  <div class="logout-modal" id="logoutModal">
+    <div class="logout-modal-content card fade-in">
+      <h3>¿Deseas cerrar sesión?</h3>
+      <p>Tu sesión actual se cerrará y deberás volver a iniciar sesión para continuar.</p>
+      <div class="logout-buttons">
+        <button id="confirmLogout" class="btn">Sí, cerrar sesión</button>
+        <button id="cancelLogout" class="btn cancel">Cancelar</button>
+      </div>
     </div>
   </div>
-</div>
 
+  <!-- 💰 Donar Modal -->
+  <div class="donate-modal" id="donateModal">
+    <div class="donate-modal-content fade-in">
+      <h3>Apoya a My Store 💜</h3>
+      <p>Tu contribución ayuda a mantener el proyecto y mejorar la plataforma.</p>
+      <div class="donate-options">
+        <div class="donate-option" data-amount="1">$1</div>
+        <div class="donate-option" data-amount="5">$5</div>
+        <div class="donate-option" data-amount="10">$10</div>
+        <div class="donate-option" data-amount="15">$15</div>
+        <div class="donate-option" data-amount="20">$20</div>
+        <div class="donate-option other">Otro monto</div>
+      </div>
+      <input type="number" id="customAmount" class="donate-input" placeholder="Ingresa otro monto..." min="1">
+      <div class="donate-buttons">
+        <button id="confirmDonate" class="btn donate">Donar</button>
+        <button id="cancelDonate" class="btn cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // Fondo animado
+    // Burbujas animadas
     const bubbles = document.querySelector(".background");
     for (let i = 0; i < 10; i++) {
       const b = document.createElement("div");
@@ -254,8 +213,8 @@
       b.style.animationDelay = Math.random() * 8 + "s";
       bubbles.appendChild(b);
     }
-    
-    // --- Apps ---
+
+    // Carga de apps
     const appGrid = document.getElementById("appGrid");
     const searchInput = document.getElementById("searchInput");
     const categoryFilter = document.getElementById("categoryFilter");
@@ -287,45 +246,31 @@
       const filtered = apps.filter(app => {
         const matchesSearch = app.name.toLowerCase().includes(search);
         const matchesCat = !cat || app.category === cat;
-        const matchesPrice =
-          !price ||
-          (price === "free" && !app.is_paid) ||
-          (price === "paid" && app.is_paid);
+        const matchesPrice = !price || (price === "free" && !app.is_paid) || (price === "paid" && app.is_paid);
         return matchesSearch && matchesCat && matchesPrice;
       });
 
-     appGrid.innerHTML = "";
-     filtered.forEach(app => {
+      appGrid.innerHTML = "";
+      filtered.forEach(app => {
         const card = document.createElement("div");
         card.classList.add("app-card", "fade-in");
         card.onclick = () => window.location.href = `app-details.html?id=${app.id}`;
-
-        const priceLabel = app.is_paid
-        ? `$${parseFloat(app.price).toFixed(2)}`
-        : "Gratis";
-
+        const priceLabel = app.is_paid ? `$${parseFloat(app.price).toFixed(2)}` : "Gratis";
         card.innerHTML = `
-        <div class="badge-price ${app.is_paid ? '' : 'free'}">${priceLabel}</div>
-        <img src="${app.image}" alt="${app.name}" />
-        <div class="app-info">
-        <h3 class="app-title">${app.name}</h3>
-        <div class="stars">${renderStars(app.average_rating || 0)}</div>
-        </div>
-        `;
-  appGrid.appendChild(card);
-  });
-
-
-
-      
+          <div class="badge-price ${app.is_paid ? '' : 'free'}">${priceLabel}</div>
+          <img src="${app.image}" alt="${app.name}" />
+          <div class="app-info">
+            <h3>${app.name}</h3>
+            <div class="stars">${renderStars(app.average_rating || 0)}</div>
+          </div>`;
+        appGrid.appendChild(card);
+      });
     }
 
     function renderStars(rating) {
       const rounded = Math.round(rating);
       let starsHTML = "";
-      for (let i = 1; i <= 5; i++) {
-        starsHTML += `<i class="fa${i <= rounded ? 's' : 'r'} fa-star"></i>`;
-      }
+      for (let i = 1; i <= 5; i++) starsHTML += `<i class="fa${i <= rounded ? 's' : 'r'} fa-star"></i>`;
       return starsHTML;
     }
 
@@ -334,46 +279,74 @@
     priceFilter.addEventListener("change", renderApps);
     loadApps();
 
-    // --- Control de sesión (login / logout dinámico) ---
-async function checkSession() {
-  try {
-    const res = await fetch("/api/session");
-    const data = await res.json();
-    const loginBtn = document.querySelector(".login-btn");
+    // --- Control de sesión ---
+    async function checkSession() {
+      try {
+        const res = await fetch("/api/session");
+        const data = await res.json();
+        const authBtn = document.getElementById("authBtn");
+        const headerActions = document.querySelector(".header-actions");
 
-    if (data.loggedIn) {
-      // Usuario autenticado
-      loginBtn.textContent = "Cerrar sesión";
-      loginBtn.onclick = () => {
-        document.getElementById("logoutModal").classList.add("active");
-      };
+        if (data.loggedIn) {
+          authBtn.textContent = "Cerrar sesión";
+          authBtn.onclick = () => document.getElementById("logoutModal").classList.add("active");
 
-      // Eventos del modal
-      document.getElementById("confirmLogout").onclick = async () => {
-        const logout = await fetch("/logout", { method: "POST" });
-        if (logout.ok) {
-          loginBtn.textContent = "Cerrando sesión...";
-          setTimeout(() => window.location.reload(), 600);
+          // Si es admin
+          if (data.role === "admin") {
+            const adminBtn = document.createElement("button");
+            adminBtn.classList.add("btn", "admin");
+            adminBtn.textContent = "Panel Admin";
+            adminBtn.onclick = () => window.location.href = "admin.html";
+            headerActions.insertBefore(adminBtn, authBtn);
+          }
+
+          document.getElementById("confirmLogout").onclick = async () => {
+            const logout = await fetch("/logout", { method: "POST" });
+            if (logout.ok) setTimeout(() => window.location.reload(), 600);
+          };
+          document.getElementById("cancelLogout").onclick = () => {
+            document.getElementById("logoutModal").classList.remove("active");
+          };
+        } else {
+          authBtn.textContent = "Iniciar sesión";
+          authBtn.onclick = () => window.location.href = "login.html";
         }
-      };
-
-      document.getElementById("cancelLogout").onclick = () => {
-        document.getElementById("logoutModal").classList.remove("active");
-      };
-
-    } else {
-      // Usuario no autenticado
-      loginBtn.textContent = "Iniciar sesión";
-      loginBtn.onclick = () => {
-        window.location.href = "login.html";
-      };
+      } catch (err) {
+        console.error("Error comprobando sesión:", err);
+      }
     }
-  } catch (err) {
-    console.error("Error comprobando sesión:", err);
-  }
-}
+    checkSession();
 
-checkSession();
+    // --- Modal de donaciones ---
+    const donateBtn = document.getElementById("donateBtn");
+    const donateModal = document.getElementById("donateModal");
+    const cancelDonate = document.getElementById("cancelDonate");
+    const confirmDonate = document.getElementById("confirmDonate");
+    const customAmount = document.getElementById("customAmount");
+
+    donateBtn.onclick = () => donateModal.classList.add("active");
+    cancelDonate.onclick = () => donateModal.classList.remove("active");
+
+    document.querySelectorAll(".donate-option").forEach(opt => {
+      opt.addEventListener("click", () => {
+        document.querySelectorAll(".donate-option").forEach(o => o.classList.remove("selected"));
+        opt.classList.add("selected");
+        if (opt.classList.contains("other")) {
+          customAmount.style.display = "block";
+          customAmount.focus();
+        } else {
+          customAmount.style.display = "none";
+          customAmount.value = opt.dataset.amount;
+        }
+      });
+    });
+
+    confirmDonate.onclick = () => {
+      const amount = customAmount.value || document.querySelector(".donate-option.selected")?.dataset.amount;
+      if (!amount) return alert("Selecciona un monto para donar 💜");
+      alert(`Gracias por tu donación de $${amount}! 🥰`);
+      donateModal.classList.remove("active");
+    };
   </script>
 </body>
 </html>
