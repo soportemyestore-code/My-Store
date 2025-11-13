@@ -83,3 +83,29 @@ label {
   padding: 15px;
   color: var(--text-color);
 }
+
+/* === BADGE DE PRECIO / GRATUITO === */
+.badge-price {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(135deg, var(--secondary), var(--primary));
+  color: var(--text-light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  z-index: 2;
+  transition: transform 0.2s ease;
+}
+
+.app-card {
+  position: relative; /* para posicionar el badge */
+  overflow: hidden;
+}
+
+.app-card:hover .badge-price {
+  transform: scale(1.05);
+}
+
