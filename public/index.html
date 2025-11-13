@@ -22,7 +22,7 @@
     align-items: center;
     padding: 1rem 2rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    z-index: 1000; /* aseguramos que quede por encima de todo */
+    z-index: 1000;
   }
 
   header h1 {
@@ -56,12 +56,12 @@
     justify-content: center;
     gap: 1rem;
     padding: 1.5rem 1rem;
-    margin-top: 90px; /* espacio para el header fijo */
+    margin-top: 90px;
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(10px);
     border-bottom: 2px solid rgba(0, 0, 0, 0.05);
-    z-index: 900;
     position: relative;
+    z-index: 900;
   }
 
   .filters input,
@@ -179,22 +179,41 @@
   header.scrolled img {
     height: 35px;
   }
-   
-</style>
 
-<script>
-  // --- EFECTO DE CABECERA STICKY ---
-  window.addEventListener("scroll", () => {
-    const header = document.querySelector("header");
-    if (window.scrollY > 50) {
-      header.classList.add("scrolled");
-    } else {
-      header.classList.remove("scrolled");
-    }
-  });
-</script>
-  
+  /* --- BOTONES DE DONACIÓN --- */
+  .amount-btn {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s ease, background 0.3s ease;
+  }
+
+  .amount-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .amount-btn.active {
+    background: linear-gradient(135deg, #00c853, #43a047);
+  }
+  </style>
+
+  <script>
+    // --- EFECTO DE CABECERA STICKY ---
+    window.addEventListener("scroll", () => {
+      const header = document.querySelector("header");
+      if (window.scrollY > 50) {
+        header.classList.add("scrolled");
+      } else {
+        header.classList.remove("scrolled");
+      }
+    });
+  </script>
 </head>
+
 <body>
   <!-- Fondo animado -->
   <div class="background">
@@ -206,14 +225,13 @@
   </div>
 
   <header class="fade-in">
-  <h1><img src="img/logo.png" alt="logo" style="height:40px;"> My Store</h1>
-  <div style="display: flex; align-items: center; gap: 1rem;">
-    <button id="donateBtn" class="login-btn" style="background: linear-gradient(135deg, #00c853, #43a047);">Donar 💜</button>
-    <button id="adminBtn" class="login-btn" style="display:none;">Panel Admin</button>
-    <button id="authBtn" class="login-btn slide-up">Iniciar sesión</button>
-  </div>
+    <h1><img src="img/logo.png" alt="logo" style="height:40px;"> My Store</h1>
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button id="donateBtn" class="login-btn" style="background: linear-gradient(135deg, #00c853, #43a047);">Donar 💜</button>
+      <button id="adminBtn" class="login-btn" style="display:none;">Panel Admin</button>
+      <button id="authBtn" class="login-btn slide-up">Iniciar sesión</button>
+    </div>
   </header>
-
 
   <section class="filters fade-in">
     <input type="text" id="searchInput" placeholder="Buscar app..." />
@@ -230,23 +248,43 @@
   <section class="app-grid" id="appGrid"></section>
 
   <footer class="fade-in">
-    <p><strong> © 2025 My Store </strong></p>
-    <p>Soporte y atención al cliente: <a href="mailto:soportemyestore@gmail.com"> soportemyestore@gmail.com </a></p>
-    <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/573013150359" target="_blank"> <img src="img/whatsapp.svg" style="width: 13px;"> +57 301 315 0359</a></p>
+    <p><strong>© 2025 My Store</strong></p>
+    <p>Soporte y atención al cliente: <a href="mailto:soportemyestore@gmail.com">soportemyestore@gmail.com</a></p>
+    <p><img src="img/whatsapp.svg" style="width:13px;"> <a href="https://wa.me/573013150359" target="_blank">+57 301 315 0359</a></p>
   </footer>
 
-  <!-- 🔒 Modal de confirmación de cierre de sesión -->
-<div class="logout-modal" id="logoutModal">
-  <div class="logout-modal-content card fade-in">
-    <h3>¿Deseas cerrar sesión?</h3>
-    <p>Tu sesión actual se cerrará y deberás volver a iniciar sesión para continuar.</p>
-    <div class="logout-buttons">
-      <button id="confirmLogout" class="btn">Sí, cerrar sesión</button>
-      <button id="cancelLogout" class="btn cancel">Cancelar</button>
+  <!-- 🔒 Modal de cierre de sesión -->
+  <div class="logout-modal" id="logoutModal">
+    <div class="logout-modal-content card fade-in">
+      <h3>¿Deseas cerrar sesión?</h3>
+      <p>Tu sesión actual se cerrará y deberás volver a iniciar sesión para continuar.</p>
+      <div class="logout-buttons">
+        <button id="confirmLogout" class="btn">Sí, cerrar sesión</button>
+        <button id="cancelLogout" class="btn cancel">Cancelar</button>
+      </div>
     </div>
   </div>
-</div>
 
+  <!-- 💰 Modal de donaciones -->
+  <div class="logout-modal" id="donateModal">
+    <div class="logout-modal-content card fade-in">
+      <h3>Apoya nuestro proyecto 💜</h3>
+      <p>Selecciona un monto o ingresa otro valor para donar con PayPal.</p>
+      <div class="donation-options" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px;">
+        <button class="btn amount-btn" data-amount="1">$1</button>
+        <button class="btn amount-btn" data-amount="5">$5</button>
+        <button class="btn amount-btn" data-amount="10">$10</button>
+        <button class="btn amount-btn" data-amount="15">$15</button>
+        <button class="btn amount-btn" data-amount="20">$20</button>
+      </div>
+      <input type="number" id="customAmount" min="1" placeholder="Otro valor ($)"
+             style="margin-top:15px; padding:8px; width:70%; border-radius:10px; border:1px solid #ccc; text-align:center;">
+      <div id="paypal-button-container" style="margin-top:20px;"></div>
+      <div class="logout-buttons" style="margin-top:25px;">
+        <button id="cancelDonate" class="btn cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     // Fondo animado
@@ -259,7 +297,7 @@
       b.style.animationDelay = Math.random() * 8 + "s";
       bubbles.appendChild(b);
     }
-    
+
     // --- Apps ---
     const appGrid = document.getElementById("appGrid");
     const searchInput = document.getElementById("searchInput");
@@ -285,6 +323,12 @@
       });
     }
 
+    function renderStars(rating) {
+      const full = Math.floor(rating);
+      const half = rating % 1 >= 0.5 ? 1 : 0;
+      return "★".repeat(full) + (half ? "½" : "");
+    }
+
     function renderApps() {
       const search = searchInput.value.toLowerCase();
       const cat = categoryFilter.value;
@@ -300,38 +344,21 @@
       });
 
       appGrid.innerHTML = "";
-filtered.forEach(app => {
-  const card = document.createElement("div");
-  card.classList.add("app-card", "fade-in");
-  card.onclick = () => window.location.href = `app-details.html?id=${app.id}`;
-
-  const priceLabel = app.is_paid
-    ? `$${parseFloat(app.price).toFixed(2)}`
-    : "Gratis";
-
-  card.innerHTML = `
-    <div class="badge-price ${app.is_paid ? '' : 'free'}">${priceLabel}</div>
-    <img src="${app.image}" alt="${app.name}" />
-    <div class="app-info">
-      <h3 class="app-title">${app.name}</h3>
-      <div class="stars">${renderStars(app.average_rating || 0)}</div>
-    </div>
-  `;
-  appGrid.appendChild(card);
-});
-
-
-
-      
-    }
-
-    function renderStars(rating) {
-      const rounded = Math.round(rating);
-      let starsHTML = "";
-      for (let i = 1; i <= 5; i++) {
-        starsHTML += `<i class="fa${i <= rounded ? 's' : 'r'} fa-star"></i>`;
-      }
-      return starsHTML;
+      filtered.forEach(app => {
+        const card = document.createElement("div");
+        card.classList.add("app-card", "fade-in");
+        card.onclick = () => window.location.href = `app-details.html?id=${app.id}`;
+        const priceLabel = app.is_paid ? `$${parseFloat(app.price).toFixed(2)}` : "Gratis";
+        card.innerHTML = `
+          <div class="badge-price ${app.is_paid ? '' : 'free'}">${priceLabel}</div>
+          <img src="${app.image}" alt="${app.name}" />
+          <div class="app-info">
+            <h3 class="app-title">${app.name}</h3>
+            <div class="stars">${renderStars(app.average_rating || 0)}</div>
+          </div>
+        `;
+        appGrid.appendChild(card);
+      });
     }
 
     searchInput.addEventListener("input", renderApps);
@@ -339,148 +366,111 @@ filtered.forEach(app => {
     priceFilter.addEventListener("change", renderApps);
     loadApps();
 
-    // --- Control de sesión (login / logout dinámico) ---
-async function checkSession() {
-  try {
-    const res = await fetch("/api/session");
-    const data = await res.json();
-    const loginBtn = document.querySelector(".login-btn");
-    const adminBtn = document.getElementById("adminBtn");
+    // --- Control de sesión ---
+    async function checkSession() {
+      try {
+        const res = await fetch("/api/session");
+        const data = await res.json();
+        const loginBtn = document.querySelector(".login-btn.slide-up");
+        const adminBtn = document.getElementById("adminBtn");
 
-    if (data.loggedIn) {
-      // Usuario autenticado
-      loginBtn.textContent = "Cerrar sesión";
-      loginBtn.onclick = () => {
-        document.getElementById("logoutModal").classList.add("active");
-      };
+        if (data.loggedIn) {
+          loginBtn.textContent = "Cerrar sesión";
+          loginBtn.onclick = () => {
+            document.getElementById("logoutModal").classList.add("active");
+          };
 
-      // Eventos del modal
-      document.getElementById("confirmLogout").onclick = async () => {
-        const logout = await fetch("/logout", { method: "POST" });
+          if (data.role === "admin") {
+            adminBtn.style.display = "inline-block";
+            adminBtn.onclick = () => window.location.href = "admin-panel.html";
+          } else {
+            adminBtn.style.display = "none";
+          }
 
-      if (data.role === "admin") {
-        adminBtn.style.display = "inline-block";
-        adminBtn.onclick = () => window.location.href = "admin.html";
-      } else {
-        adminBtn.style.display = "none";
-      }
-        
-        if (logout.ok) {
-          loginBtn.textContent = "Cerrando sesión...";
-          setTimeout(() => window.location.reload(), 600);
+          document.getElementById("confirmLogout").onclick = async () => {
+            const logout = await fetch("/logout", { method: "POST" });
+            if (logout.ok) {
+              loginBtn.textContent = "Cerrando sesión...";
+              setTimeout(() => window.location.reload(), 600);
+            }
+          };
+
+          document.getElementById("cancelLogout").onclick = () => {
+            document.getElementById("logoutModal").classList.remove("active");
+          };
+
+        } else {
+          adminBtn.style.display = "none";
+          loginBtn.textContent = "Iniciar sesión";
+          loginBtn.onclick = () => window.location.href = "login.html";
         }
-      };
-
-      document.getElementById("cancelLogout").onclick = () => {
-        document.getElementById("logoutModal").classList.remove("active");
-      };
-
-    } else {
-      // Usuario no autenticado
-      loginBtn.textContent = "Iniciar sesión";
-      loginBtn.onclick = () => {
-        window.location.href = "login.html";
-      adminBtn.style.display = "none";
-      };
+      } catch (err) {
+        console.error("Error comprobando sesión:", err);
+      }
     }
-  } catch (err) {
-    console.error("Error comprobando sesión:", err);
-  }
-}
 
-checkSession();
-
-
-</script>
-
-<!-- 💰 Modal de donaciones -->
-<div class="logout-modal" id="donateModal">
-  <div class="logout-modal-content card fade-in">
-    <h3>Apoya nuestro proyecto 💜</h3>
-    <p>Selecciona un monto o ingresa otro valor para donar con PayPal.</p>
-    
-    <div class="donation-options" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px;">
-      <button class="btn amount-btn" data-amount="1">$1</button>
-      <button class="btn amount-btn" data-amount="5">$5</button>
-      <button class="btn amount-btn" data-amount="10">$10</button>
-      <button class="btn amount-btn" data-amount="15">$15</button>
-      <button class="btn amount-btn" data-amount="20">$20</button>
-    </div>
-
-    <input type="number" id="customAmount" min="1" placeholder="Otro valor ($)" 
-           style="margin-top:15px; padding:8px; width:70%; border-radius:10px; border:1px solid #ccc; text-align:center;">
-    
-    <div id="paypal-button-container" style="margin-top:20px;"></div>
-    
-    <div class="logout-buttons" style="margin-top:25px;">
-      <button id="cancelDonate" class="btn cancel">Cancelar</button>
-    </div>
-  </div>
-</div>
+    checkSession();
+  </script>
 
   <!-- SDK oficial de PayPal -->
-<script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD"></script>
+  <script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID&currency=USD"></script>
+  <script>
+    const donateBtn = document.getElementById("donateBtn");
+    const donateModal = document.getElementById("donateModal");
+    const cancelDonate = document.getElementById("cancelDonate");
+    const amountBtns = document.querySelectorAll(".amount-btn");
+    const customAmount = document.getElementById("customAmount");
+    let selectedAmount = 5;
 
-<script>
-  const donateBtn = document.getElementById("donateBtn");
-  const donateModal = document.getElementById("donateModal");
-  const cancelDonate = document.getElementById("cancelDonate");
-  const amountBtns = document.querySelectorAll(".amount-btn");
-  const customAmount = document.getElementById("customAmount");
-  let selectedAmount = 5;
-
-  donateBtn.addEventListener("click", () => {
-    donateModal.classList.add("active");
-    renderPayPalButton(selectedAmount);
-  });
-
-  cancelDonate.addEventListener("click", () => {
-    donateModal.classList.remove("active");
-  });
-
-  amountBtns.forEach(btn => {
-    btn.addEventListener("click", () => {
-      amountBtns.forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      selectedAmount = parseFloat(btn.dataset.amount);
-      customAmount.value = "";
+    donateBtn.addEventListener("click", () => {
+      donateModal.classList.add("active");
       renderPayPalButton(selectedAmount);
     });
-  });
 
-  customAmount.addEventListener("input", e => {
-    const val = parseFloat(e.target.value);
-    if (!isNaN(val) && val >= 1) {
-      selectedAmount = val;
-      amountBtns.forEach(b => b.classList.remove("active"));
-      renderPayPalButton(selectedAmount);
-    }
-  });
+    cancelDonate.addEventListener("click", () => {
+      donateModal.classList.remove("active");
+    });
 
-  function renderPayPalButton(amount) {
-    const container = document.getElementById("paypal-button-container");
-    container.innerHTML = "";
-    paypal.Buttons({
-      style: { shape: "pill", color: "blue", layout: "vertical", label: "paypal" },
-      createOrder: (data, actions) => {
-        return actions.order.create({
-          purchase_units: [{ amount: { value: amount.toFixed(2) } }]
-        });
-      },
-      onApprove: async (data, actions) => {
-        const order = await actions.order.capture();
-        alert(`Gracias por tu donación de $${amount}! 💜`);
-        donateModal.classList.remove("active");
-      },
-      onError: err => {
-        console.error("Error con PayPal:", err);
-        alert("Ocurrió un error con PayPal. Intenta nuevamente.");
+    amountBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        amountBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedAmount = parseFloat(btn.dataset.amount);
+        customAmount.value = "";
+        renderPayPalButton(selectedAmount);
+      });
+    });
+
+    customAmount.addEventListener("input", e => {
+      const val = parseFloat(e.target.value);
+      if (!isNaN(val) && val >= 1) {
+        selectedAmount = val;
+        amountBtns.forEach(b => b.classList.remove("active"));
+        renderPayPalButton(selectedAmount);
       }
-    }).render("#paypal-button-container");
-  }
-</script>
+    });
 
-  
+    function renderPayPalButton(amount) {
+      const container = document.getElementById("paypal-button-container");
+      container.innerHTML = "";
+      paypal.Buttons({
+        style: { shape: "pill", color: "blue", layout: "vertical", label: "paypal" },
+        createOrder: (data, actions) => {
+          return actions.order.create({
+            purchase_units: [{ amount: { value: amount.toFixed(2) } }]
+          });
+        },
+        onApprove: async (data, actions) => {
+          await actions.order.capture();
+          alert(`Gracias por tu donación de $${amount}! 💜`);
+          donateModal.classList.remove("active");
+        },
+        onError: err => {
+          console.error("Error con PayPal:", err);
+          alert("Ocurrió un error con PayPal. Intenta nuevamente.");
+        }
+      }).render("#paypal-button-container");
+    }
+  </script>
 </body>
 </html>
-
