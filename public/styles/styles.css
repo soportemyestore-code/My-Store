@@ -131,17 +131,13 @@ html, body {
   font-weight: 600;
   padding: 5px 12px;
   border-radius: 30px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
   z-index: 2;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, background 0.3s ease;
 }
 
-.app-card {
-  position: relative; /* para posicionar el badge */
-  overflow: hidden;
+.badge-price.free {
+  background: linear-gradient(135deg, #00c853, #43a047); /* verde */
 }
 
-.app-card:hover .badge-price {
-  transform: scale(1.05);
-}
 
