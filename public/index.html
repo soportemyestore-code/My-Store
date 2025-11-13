@@ -241,25 +241,7 @@
       b.style.animationDelay = Math.random() * 8 + "s";
       bubbles.appendChild(b);
     }
-
-    // Autenticación simulada
     
-    const authBtn = document.getElementById("authBtn");
-    const isLoggedIn = localStorage.getItem("logged") === "true";
-
-    function updateAuthButton() {
-      authBtn.textContent = isLoggedIn ? "Cerrar sesión" : "Iniciar sesión";
-      authBtn.onclick = () => {
-        if (isLoggedIn) {
-          localStorage.removeItem("logged");
-          location.reload();
-        } else {
-          window.location.href = "login.html";
-        }
-      };
-    }
-    updateAuthButton();
-
     // --- Apps ---
     const appGrid = document.getElementById("appGrid");
     const searchInput = document.getElementById("searchInput");
@@ -327,9 +309,41 @@
     categoryFilter.addEventListener("change", renderApps);
     priceFilter.addEventListener("change", renderApps);
     loadApps();
+
+    // --- Control de sesión (login / logout dinámico) ---
+async function checkSession() {
+  try {
+    const res = await fetch("/api/session");
+    const data = await res.json();
+    const loginBtn = document.querySelector(".login-btn");
+
+    if (data.loggedIn) {
+      // Usuario autenticado
+      loginBtn.textContent = "Cerrar sesión";
+      loginBtn.onclick = async () => {
+        const logout = await fetch("/api/logout", { method: "POST" });
+        if (logout.ok) {
+          window.location.reload();
+        }
+      };
+    } else {
+      // Usuario no autenticado
+      loginBtn.textContent = "Iniciar sesión";
+      loginBtn.onclick = () => {
+        window.location.href = "login.html";
+      };
+    }
+  } catch (err) {
+    console.error("Error comprobando sesión:", err);
+  }
+}
+
+checkSession();
+
   </script>
 </body>
 </html>
+
 
 
 
