@@ -305,7 +305,7 @@ filtered.forEach(app => {
     : "Gratis";
 
   card.innerHTML = `
-    <div class="badge-price">${priceLabel}</div>
+    <div class="badge-price ${app.is_paid ? '' : 'free'}">${priceLabel}</div>
     <img src="${app.image}" alt="${app.name}" />
     <div class="app-info">
       <h3 class="app-title">${app.name}</h3>
@@ -314,6 +314,7 @@ filtered.forEach(app => {
   `;
   appGrid.appendChild(card);
 });
+
 
 
       
@@ -380,3 +381,4 @@ checkSession();
   
 </body>
 </html>
+
