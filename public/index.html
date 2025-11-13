@@ -320,12 +320,17 @@ async function checkSession() {
     if (data.loggedIn) {
       // Usuario autenticado
       loginBtn.textContent = "Cerrar sesión";
-      loginBtn.onclick = async () => {
-        const logout = await fetch("/api/logout", { method: "POST" });
+      
+      //loginBtn.onclick = async () => {
+        //const logout = await fetch("/api/logout", { method: "POST" });
+      async function logout() {
+        if (!confirm("¿Deseas cerrar sesión?")) return;
+        await fetch("/logout", { method: "POST", credentials: "include" }); 
+        }
         if (logout.ok) {
           window.location.reload();
         }
-      };
+      //};
     } else {
       // Usuario no autenticado
       loginBtn.textContent = "Iniciar sesión";
@@ -343,6 +348,7 @@ checkSession();
   </script>
 </body>
 </html>
+
 
 
 
