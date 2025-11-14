@@ -3,6 +3,7 @@
 // ================================
 
 import express from "express";
+import fetch from "node-fetch";
 import session from "express-session";
 import bcrypt from "bcrypt";
 import cors from "cors";
@@ -242,6 +243,92 @@ app.post("/register", async (req, res) => {
     console.error("❌ /register error:", err);
     res.status(500).json({ success: false, message: "Error interno" });
   }
+});
+
+// Credenciales
+const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const SECRET = process.env.PAYPAL_SECRET;
+
+// URLs de PayPal (LIVE)
+const PAYPAL_API = "https://api-m.paypal.com";  // para pruebas usa api-m.sandbox.paypal.com
+
+// Función para generar token de acceso
+async function generateAccessToken() {
+  const auth = Buffer.from(`${CLIENT_ID}:${SECRET}`).toString("base64");
+
+  const response = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "grant_type=client_credentials"
+  });
+
+  const data = await response.json();
+  return data.access_token;
+}
+
+// 1) Crear orden
+app.post("/api/orders", async (req, res) => {
+  try {
+    const { amount } = req.body;
+
+    const access_token = await generateAccessToken();
+
+    const response = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${access_token}`
+      },
+      body: JSON.stringify({
+        intent: "CAPTURE",
+        purchase_units: [
+          {
+            amount: { value: amount }
+          }
+        ]
+      })
+    });
+
+    const data = await response.json();
+    res.json(data);
+
+  } catch (error) {
+    console.error("Error creando orden:", error);
+    res.status(500).json({ error: "Error creando orden" });
+  }
+});
+
+// 2) Capturar orden
+app.post("/api/orders/:orderId/capture", async (req, res) => {
+  try {
+    const { orderId } = req.params;
+
+    const access_token = await generateAccessToken();
+
+    const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${orderId}/capture`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${access_token}`
+      }
+    });
+
+    const data = await response.json();
+    res.json(data);
+
+  } catch (error) {
+    console.error("Error capturando orden:", error);
+    res.status(500).json({ error: "Error capturando orden" });
+  }
+});
+
+// Puerto Render
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log("Servidor activo en puerto " + PORT);
 });
 
 // ================================
@@ -593,3 +680,4 @@ app.get("/api/apps/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
