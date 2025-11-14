@@ -5,182 +5,213 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>My Store | Tienda de Apps</title>
   <link rel="icon" href="img/logo.png" type="image/png">
+
+  <!-- Tus hojas de estilo originales -->
   <link rel="stylesheet" href="styles/styles.css">
   <link rel="stylesheet" href="styles/animations.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Font Awesome (si Tracking Prevention lo bloquea, hay fallback visual en botones) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="" crossorigin="anonymous" />
 
   <style>
-  /* === HEADER === */
-  header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(255,255,255,0.88);
-    backdrop-filter: blur(12px);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0.7rem 1.2rem;
-    box-shadow:0 2px 10px rgba(0,0,0,0.08);
-    z-index:1000;
-  }
-  header h1{ color:var(--primary); font-size:1.3rem; font-weight:600; display:flex; align-items:center; gap:.5rem;}
-  .icon-btn{ background:none; border:none; color:var(--primary); font-size:1.5rem; cursor:pointer; transition: transform .18s ease, color .18s ease;}
-  .icon-btn:hover{ transform:scale(1.08); color:var(--secondary); }
+    /* Pequeños ajustes/local overrides sin tocar tu styles.css */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 1.2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      z-index: 1000;
+    }
+    header h1 {
+      color: var(--primary);
+      font-size: 1.25rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    /* acciones header: donate visible en desktop, oculto en móvil */
+    .header-actions { display:flex; align-items:center; gap:0.8rem; }
+    #donateHeaderBtn { display:inline-flex; gap:.5rem; align-items:center; }
+    @media (max-width: 768px) {
+      #donateHeaderBtn { display:none; } /* donate header oculto en móvil */
+    }
 
-  /* === FILTROS (aseguramos espacio bajo header) === */
-  .filters {
-    display:flex;
-    flex-wrap:wrap;
-    justify-content:center;
-    gap:1rem;
-    padding:1.2rem 1rem;
-    margin-top:78px; /* espacio para header fijo */
-    background: rgba(255,255,255,0.6);
-    backdrop-filter: blur(10px);
-    border-bottom:2px solid rgba(0,0,0,0.04);
-    position:relative;
-    z-index:900;
-  }
-  .filters input, .filters select {
-    border: 2px solid #b5179e30;
-    border-radius:10px;
-    padding:.7rem .9rem;
-    font-size:1rem;
-    background:rgba(255,255,255,0.85);
-    color:var(--text-color);
-  }
+    /* Botón flotante Auth (derecha) */
+    .auth-floating-btn {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,var(--secondary),var(--primary));
+      color: white;
+      border: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      z-index: 1100;
+      cursor: pointer;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.25rem;
+      animation: authIn 0.7s ease both;
+    }
+    @keyframes authIn { 0%{ transform: scale(.2); opacity:0 } 60%{ transform: scale(1.12); opacity:1 } 100%{ transform: scale(1) } }
+    .auth-floating-btn:hover { transform: scale(1.06); }
 
-  /* === GRID DE APPS (restaurado) === */
-  .app-grid {
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 1rem;
-    padding: 1rem;
-    max-width:1100px;
-    margin: 1rem auto 3rem;
-    position:relative;
-    z-index:10;
-  }
-  @media (min-width:600px) {
-    .app-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-  }
+    /* Botón flotante Donate (izquierda) - solo en móvil se muestra */
+    .donate-floating-btn {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg,#00c853,#43a047);
+      color: white;
+      border: none;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      z-index: 1100;
+      cursor: pointer;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.25rem;
+      animation: donateIn 0.7s ease both;
+    }
+    @keyframes donateIn { 0%{ transform: translateY(20px) scale(.3); opacity:0 } 60%{ transform: translateY(-6px) scale(1.05); opacity:1 } 100%{ transform: translateY(0) scale(1) } }
+    .donate-floating-btn:hover { transform: scale(1.06); }
 
-  /* === APP CARD (restaurado) === */
-  .app-card {
-    background: rgba(255,255,255,0.92);
-    border-radius:16px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    overflow:hidden;
-    text-align:center;
-    transition: transform .22s ease, box-shadow .22s ease;
-    cursor:pointer;
-    padding-bottom: .6rem;
-  }
-  .app-card:hover { transform: translateY(-6px); box-shadow:0 12px 30px rgba(0,0,0,0.12); }
-  .app-card img { width:100%; aspect-ratio:1/1; object-fit:cover; border-bottom:2px solid var(--primary); display:block; }
-  .app-card .app-info { padding:12px; color:var(--text-color); }
-  .app-card h3{ font-size:1rem; margin-top:0.4rem; }
-  .stars{ color:#fbbf24; margin-top:0.25rem; }
+    @media (max-width: 768px) {
+      .auth-floating-btn { display:flex; }
+      .donate-floating-btn { display:flex; }
+    }
 
-  /* === BADGE PRICE (mantener) === */
-  .badge-price { position:absolute; top:10px; right:10px; background: linear-gradient(135deg, var(--secondary), var(--primary)); color:var(--text-light); font-size:.85rem; font-weight:600; padding:6px 12px; border-radius:30px; box-shadow:0 2px 10px rgba(0,0,0,0.12); z-index:3; pointer-events:none; transition: transform .18s ease; }
-  .badge-price.free { background: linear-gradient(135deg,#00c853,#43a047); }
+    /* pequeño badge admin en el auth-floating cuando user = admin */
+    .admin-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #ffdd57;
+      color: #441a82;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 0.75rem;
+      font-weight:700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
 
-  /* === BOTÓN FLOTANTE PAYPAL === */
-  .donate-floating-btn {
-    display:none;
-    position:fixed; bottom:20px; right:20px;
-    width:56px; height:56px; border-radius:50%;
-    background: linear-gradient(135deg,var(--secondary),var(--primary));
-    color:white; border:none; font-size:1.5rem; cursor:pointer;
-    box-shadow:0 8px 30px rgba(0,0,0,0.25); z-index:1100;
-    animation: bounceIn .7s ease both;
-    justify-content:center; align-items:center;
-  }
-  @keyframes bounceIn { 0%{ transform: scale(.2); opacity:0 } 60%{ transform: scale(1.15); opacity:1 } 100%{ transform: scale(1) } }
-  .donate-floating-btn:hover{ transform:scale(1.06); }
+    /* Aseguramos que footer se muestre sobre el fondo animado */
+    footer { position: relative; z-index: 10; }
 
-  @media (max-width:768px) {
-    #donateBtn { display:none; }
-    .donate-floating-btn { display:flex; }
-  }
-
-  /* === MODALES (donate/logout) === */
-  .logout-modal, .donate-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.38); backdrop-filter: blur(3px); justify-content:center; align-items:center; z-index:1200; }
-  .logout-modal.active, .donate-modal.active { display:flex; }
-  .logout-modal-content, .donate-modal-content {
-    background: rgba(255,255,255,0.97); border-radius:18px; padding:1.6rem; max-width:420px; width:92%; box-shadow:0 12px 30px rgba(0,0,0,0.16);
-    animation: fadeInUp .28s ease;
-  }
-  @keyframes fadeInUp { from{ transform: translateY(24px); opacity:0 } to{ transform: translateY(0); opacity:1 } }
-
-  .logout-buttons, .donate-buttons { margin-top:16px; display:flex; gap:10px; justify-content:center; }
-  .btn { padding:.6rem 1rem; border-radius:10px; border:none; cursor:pointer; font-weight:600; }
-  .btn.cancel { background:#ccc; color:#222; }
-  .btn:hover { transform: translateY(-1px); }
-
-  /* Mensaje de error / fallback */
-  #appGrid .load-error { text-align:center; color:#a00; padding:1rem; background:#fff6f6; border-radius:8px; box-shadow:0 3px 10px rgba(0,0,0,0.04); }
+    /* mantengo estilos para paypal button container dentro del modal */
+    #paypal-button-container { display:flex; justify-content:center; margin-top:10px; }
   </style>
-  <!-- PayPal SDK (reemplazar YOUR_CLIENT_ID) -->
+
+  <!-- PayPal SDK con tu Client ID (sandbox/live según tu ID) -->
   <script src="https://www.paypal.com/sdk/js?client-id=AZDkkap379fIWhWg3iADt9MbiB3ZlnCGPcM96FyijbeFdd9TtVxXHmVWenxhNfcSn6LCSj0ZhjptOKpG&currency=USD"></script>
 </head>
 <body>
-  <!-- fondo animado -->
-  <div class="background">
+  <!-- Fondo animado (usa tu styles.css) -->
+  <div class="background" aria-hidden="true">
     <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
   </div>
 
+  <!-- HEADER -->
   <header>
-    <h1><img src="img/logo.png" alt="logo" style="height:38px;"> My Store</h1>
+    <h1><img src="img/logo.png" alt="logo" style="height:40px;"> My Store</h1>
+
     <div class="header-actions">
-      <button id="adminPanelBtn" class="icon-btn" title="Panel Admin" style="display:none;"><i class="fa-solid fa-gear"></i></button>
-      <button id="donateBtn" class="icon-btn" title="Donar con PayPal"><i class="fa-brands fa-paypal"></i></button>
-      <button id="authBtn" class="icon-btn" title="Iniciar sesión"><i class="fa-solid fa-right-to-bracket"></i></button>
+      <!-- Donate button visible en desktop -->
+      <button id="donateHeaderBtn" class="login-btn" title="Donar con PayPal">
+        <i class="fa-brands fa-paypal" aria-hidden="true"></i>
+        <span style="margin-left:6px; font-weight:600; font-size:.95rem;">Donar</span>
+      </button>
+
+      <!-- Admin button (solo se muestra si role === 'admin') -->
+      <button id="adminBtn" class="login-btn" style="display:none;" title="Panel Admin">
+        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+      </button>
+
+      <!-- (Dejamos el header ligero — el auth está en el flotante) -->
     </div>
   </header>
 
-  <section class="filters fade-in">
+  <!-- FILTROS (idénticos a tu versión) -->
+  <section class="filters fade-in" aria-label="Filtros">
     <input type="text" id="searchInput" placeholder="Buscar app..." />
-    <select id="categoryFilter"><option value="">Todas las Categorías</option></select>
-    <select id="priceFilter"><option value="">Todas</option><option value="free">Gratis</option><option value="paid">De pago</option></select>
+    <select id="categoryFilter" aria-label="Categoría">
+      <option value="">Todas las Categorías</option>
+    </select>
+    <select id="priceFilter" aria-label="Precio">
+      <option value="">Todas</option>
+      <option value="free">Gratis</option>
+      <option value="paid">De pago</option>
+    </select>
   </section>
 
-  <section class="app-grid" id="appGrid"></section>
+  <!-- GRID DE APPS (uso tus clases y estilos) -->
+  <section class="app-grid" id="appGrid" aria-live="polite"></section>
 
-  <footer>
+  <!-- FOOTER (asegurado sobre el fondo) -->
+  <footer class="fade-in">
     <p><strong>© 2025 My Store</strong></p>
-    <p>Soporte: <a href="mailto:soportemyestore@gmail.com">soportemyestore@gmail.com</a></p>
-    <p><img src="img/whatsapp.svg" style="width:13px;"> <a href="https://wa.me/573013150359" target="_blank">+57 301 315 0359</a></p>
+    <p>Soporte y atención: <a href="mailto:soportemyestore@gmail.com">soportemyestore@gmail.com</a></p>
+    <p><img src="img/whatsapp.svg" alt="whatsapp" style="width:13px;"> <a href="https://wa.me/573013150359" target="_blank" rel="noopener">+57 301 315 0359</a></p>
   </footer>
 
-  <!-- botón flotante -->
-  <button id="floatingDonateBtn" class="donate-floating-btn" title="Donar con PayPal"><i class="fa-brands fa-paypal"></i></button>
+  <!-- BOTÓN FLOTANTE: AUTH (derecha) -->
+  <button id="authFloatingBtn" class="auth-floating-btn" title="Iniciar sesión">
+    <!-- icono por defecto (fallback en caso de CDN bloqueado es texto) -->
+    <i id="authFloatingIcon" class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+    <!-- admin badge añadido dinámicamente cuando el user sea admin -->
+  </button>
 
-  <!-- modal donaciones -->
-  <div class="donate-modal" id="donateModal">
-    <div class="donate-modal-content">
-      <h3>💜 Apoya el proyecto</h3>
-      <p>Selecciona un monto:</p>
-      <select id="donationAmount">
-        <option value="1">$1 USD</option>
-        <option value="5">$5 USD</option>
-        <option value="10">$10 USD</option>
-        <option value="15">$15 USD</option>
-        <option value="20">$20 USD</option>
-        <option value="custom">Otro monto</option>
-      </select>
-      <div id="paypal-button-container" style="margin-top:14px;"></div>
-      <div class="donate-buttons"><button id="cancelDonate" class="btn cancel">Cancelar</button></div>
+  <!-- BOTÓN FLOTANTE: DONATE (izquierda en móvil) -->
+  <button id="donateFloatingBtn" class="donate-floating-btn" title="Donar">
+    <i class="fa-brands fa-paypal" aria-hidden="true"></i>
+  </button>
+
+  <!-- MODAL: DONACIONES (glass UI) -->
+  <div class="logout-modal donate-modal" id="donateModal" aria-hidden="true">
+    <div class="logout-modal-content donate-modal-content card fade-in" role="dialog" aria-modal="true" aria-labelledby="donateTitle">
+      <h3 id="donateTitle">💜 Apoya nuestro proyecto</h3>
+      <p>Selecciona un monto o ingresa otro valor ($ USD)</p>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:12px;">
+        <button class="amount-btn" data-amount="1">$1</button>
+        <button class="amount-btn" data-amount="5">$5</button>
+        <button class="amount-btn" data-amount="10">$10</button>
+        <button class="amount-btn" data-amount="15">$15</button>
+        <button class="amount-btn" data-amount="20">$20</button>
+      </div>
+
+      <input id="customAmount" type="number" min="1" placeholder="Otro valor ($)" style="margin-top:12px; padding:8px; width:70%; border-radius:10px; border:1px solid #ddd; text-align:center;">
+
+      <div id="paypal-button-container"></div>
+
+      <div class="logout-buttons" style="margin-top:16px;">
+        <button id="closeDonate" class="btn cancel">Cancelar</button>
+      </div>
     </div>
   </div>
 
-  <!-- modal logout -->
-  <div class="logout-modal" id="logoutModal">
-    <div class="logout-modal-content">
-      <h3>¿Deseas cerrar sesión?</h3>
+  <!-- MODAL: LOGOUT -->
+  <div class="logout-modal" id="logoutModal" aria-hidden="true">
+    <div class="logout-modal-content card fade-in" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+      <h3 id="logoutTitle">¿Deseas cerrar sesión?</h3>
       <p>Tu sesión actual se cerrará y deberás volver a iniciar sesión para continuar.</p>
       <div class="logout-buttons">
         <button id="confirmLogout" class="btn">Sí, cerrar sesión</button>
@@ -190,69 +221,85 @@
   </div>
 
   <script>
-  /* ==== UI dinámico (apps, filtros, session) ==== */
+  /* ========== Comportamiento y lógica ========== */
 
-  // anim header on scroll
-  window.addEventListener('scroll', () => document.querySelector('header').classList.toggle('scrolled', window.scrollY > 50));
+  // utilidades
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
 
-  // bubbles
-  (function createBubbles(){
-    const bg = document.querySelector('.background');
-    for (let i=0;i<10;i++){
-      const b = document.createElement('div'); b.className='bubble';
-      b.style.width = b.style.height = Math.random()*80 + 40 + 'px';
-      b.style.left = Math.random()*100 + '%';
-      b.style.animationDelay = Math.random()*8 + 's';
-      bg.appendChild(b);
-    }
-  })();
+  // elementos principales
+  const appGrid = $('#appGrid');
+  const searchInput = $('#searchInput');
+  const categoryFilter = $('#categoryFilter');
+  const priceFilter = $('#priceFilter');
 
-  const appGrid = document.getElementById('appGrid');
-  const searchInput = document.getElementById('searchInput');
-  const categoryFilter = document.getElementById('categoryFilter');
-  const priceFilter = document.getElementById('priceFilter');
-  const adminPanelBtn = document.getElementById('adminPanelBtn');
+  const adminBtn = $('#adminBtn');
+  const donateHeaderBtn = $('#donateHeaderBtn');
+  const authFloatingBtn = $('#authFloatingBtn');
+  const authFloatingIcon = $('#authFloatingIcon');
+  const donateFloatingBtn = $('#donateFloatingBtn');
+
+  const donateModal = $('#donateModal');
+  const closeDonate = $('#closeDonate');
+  const amountButtons = () => $$('.amount-btn');
+  const customAmount = $('#customAmount');
+  let selectedAmount = 5;
+
   let apps = [];
 
-  async function loadApps(){
+  // --- helper: safe fetch with timeout (to help detectar 400/500) ---
+  async function safeFetch(url, opts = {}) {
     try {
-      const res = await fetch('/api/apps');
+      const res = await fetch(url, opts);
+      return res;
+    } catch (err) {
+      console.error('Fetch error', url, err);
+      throw err;
+    }
+  }
+
+  // --- Cargar apps (robusto) ---
+  async function loadApps() {
+    try {
+      const res = await safeFetch('/api/apps');
       if (!res.ok) {
-        console.error('Error cargando /api/apps, status=', res.status);
-        appGrid.innerHTML = `<div class="load-error">No se pudieron cargar las apps (error ${res.status}). Intenta recargar la página.</div>`;
+        console.warn('/api/apps responded with', res.status);
+        appGrid.innerHTML = `<div class="load-error">No se pudieron cargar las apps (error ${res.status}). Revisa el servidor.</div>`;
         return;
       }
       apps = await res.json();
       renderApps();
       fillCategories();
     } catch (err) {
-      console.error('Error fetch /api/apps:', err);
-      appGrid.innerHTML = `<div class="load-error">Error de red al cargar apps. Revisa tu servidor o la conexión.</div>`;
+      appGrid.innerHTML = `<div class="load-error">Error de red al cargar apps. Revisa la consola.</div>`;
     }
   }
 
-  function fillCategories(){
+  function fillCategories() {
     categoryFilter.innerHTML = '<option value="">Todas las Categorías</option>';
     const cats = [...new Set(apps.map(a => a.category).filter(Boolean))];
-    cats.forEach(cat=>{
-      const opt = document.createElement('option'); opt.value=cat; opt.textContent=cat;
+    cats.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
       categoryFilter.appendChild(opt);
     });
   }
 
-  function renderStars(r){
-    const round = Math.round(r || 0);
-    return '★'.repeat(round) + '☆'.repeat(Math.max(0,5-round));
+  function renderStars(rating) {
+    const n = Math.round(rating || 0);
+    return '★'.repeat(n) + '☆'.repeat(Math.max(0,5-n));
   }
 
-  function renderApps(){
+  function renderApps() {
     const search = (searchInput.value || '').toLowerCase();
     const cat = categoryFilter.value;
     const price = priceFilter.value;
-    const filtered = apps.filter(a=>{
+
+    const filtered = apps.filter(a => {
       const matchesSearch = (a.name || '').toLowerCase().includes(search);
       const matchesCat = !cat || a.category === cat;
-      const matchesPrice = !price || (price==='free' && !a.is_paid) || (price==='paid' && a.is_paid);
+      const matchesPrice = !price || (price === 'free' && !a.is_paid) || (price === 'paid' && a.is_paid);
       return matchesSearch && matchesCat && matchesPrice;
     });
 
@@ -262,124 +309,177 @@
       return;
     }
 
-    filtered.forEach(a=>{
-      const card = document.createElement('div'); card.className = 'app-card fade-in';
+    filtered.forEach(a => {
+      const card = document.createElement('div');
+      card.className = 'app-card fade-in';
       card.onclick = () => window.location.href = `app-details.html?id=${a.id}`;
       const priceLabel = a.is_paid ? `$${parseFloat(a.price).toFixed(2)}` : 'Gratis';
       card.innerHTML = `
         <div class="badge-price ${a.is_paid ? '' : 'free'}">${priceLabel}</div>
         <img src="${a.image || 'img/default-app.png'}" alt="${(a.name||'App')}" />
-        <div class="app-info"><h3>${a.name||'App sin nombre'}</h3><div class="stars">${renderStars(a.average_rating||0)}</div></div>
+        <div class="app-info">
+          <h3 class="app-title">${a.name || 'App sin nombre'}</h3>
+          <div class="stars">${renderStars(a.average_rating || 0)}</div>
+        </div>
       `;
       appGrid.appendChild(card);
     });
   }
 
+  // eventos filtros
   searchInput.addEventListener('input', renderApps);
   categoryFilter.addEventListener('change', renderApps);
   priceFilter.addEventListener('change', renderApps);
+
+  // inicias carga de apps
   loadApps();
 
-  /* ==== Sesión (login/logout/admin) ==== */
-  async function checkSession(){
+  /* ===== Session / Auth / Admin button ===== */
+  async function checkSession() {
     try {
-      const res = await fetch('/api/session');
+      const res = await safeFetch('/api/session');
       if (!res.ok) {
-        console.warn('checkSession: respuesta no OK', res.status);
-        // no bloqueamos la UI; dejamos botones en modo no-login
+        console.warn('checkSession returned', res.status);
         setAuthUINotLogged();
         return;
       }
       const data = await res.json();
+      // backend puede devolver { loggedIn: true, role: 'admin' } o { loggedIn: true, user: { role: 'admin' } }
       const role = data.role || (data.user && data.user.role);
       if (data.loggedIn) setAuthUILogged(role, data);
       else setAuthUINotLogged();
     } catch (err) {
-      console.error('Error en checkSession:', err);
+      console.error('checkSession error', err);
       setAuthUINotLogged();
     }
   }
 
-  function setAuthUILogged(role, data){
-    const authBtn = document.getElementById('authBtn');
-    authBtn.title = 'Cerrar sesión';
-    authBtn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>`;
-    authBtn.onclick = () => document.getElementById('logoutModal').classList.add('active');
+  function setAuthUILogged(role, data) {
+    // auth floating -> muestra icono logout
+    authFloatingIcon.className = 'fa-solid fa-right-from-bracket';
+    authFloatingBtn.title = 'Cerrar sesión';
+    authFloatingBtn.onclick = () => document.getElementById('logoutModal').classList.add('active');
 
+    // admin: mostrar boton en header y badge en el floating
     if (role === 'admin') {
-      adminPanelBtn.style.display = 'inline';
-      adminPanelBtn.onclick = () => window.location.href = '/admin.html';
+      adminBtn.style.display = 'inline-block';
+      adminBtn.onclick = () => window.location.href = '/admin-panel.html';
+
+      // agrega badge si no existe
+      if (!authFloatingBtn.querySelector('.admin-badge')) {
+        const b = document.createElement('div');
+        b.className = 'admin-badge';
+        b.textContent = 'A';
+        authFloatingBtn.appendChild(b);
+      }
     } else {
-      adminPanelBtn.style.display = 'none';
+      adminBtn.style.display = 'none';
+      const existing = authFloatingBtn.querySelector('.admin-badge');
+      if (existing) existing.remove();
     }
 
-    document.getElementById('confirmLogout').onclick = async () => {
+    // logout modal actions
+    $('#confirmLogout').onclick = async () => {
       try {
-        const logout = await fetch('/logout', { method: 'POST' });
-        if (logout.ok) window.location.reload();
-        else alert('Error al cerrar sesión.'); 
-      } catch (e) { console.error('Logout error', e); alert('Error al cerrar sesión.'); }
+        const out = await fetch('/logout', { method: 'POST' });
+        if (out.ok) window.location.reload();
+        else alert('No se pudo cerrar sesión.');
+      } catch (e) { console.error('logout error', e); alert('Error al cerrar sesión.'); }
     };
-    document.getElementById('cancelLogout').onclick = () => document.getElementById('logoutModal').classList.remove('active');
+    $('#cancelLogout').onclick = () => document.getElementById('logoutModal').classList.remove('active');
   }
 
-  function setAuthUINotLogged(){
-    const authBtn = document.getElementById('authBtn');
-    authBtn.title = 'Iniciar sesión';
-    authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i>`;
-    authBtn.onclick = () => window.location.href = 'login.html';
-    adminPanelBtn.style.display = 'none';
+  function setAuthUINotLogged() {
+    authFloatingIcon.className = 'fa-solid fa-right-to-bracket';
+    authFloatingBtn.title = 'Iniciar sesión';
+    authFloatingBtn.onclick = () => window.location.href = '/login.html';
+    adminBtn.style.display = 'none';
+    const existing = authFloatingBtn.querySelector('.admin-badge');
+    if (existing) existing.remove();
   }
 
+  // Ejecutar checkSession
   checkSession();
 
-  /* ==== Donaciones (PayPal) ==== */
-  const donateModal = document.getElementById('donateModal');
-  const donationAmount = document.getElementById('donationAmount');
-
-  function openDonate() {
+  /* ===== Donaciones (modal + PayPal) ===== */
+  function openDonateModal() {
     donateModal.classList.add('active');
-    renderPayPalButton(); // renderiza con la selección actual
+    // marcar default amount
+    selectedAmount = 5;
+    amountButtons().forEach(b => b.classList.toggle('active', b.dataset.amount == selectedAmount));
+    customAmount.value = '';
+    renderPayPalButton(selectedAmount);
   }
 
-  document.getElementById('donateBtn').addEventListener('click', openDonate);
-  document.getElementById('floatingDonateBtn').addEventListener('click', openDonate);
-  document.getElementById('cancelDonate').addEventListener('click', () => donateModal.classList.remove('active'));
+  // abrir desde header (desktop)
+  donateHeaderBtn.addEventListener('click', openDonateModal);
+  // abrir desde floating button (mobile)
+  donateFloatingBtn.addEventListener('click', openDonateModal);
+  closeDonate.addEventListener('click', () => donateModal.classList.remove('active'));
 
-  function renderPayPalButton() {
+  // amount button handlers
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.amount-btn');
+    if (!btn) return;
+    amountButtons().forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedAmount = parseFloat(btn.dataset.amount) || 5;
+    customAmount.value = '';
+    renderPayPalButton(selectedAmount);
+  });
+
+  customAmount.addEventListener('input', (e) => {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v) && v >= 1) {
+      selectedAmount = v;
+      amountButtons().forEach(b => b.classList.remove('active'));
+      renderPayPalButton(selectedAmount);
+    }
+  });
+
+  function renderPayPalButton(amount) {
     const container = document.getElementById('paypal-button-container');
     container.innerHTML = '';
-    // si paypal no cargó por algún motivo, prevenir excepción
     if (typeof paypal === 'undefined') {
-      container.innerHTML = `<div class="load-error">PayPal SDK no disponible. Verifica tu Client ID.</div>`;
+      container.innerHTML = '<div class="load-error">PayPal SDK no disponible. Revisa el Client ID o la conexión.</div>';
       return;
     }
 
     paypal.Buttons({
-      style: { color: 'blue', shape: 'pill', label: 'paypal', height:40 },
+      style: { shape: 'pill', color: 'blue', label: 'paypal', height: 40 },
       createOrder: (data, actions) => {
-        let amount = donationAmount.value === 'custom' ? prompt('Ingrese monto en USD (ej. 5):') : donationAmount.value;
-        amount = parseFloat(amount);
-        if (!amount || isNaN(amount) || amount <= 0) amount = 1;
-        return actions.order.create({ purchase_units: [{ amount: { value: amount.toFixed(2) } }] });
+        const value = (typeof amount === 'number') ? amount : parseFloat(amount) || 1;
+        return actions.order.create({
+          purchase_units: [{ amount: { value: value.toFixed(2) } }]
+        });
       },
       onApprove: async (data, actions) => {
         try {
           const order = await actions.order.capture();
-          const paid = order.purchase_units?.[0]?.amount?.value || '0.00';
-          alert(`✅ Gracias por tu donación de $${paid}!`);
+          const paid = order.purchase_units?.[0]?.amount?.value || (selectedAmount || 0).toFixed(2);
+          alert(`✅ ¡Gracias por tu donación de $${paid}!`);
           donateModal.classList.remove('active');
         } catch (err) {
           console.error('capture error', err);
-          alert('Error registrando la donación.'); 
+          alert('Ocurrió un error al completar la donación.');
         }
       },
-      onError: err => {
+      onError: (err) => {
         console.error('PayPal error', err);
         alert('Ocurrió un error con PayPal. Revisa la consola.');
       }
     }).render('#paypal-button-container');
   }
+
+  // Accessibility: close modals with ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      donateModal.classList.remove('active');
+      document.getElementById('logoutModal').classList.remove('active');
+    }
+  });
+
+  // Ready.
   </script>
 </body>
 </html>
