@@ -1,4 +1,4 @@
-// server.js (versión corregida para Render + PayPal)
+// server.js - merged and corrected version
 import express from "express";
 import fetch from "node-fetch";
 import session from "express-session";
@@ -18,33 +18,22 @@ import SibApiV3Sdk from "@sendinblue/client";
 
 dotenv.config();
 
-// ================================
-// CONFIG
-// ================================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const app = express();
-const PORT = Number(process.env.PORT) || 4000; // <-- usa process.env.PORT (Render)
+const PORT = Number(process.env.PORT) || 4000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
-// ================================
-// BREVO
-// ================================
 const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
 if (process.env.BREVO_API_KEY) {
   brevo.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 }
 
-// ================================
-// MIDDLEWARES
-// ================================
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// CORS: restringir a tu dominio de producción si lo tienes
 const allowedOrigin = process.env.FRONTEND_ORIGIN || process.env.BASE_URL || true;
 app.use(cors({
   origin: allowedOrigin,
@@ -55,30 +44,22 @@ app.use(cors({
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
-const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 120,
-  message: "Demasiadas solicitudes. Intenta más tarde.",
-});
+const limiter = rateLimit({ windowMs: 60*1000, max: 120, message: "Demasiadas solicitudes. Intenta más tarde." });
 app.use(limiter);
 
-// SESIONES: (nota: MemoryStore no es para producción a gran escala)
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "mi-store-secret",
-    resave: false,
-    saveUninitialized: false,
-    proxy: true,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    },
-  })
-);
+app.use(session({
+  secret: process.env.SESSION_SECRET || "mi-store-secret",
+  resave: false,
+  saveUninitialized: false,
+  proxy: true,
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    httpOnly: true,
+    maxAge: 24*60*60*1000
+  }
+}));
 
-// CLOUDINARY
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
@@ -86,20 +67,11 @@ cloudinary.config({
 });
 console.log("✅ Cloudinary configurado correctamente");
 
-// ================================
-// ESQUEMA (sólo intenta crear/alterar tablas/columnas si es necesario)
-// ================================
-(async function ensureSchema() {
+(async function ensureSchema(){
   try {
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token TEXT;`);
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_expires BIGINT;`);
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS categories (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        description TEXT
-      );
-    `);
+    await db.query(`CREATE TABLE IF NOT EXISTS categories ( id SERIAL PRIMARY KEY, name TEXT NOT NULL UNIQUE, description TEXT );`);
     await db.query(`ALTER TABLE apps ADD COLUMN IF NOT EXISTS image TEXT;`);
     await db.query(`ALTER TABLE apps ADD COLUMN IF NOT EXISTS images JSONB;`);
     await db.query(`ALTER TABLE apps ADD COLUMN IF NOT EXISTS apk TEXT;`);
@@ -112,9 +84,6 @@ console.log("✅ Cloudinary configurado correctamente");
   }
 })();
 
-// ================================
-// HELPERS AUTH
-// ================================
 function requireLogin(req, res, next) {
   if (!req.session.user) return res.status(401).json({ message: "No autorizado. Inicia sesión." });
   next();
@@ -124,9 +93,7 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// ================================
-// RUTAS BÁSICAS (auth / static)
-// ================================
+// Basic routes
 app.get("/", (req, res) => {
   if (!req.session.user) return res.redirect("/login.html");
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -140,7 +107,6 @@ app.post("/login", async (req, res) => {
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash || "");
     if (!valid) return res.json({ success: false, message: "Contraseña incorrecta" });
-
     req.session.user = { id: user.id, username: user.username, role: user.role, email: user.email };
     const redirect = user.role === "admin" ? "/admin.html" : "/index.html";
     res.json({ success: true, message: "Inicio de sesión correcto", user: req.session.user, redirect });
@@ -167,12 +133,8 @@ app.post("/register", async (req, res) => {
     const { username, email, password } = req.body;
     const exists = await db.query("SELECT id FROM users WHERE username=$1 OR email=$2", [username, email]);
     if (exists.rows.length > 0) return res.json({ success: false, message: "Usuario o correo ya existe." });
-
     const hashed = await bcrypt.hash(password, 10);
-    await db.query(
-      `INSERT INTO users (username, email, password_hash, role, created_at) VALUES ($1, $2, $3, 'user', NOW())`,
-      [username || email.split("@")[0], email, hashed]
-    );
+    await db.query(`INSERT INTO users (username, email, password_hash, role, created_at) VALUES ($1, $2, $3, 'user', NOW())`, [username || email.split("@")[0], email, hashed]);
     res.json({ success: true, message: "Usuario registrado correctamente." });
   } catch (err) {
     console.error("❌ /register error:", err);
@@ -180,13 +142,11 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// ================================
-// PAYPAL (tokens, orders, capture)
-// ================================
+// PAYPAL
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
 const PAYPAL_ENV = process.env.PAYPAL_ENV || "sandbox";
-const PAYPAL_API_BASE = "https://api-m.paypal.com";
+const PAYPAL_API_BASE = process.env.PAYPAL_API_BASE || (PAYPAL_ENV === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com");
 
 async function generateAccessToken() {
   if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
@@ -194,14 +154,12 @@ async function generateAccessToken() {
     console.error(err);
     throw err;
   }
-
   const auth = Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString("base64");
   const response = await fetch(`${PAYPAL_API_BASE}/v1/oauth2/token`, {
     method: "POST",
     headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
     body: "grant_type=client_credentials"
   });
-
   if (!response.ok) {
     const txt = await response.text();
     console.error("PayPal token error:", response.status, txt);
@@ -211,35 +169,26 @@ async function generateAccessToken() {
   return data.access_token;
 }
 
-// GET /api/orders -> ayuda para debugging + evita "Cannot GET /api/orders" confuso
+// Helper GET for debugging
 app.get("/api/orders", (req, res) => {
   res.json({ message: "Use POST /api/orders to create an order. See docs." });
 });
 
-// CREAR ORDEN (POST)
 app.post("/api/orders", async (req, res) => {
   try {
     const { amount } = req.body;
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return res.status(400).json({ error: "Invalid amount" });
-
     const accessToken = await generateAccessToken();
-
     const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders`, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        intent: "CAPTURE",
-        purchase_units: [{ amount: { currency_code: "USD", value: Number(amount).toFixed(2) } }]
-      })
+      body: JSON.stringify({ intent: "CAPTURE", purchase_units: [{ amount: { currency_code: "USD", value: Number(amount).toFixed(2) } }] })
     });
-
     const data = await response.json();
     if (!response.ok) {
       console.error("Error creating PayPal order:", response.status, data);
       return res.status(500).json({ error: "create-order-failed", details: data });
     }
-
-    // data.id contiene el order id
     res.json(data);
   } catch (err) {
     console.error("Error creando orden:", err);
@@ -247,29 +196,21 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
-// CAPTURAR ORDEN
 app.post("/api/orders/:orderID/capture", async (req, res) => {
   try {
     const orderID = req.params.orderID;
     if (!orderID) return res.status(400).json({ error: "orderID required" });
-
     const accessToken = await generateAccessToken();
-
     const response = await fetch(`${PAYPAL_API_BASE}/v2/checkout/orders/${orderID}/capture`, {
       method: "POST",
       headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
     });
-
     const data = await response.json();
     if (!response.ok) {
       console.error("Error capturing PayPal order:", response.status, data);
       return res.status(500).json({ error: "capture-failed", details: data });
     }
-
-    // Aquí guardarías en DB capture/result y luego desbloquear descarga si aplica
-    // Ejemplo de log mínimo:
     console.log("PayPal capture result:", data);
-
     res.json(data);
   } catch (err) {
     console.error("Error capturando orden:", err);
@@ -277,12 +218,7 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
   }
 });
 
-// ================================
-// RUTAS DE CATEGORIES, APPS y uploads
-// (mantengo tus handlers tal cual: categories CRUD, apps upload, update, delete, list)
-// ================================
-
-// (A continuación se copian las rutas que ya tenías — categories CRUD)
+// CATEGORIES CRUD (copied from original)
 app.get("/api/categories", async (req, res) => {
   try {
     const result = await db.query("SELECT id, name, description FROM categories ORDER BY name ASC");
@@ -331,11 +267,7 @@ app.delete("/api/categories/:id", requireAdmin, async (req, res) => {
   }
 });
 
-// ================================
-// UPLOADS / APPS HANDLERS
-// (mantengo tu implementación original de uploads, creación/edición/eliminación apps)
-// ================================
-
+// UPLOADS / APPS HANDLERS (carried from original)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "./uploads"),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`),
@@ -351,30 +283,119 @@ const upload = multer({
   },
 });
 
-// app POST /api/apps (igual que tu original)...
-// app PUT /api/apps/:id (igual que tu original)...
-// app.DELETE /api/apps/:id ...
-// app.get /api/apps and /api/apps/:id ...
+app.post("/api/apps", requireAdmin, upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "images", maxCount: 5 },
+  { name: "apk", maxCount: 1 },
+]), async (req, res) => {
+  try {
+    const { name, description, category, is_paid, price, version } = req.body;
+    const mainImageFile = req.files?.image?.[0];
+    const galleryFiles = req.files?.images || [];
+    const apkFile = req.files?.apk?.[0];
+    if (!name) return res.status(400).json({ message: "El nombre es obligatorio." });
+    if (!apkFile) return res.status(400).json({ message: "APK requerido." });
+    if (galleryFiles.length < 3) return res.status(400).json({ message: "Sube al menos 3 imágenes de muestra." });
+    if (galleryFiles.length > 5) return res.status(400).json({ message: "Máximo 5 imágenes permitidas." });
+    let mainImageUrl = null;
+    if (mainImageFile) {
+      const mainRes = await cloudinary.uploader.upload(mainImageFile.path, { folder: "mi_store/apps/main" });
+      mainImageUrl = mainRes.secure_url;
+    }
+    const galleryPromises = galleryFiles.map(f => cloudinary.uploader.upload(f.path, { folder: "mi_store/apps/gallery" }));
+    const galleryResults = await Promise.all(galleryPromises);
+    const galleryUrls = galleryResults.map(r => r.secure_url);
+    const apkUpload = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream({ resource_type: "raw", folder: "mi_store/apks" }, (err, result) => (err ? reject(err) : resolve(result)));
+      createReadStream(apkFile.path).pipe(stream);
+    });
+    const toUnlink = [mainImageFile, ...galleryFiles, apkFile].filter(Boolean);
+    for (const f of toUnlink) { try { fs.unlinkSync(f.path); } catch (_) {} }
+    const insert = await db.query(`INSERT INTO apps (name, description, image, images, apk, category, is_paid, price, version, created_at, updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW(),NOW()) RETURNING *`, [ name, description || null, mainImageUrl || galleryUrls[0] || null, JSON.stringify(galleryUrls), apkUpload.secure_url, category || null, is_paid === "true", price ? Number(price) : 0, version || null ]);
+    res.status(201).json({ message: "App subida con éxito", app: insert.rows[0] });
+  } catch (err) {
+    console.error("❌ /api/apps POST error:", err);
+    res.status(500).json({ message: err.message || "Error al subir aplicación" });
+  }
+});
 
-// Para no repetir aquí todo el contenido de tus handlers, a continuación
-// simplemente re-referencio (si quieres que lo incluya literal lo pego).
-// Pero si prefieres, puedo devolver el server con todo el bloque de apps tal cual lo tenías.
+app.put("/api/apps/:id", requireAdmin, upload.fields([
+  { name: "image", maxCount: 1 },
+  { name: "images", maxCount: 5 },
+  { name: "apk", maxCount: 1 },
+]), async (req, res) => {
+  const { id } = req.params;
+  const { name, description, version, category, is_paid, price, existing_images } = req.body;
+  try {
+    const cur = await db.query("SELECT * FROM apps WHERE id = $1", [id]);
+    if (cur.rows.length === 0) return res.status(404).json({ message: "App no encontrada" });
+    const appRow = cur.rows[0];
+    const mainImageFile = req.files?.image?.[0];
+    let mainImageUrl = appRow.image || null;
+    if (mainImageFile) {
+      const imgRes = await cloudinary.uploader.upload(mainImageFile.path, { folder: "mi_store/apps/main" });
+      mainImageUrl = imgRes.secure_url;
+    }
+    let imagesArray = [];
+    if (existing_images) {
+      try { const parsed = JSON.parse(existing_images); if (Array.isArray(parsed)) imagesArray = parsed; } catch (e) { imagesArray = []; }
+    } else {
+      try { imagesArray = appRow.images && typeof appRow.images === "string" ? JSON.parse(appRow.images) : (Array.isArray(appRow.images) ? appRow.images : []); } catch (e) { imagesArray = Array.isArray(appRow.images) ? appRow.images : []; }
+    }
+    const galleryFiles = req.files?.images || [];
+    if (galleryFiles.length) {
+      const uploadPromises = galleryFiles.map(f => cloudinary.uploader.upload(f.path, { folder: "mi_store/apps/gallery" }));
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map(r => r.secure_url);
+      imagesArray = imagesArray.concat(newUrls);
+    }
+    if (imagesArray.length > 5) imagesArray = imagesArray.slice(0,5);
+    let apkUrl = appRow.apk || null;
+    const apkFile = req.files?.apk?.[0];
+    if (apkFile) {
+      const apkUpload = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream({ resource_type: "raw", folder: "mi_store/apks" }, (err, result) => (err ? reject(err) : resolve(result)));
+        createReadStream(apkFile.path).pipe(stream);
+      });
+      apkUrl = apkUpload.secure_url;
+    }
+    const tmpFiles = [];
+    if (mainImageFile) tmpFiles.push(mainImageFile.path);
+    if (galleryFiles.length) galleryFiles.forEach(f => tmpFiles.push(f.path));
+    if (apkFile) tmpFiles.push(apkFile.path);
+    for (const p of tmpFiles) { try { fs.unlinkSync(p); } catch (e) {} }
+    if (!imagesArray || imagesArray.length < 3) return res.status(400).json({ message: "La galería debe tener al menos 3 imágenes." });
+    const updated = await db.query(`UPDATE apps SET name = $1, description = $2, version = $3, category = $4, is_paid = $5, price = $6, image = $7, images = $8, apk = $9, updated_at = NOW() WHERE id = $10 RETURNING *`, [ name ?? appRow.name, description ?? appRow.description, version ?? appRow.version, category ?? appRow.category, typeof is_paid !== "undefined" ? (is_paid === "true") : appRow.is_paid, (typeof price !== "undefined" && price !== "") ? price : appRow.price, mainImageUrl ?? appRow.image, JSON.stringify(imagesArray), apkUrl ?? appRow.apk, id ]);
+    res.json({ message: "App actualizada", app: updated.rows[0] });
+  } catch (err) {
+    console.error("❌ PUT /api/apps error:", err);
+    res.status(500).json({ message: "Error al actualizar la app" });
+  }
+});
+
+app.delete("/api/apps/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const existing = await db.query("SELECT * FROM apps WHERE id = $1", [id]);
+    if (existing.rows.length === 0) return res.status(404).json({ message: "App no encontrada." });
+    await db.query("DELETE FROM apps WHERE id = $1", [id]);
+    res.json({ message: "App eliminada correctamente." });
+  } catch (err) {
+    console.error("❌ /api/apps/:id DELETE error:", err);
+    res.status(500).json({ message: "Error al eliminar la app." });
+  }
+});
 
 app.get("/api/apps", async (req, res) => {
   try {
-    const result = await db.query(`
-      SELECT a.*, COALESCE(AVG(r.rating), 0)::numeric(2,1) AS average_rating
-      FROM apps a
-      LEFT JOIN ratings r ON a.id = r.app_id
-      GROUP BY a.id
-      ORDER BY a.created_at DESC
-    `);
+    const result = await db.query(`SELECT a.*, COALESCE(AVG(r.rating), 0)::numeric(2,1) AS average_rating FROM apps a LEFT JOIN ratings r ON a.id = r.app_id GROUP BY a.id ORDER BY a.created_at DESC`);
     res.json(result.rows);
   } catch (err) {
     console.error("❌ /api/apps error:", err);
     res.status(500).json({ message: "Error al obtener apps" });
   }
 });
+
 app.get("/api/apps/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -387,14 +408,7 @@ app.get("/api/apps/:id", async (req, res) => {
   }
 });
 
-// (Si quieres que pegue literal create/update/delete apps aquí, lo hago.)
-// ================================
-// FIN DE RUTAS
-// ================================
-
-// START SERVER
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
-
