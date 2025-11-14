@@ -325,10 +325,6 @@ app.post("/api/orders/:orderId/capture", async (req, res) => {
   }
 });
 
-// Puerto Render
-app.listen(PORT, () => {
-  console.log("Servidor activo en puerto " + PORT);
-});
 
 // ================================
 // 📂 RUTAS CATEGORIES (CRUD) - protegidas para escritura
@@ -679,5 +675,6 @@ app.get("/api/apps/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
 
 
