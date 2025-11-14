@@ -333,8 +333,7 @@
 
   checkSession();
 
-  /* ==== Donaciones (PayPal) ==== */
-  
+/* ==== Donaciones (PayPal) ==== */
 const donateBtn = document.getElementById("floatingDonateBtn");
 const modal = document.getElementById("donateModal");
 const cancelDonate = document.getElementById("cancelDonate");
@@ -345,12 +344,14 @@ let paypalRendered = false;
 // 1. Abrir modal
 donateBtn.addEventListener("click", () => {
   modal.style.display = "flex";
-  
-  // Renderizar PayPal SOLO si aún no se ha renderizado
-  if (!paypalRendered) {
-    renderPayPalButtons();
-    paypalRendered = true;
-  }
+
+  // Esperar un pequeño delay para que PayPal pueda renderizar sin error
+  setTimeout(() => {
+    if (!paypalRendered) {
+      renderPayPalButtons();
+      paypalRendered = true;
+    }
+  }, 150);
 });
 
 // 2. Cerrar modal
@@ -360,8 +361,6 @@ cancelDonate.addEventListener("click", () => {
 
 // 3. Función para renderizar PayPal
 function renderPayPalButtons() {
-
-  // Limpiar botones previos si existen
   container.innerHTML = "";
 
   paypal.Buttons({
@@ -373,32 +372,36 @@ function renderPayPalButtons() {
     },
 
     createOrder: function(data, actions) {
-  const amountSelect = document.getElementById("donationAmount");
-  let amount = amountSelect.value;
+      const amountSelect = document.getElementById("donationAmount");
+      let amount = amountSelect.value;
 
-  if (amount === "custom") {
-    amount = prompt("Ingresa el monto en USD:");
-  }
+      if (amount === "custom") {
+        amount = prompt("Ingresa el monto en USD:");
+        if (!amount || isNaN(amount)) {
+          alert("Monto inválido.");
+          throw new Error("Invalid amount");
+        }
+      }
 
-  return fetch("https://my-store-lwl1.onrender.com/api/orders", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount })
-  })
-    .then(res => res.json())
-    .then(order => order.id);
-},
+      return fetch("https://my-store-lwl1.onrender.com/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount })
+      })
+        .then(res => res.json())
+        .then(order => order.id);
+    },
 
-onApprove: function(data, actions) {
-  return fetch(`https://my-store-lwl1.onrender.com/api/orders/${data.orderID}/capture`, {
-    method: "POST"
-  })
-    .then(res => res.json())
-    .then(details => {
-      alert("¡Gracias por tu apoyo! 🙌");
-      modal.style.display = "none";
-    });
-}
+    onApprove: function(data, actions) {
+      return fetch(`https://my-store-lwl1.onrender.com/api/orders/${data.orderID}/capture`, {
+        method: "POST"
+      })
+        .then(res => res.json())
+        .then(() => {
+          alert("¡Gracias por tu apoyo! 🙌");
+          modal.style.display = "none";
+        });
+    }
 
   }).render("#paypal-button-container");
 }
@@ -406,8 +409,3 @@ onApprove: function(data, actions) {
   </script>
 </body>
 </html>
-
-
-
-
-
