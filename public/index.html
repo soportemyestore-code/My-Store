@@ -373,31 +373,32 @@ function renderPayPalButtons() {
     },
 
     createOrder: function(data, actions) {
-      const amountSelect = document.getElementById("donationAmount");
-      let amount = amountSelect.value;
+  const amountSelect = document.getElementById("donationAmount");
+  let amount = amountSelect.value;
 
-      if (amount === "custom") {
-        amount = prompt("Ingresa el monto en USD:");
-      }
+  if (amount === "custom") {
+    amount = prompt("Ingresa el monto en USD:");
+  }
 
-      return actions.order.create({
-        purchase_units: [{
-          amount: { value: amount }
-        }]
-      });
-    },
+  return fetch("https://my-store-lwl1.onrender.com/api/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ amount })
+  })
+    .then(res => res.json())
+    .then(order => order.id);
+},
 
-    onApprove: function(data, actions) {
-      return actions.order.capture().then(function(details) {
-        alert("¡Gracias por tu apoyo!");
-        modal.style.display = "none";
-      });
-    },
-
-    onError: function(err) {
-      console.error("PayPal Error:", err);
-      alert("Ocurrió un error con PayPal.");
-    }
+onApprove: function(data, actions) {
+  return fetch(`https://my-store-lwl1.onrender.com/api/orders/${data.orderID}/capture`, {
+    method: "POST"
+  })
+    .then(res => res.json())
+    .then(details => {
+      alert("¡Gracias por tu apoyo! 🙌");
+      modal.style.display = "none";
+    });
+}
 
   }).render("#paypal-button-container");
 }
@@ -405,4 +406,5 @@ function renderPayPalButtons() {
   </script>
 </body>
 </html>
+
 
