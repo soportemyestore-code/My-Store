@@ -186,7 +186,7 @@ app.post("/register", async (req, res) => {
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
 const PAYPAL_ENV = process.env.PAYPAL_ENV || "sandbox";
-const PAYPAL_API_BASE = PAYPAL_ENV === "live" ? "https://api-m.paypal.com" : "https://api-m.sandbox.paypal.com";
+const PAYPAL_API_BASE = "https://api-m.paypal.com";
 
 async function generateAccessToken() {
   if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
@@ -397,3 +397,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
+
