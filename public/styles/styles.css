@@ -199,4 +199,5 @@ html, body {
 footer {
   position: relative;
   z-index: 20;
+  text-align:center;
 }
