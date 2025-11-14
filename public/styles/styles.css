@@ -195,4 +195,20 @@ html, body {
   background: linear-gradient(135deg, #00c853, #43a047);
 }
 
+/* === FIX FOOTER INVISIBLE === */
+footer {
+  position: relative;
+  z-index: 20;
+}
 
+/* === FIX GRID / CARDS GIANT === */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.app-card {
+  max-width: 200px;
+  margin: 0 auto;
+}
