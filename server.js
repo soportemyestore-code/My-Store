@@ -258,7 +258,10 @@ app.post("/api/orders", async (req, res) => {
         intent: "CAPTURE",
         purchase_units: [
           {
-            amount: { value: amount },
+            amount: {
+            currency_code: "USD",
+            value: amount
+          },
           },
         ],
       }),
