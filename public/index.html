@@ -334,52 +334,75 @@
   checkSession();
 
   /* ==== Donaciones (PayPal) ==== */
-  const donateModal = document.getElementById('donateModal');
-  const donationAmount = document.getElementById('donationAmount');
+  
+const donateBtn = document.getElementById("floatingDonateBtn");
+const modal = document.getElementById("donateModal");
+const cancelDonate = document.getElementById("cancelDonate");
+const container = document.getElementById("paypal-button-container");
 
-  function openDonate() {
-    donateModal.classList.add('active');
-    renderPayPalButton(); // renderiza con la selección actual
+let paypalRendered = false;
+
+// 1. Abrir modal
+donateBtn.addEventListener("click", () => {
+  modal.style.display = "flex";
+  
+  // Renderizar PayPal SOLO si aún no se ha renderizado
+  if (!paypalRendered) {
+    renderPayPalButtons();
+    paypalRendered = true;
   }
+});
 
-  document.getElementById('donateBtn').addEventListener('click', openDonate);
-  document.getElementById('floatingDonateBtn').addEventListener('click', openDonate);
-  document.getElementById('cancelDonate').addEventListener('click', () => donateModal.classList.remove('active'));
+// 2. Cerrar modal
+cancelDonate.addEventListener("click", () => {
+  modal.style.display = "none";
+});
 
-  function renderPayPalButton() {
-    const container = document.getElementById('paypal-button-container');
-    container.innerHTML = '';
-    // si paypal no cargó por algún motivo, prevenir excepción
-    if (typeof paypal === 'undefined') {
-      container.innerHTML = `<div class="load-error">PayPal SDK no disponible. Verifica tu Client ID.</div>`;
-      return;
+// 3. Función para renderizar PayPal
+function renderPayPalButtons() {
+
+  // Limpiar botones previos si existen
+  container.innerHTML = "";
+
+  paypal.Buttons({
+    style: {
+      layout: "vertical",
+      color: "gold",
+      shape: "pill",
+      label: "paypal"
+    },
+
+    createOrder: function(data, actions) {
+      const amountSelect = document.getElementById("donationAmount");
+      let amount = amountSelect.value;
+
+      if (amount === "custom") {
+        amount = prompt("Ingresa el monto en USD:");
+      }
+
+      return actions.order.create({
+        purchase_units: [{
+          amount: { value: amount }
+        }]
+      });
+    },
+
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        alert("¡Gracias por tu apoyo!");
+        modal.style.display = "none";
+      });
+    },
+
+    onError: function(err) {
+      console.error("PayPal Error:", err);
+      alert("Ocurrió un error con PayPal.");
     }
 
-    paypal.Buttons({
-      style: { color: 'blue', shape: 'pill', label: 'paypal', height:40 },
-      createOrder: (data, actions) => {
-        let amount = donationAmount.value === 'custom' ? prompt('Ingrese monto en USD (ej. 5):') : donationAmount.value;
-        amount = parseFloat(amount);
-        if (!amount || isNaN(amount) || amount <= 0) amount = 1;
-        return actions.order.create({ purchase_units: [{ amount: { value: amount.toFixed(2) } }] });
-      },
-      onApprove: async (data, actions) => {
-        try {
-          const order = await actions.order.capture();
-          const paid = order.purchase_units?.[0]?.amount?.value || '0.00';
-          alert(`✅ Gracias por tu donación de $${paid}!`);
-          donateModal.classList.remove('active');
-        } catch (err) {
-          console.error('capture error', err);
-          alert('Error registrando la donación.'); 
-        }
-      },
-      onError: err => {
-        console.error('PayPal error', err);
-        alert('Ocurrió un error con PayPal. Revisa la consola.');
-      }
-    }).render('#paypal-button-container');
-  }
+  }).render("#paypal-button-container");
+}
+
   </script>
 </body>
 </html>
+
