@@ -326,7 +326,6 @@ app.post("/api/orders/:orderId/capture", async (req, res) => {
 });
 
 // Puerto Render
-const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("Servidor activo en puerto " + PORT);
 });
@@ -680,4 +679,5 @@ app.get("/api/apps/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
 
