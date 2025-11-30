@@ -299,8 +299,15 @@
 
       <section class="reviews">
         <h3>Reseñas</h3>
+        <div id="reviewsWrapper" style="
+        max-height: 300px;
+        overflow-y: auto;
+        padding-right: 10px;
+        ">
         <div id="reviewsList"></div>
+      </div>
       </section>
+
 
       <form id="reviewForm">
         <h3>Deja tu reseña</h3>
@@ -414,7 +421,11 @@
               </div>
             `;
             downloadBtn.style.display = "inline-block";
-            downloadBtn.onclick = () => downloadApp(currentApp.apk);
+            downloadBtn.onclick = () => {
+            if (!requireLogin()) return;
+            downloadApp(currentApp.apk);
+            };
+
           }
         } else {
           // Mostrar botón de PayPal
@@ -434,11 +445,13 @@
             const response = await fetch('/api/paypal/create-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
+              if (!requireLogin()) return;
               body: JSON.stringify({
-                appId: appId,
-                amount: amount,
-                username: username
+              appId,
+              amount,
+              username
               })
+
             });
 
             const order = await response.json();
@@ -582,10 +595,8 @@
     // Enviar reseña
     document.getElementById("reviewForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      if (!username) {
-        alert("Debes iniciar sesión para dejar una reseña.");
-        return;
-      }
+      if (!requireLogin()) return;
+
       if (selectedRating === 0) {
         alert("Selecciona una calificación con estrellas.");
         return;
