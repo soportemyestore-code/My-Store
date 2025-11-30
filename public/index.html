@@ -280,22 +280,6 @@
   priceFilter.addEventListener('change', renderApps);
   loadApps();
 
-  /* ==== Sesión (login/logout/admin) ==== */
-  async function checkSession() {
-    try {
-      const res = await fetch("/api/session", { credentials: "include" });
-      const data = await res.json();
-      
-    } 
-  }
-
-  function goTo(url) {
-    document.body.classList.add("page-transition");
-    setTimeout(() => (window.location.href = url), 500);
-  }
-
-  checkSession();
-
   /* ==== Donaciones (PayPal) ==== */
   const donateModal = document.getElementById('donateModal');
   const donationAmount = document.getElementById('donationAmount');
@@ -346,4 +330,5 @@
   </script>
 </body>
 </html>
+
 
