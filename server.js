@@ -23,6 +23,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+const router = express.Router();
+const paypal = require('@paypal/checkout-server-sdk');
 
 const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
 if (process.env.BREVO_API_KEY) {
@@ -408,7 +410,237 @@ app.get("/api/apps/:id", async (req, res) => {
   }
 });
 
+-----------------------------------------
+
+// Configuración del cliente PayPal (LIVE)
+function environment() {
+  const clientId = process.env.PAYPAL_CLIENT_ID;
+  const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+  
+  if (process.env.PAYPAL_MODE === 'live') {
+    return new paypal.core.LiveEnvironment(clientId, clientSecret);
+  } else {
+    return new paypal.core.SandboxEnvironment(clientId, clientSecret);
+  }
+}
+
+function client() {
+  return new paypal.core.PayPalHttpClient(environment());
+}
+
+// Ruta para crear una orden de pago
+router.post('/create-order', async (req, res) => {
+  const { appId, amount, currency = 'USD' } = req.body;
+  const username = req.session?.username || req.body.username;
+
+  if (!username) {
+    return res.status(401).json({ error: 'Usuario no autenticado' });
+  }
+
+  if (!appId || !amount) {
+    return res.status(400).json({ error: 'Faltan datos requeridos' });
+  }
+
+  try {
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer("return=representation");
+    request.requestBody({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        reference_id: `app_${appId}_user_${username}`,
+        description: `Compra de App #${appId}`,
+        amount: {
+          currency_code: currency,
+          value: amount.toFixed(2)
+        }
+      }],
+      application_context: {
+        brand_name: 'Tu Tienda de Apps',
+        landing_page: 'NO_PREFERENCE',
+        user_action: 'PAY_NOW',
+        return_url: `${process.env.SERVER_URL}/app-details.html?id=${appId}`,
+        cancel_url: `${process.env.SERVER_URL}/app-details.html?id=${appId}`
+      }
+    });
+
+    const order = await client().execute(request);
+    res.json({ orderID: order.result.id });
+  } catch (error) {
+    console.error('Error al crear orden:', error);
+    res.status(500).json({ error: 'Error al crear la orden de pago' });
+  }
+});
+
+// Ruta para capturar el pago
+router.post('/capture-order', async (req, res) => {
+  const { orderID, appId } = req.body;
+  const username = req.session?.username || req.body.username;
+
+  if (!username) {
+    return res.status(401).json({ error: 'Usuario no autenticado' });
+  }
+
+  try {
+    const request = new paypal.orders.OrdersCaptureRequest(orderID);
+    request.requestBody({});
+
+    const capture = await client().execute(request);
+    const captureData = capture.result;
+
+    // Verificar que el pago fue exitoso
+    if (captureData.status === 'COMPLETED') {
+      const purchaseUnit = captureData.purchase_units[0];
+      const captureId = purchaseUnit.payments.captures[0].id;
+      const amount = parseFloat(purchaseUnit.payments.captures[0].amount.value);
+      const payerEmail = captureData.payer.email_address;
+
+      // Obtener user_id desde la base de datos
+      const userResult = await req.db.query(
+        'SELECT id FROM users WHERE username = $1',
+        [username]
+      );
+
+      if (userResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Usuario no encontrado' });
+      }
+
+      const userId = userResult.rows[0].id;
+
+      // Verificar si ya existe una compra con este transaction_id
+      const existingPurchase = await req.db.query(
+        'SELECT id FROM purchases WHERE transaction_id = $1',
+        [captureId]
+      );
+
+      if (existingPurchase.rows.length > 0) {
+        return res.status(400).json({ error: 'Esta transacción ya fue registrada' });
+      }
+
+      // Registrar la compra en la base de datos
+      await req.db.query(
+        `INSERT INTO purchases (user_id, app_id, transaction_id, amount, currency, payer_email, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [userId, appId, captureId, amount, 'USD', payerEmail, 'completed']
+      );
+
+      res.json({
+        success: true,
+        message: 'Pago completado exitosamente',
+        transactionId: captureId
+      });
+    } else {
+      res.status(400).json({ error: 'El pago no se completó correctamente' });
+    }
+  } catch (error) {
+    console.error('Error al capturar orden:', error);
+    res.status(500).json({ error: 'Error al procesar el pago' });
+  }
+});
+
+// Ruta para verificar si el usuario ya compró una app
+router.get('/check-purchase/:appId', async (req, res) => {
+  const { appId } = req.params;
+  const username = req.session?.username || req.query.username;
+
+  if (!username) {
+    return res.json({ purchased: false });
+  }
+
+  try {
+    const userResult = await req.db.query(
+      'SELECT id FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.json({ purchased: false });
+    }
+
+    const userId = userResult.rows[0].id;
+
+    const result = await req.db.query(
+      `SELECT id, downloaded, transaction_id FROM purchases 
+       WHERE user_id = $1 AND app_id = $2 AND status = 'completed'
+       LIMIT 1`,
+      [userId, appId]
+    );
+
+    if (result.rows.length > 0) {
+      return res.json({
+        purchased: true,
+        downloaded: result.rows[0].downloaded,
+        transactionId: result.rows[0].transaction_id
+      });
+    }
+
+    res.json({ purchased: false });
+  } catch (error) {
+    console.error('Error al verificar compra:', error);
+    res.status(500).json({ error: 'Error al verificar la compra' });
+  }
+});
+
+// Ruta para registrar la descarga
+router.post('/register-download', async (req, res) => {
+  const { appId } = req.body;
+  const username = req.session?.username || req.body.username;
+
+  if (!username) {
+    return res.status(401).json({ error: 'Usuario no autenticado' });
+  }
+
+  try {
+    const userResult = await req.db.query(
+      'SELECT id FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const userId = userResult.rows[0].id;
+
+    // Verificar que el usuario compró la app y no la ha descargado
+    const purchaseResult = await req.db.query(
+      `SELECT id, downloaded FROM purchases 
+       WHERE user_id = $1 AND app_id = $2 AND status = 'completed'
+       LIMIT 1`,
+      [userId, appId]
+    );
+
+    if (purchaseResult.rows.length === 0) {
+      return res.status(403).json({ error: 'No has comprado esta app' });
+    }
+
+    const purchase = purchaseResult.rows[0];
+
+    if (purchase.downloaded) {
+      return res.status(403).json({ 
+        error: 'Ya has descargado esta app anteriormente',
+        alreadyDownloaded: true
+      });
+    }
+
+    // Marcar como descargada
+    await req.db.query(
+      `UPDATE purchases 
+       SET downloaded = true, download_date = CURRENT_TIMESTAMP
+       WHERE id = $1`,
+      [purchase.id]
+    );
+
+    res.json({ success: true, message: 'Descarga registrada' });
+  } catch (error) {
+    console.error('Error al registrar descarga:', error);
+    res.status(500).json({ error: 'Error al registrar la descarga' });
+  }
+});
+
+module.exports = router;
+
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
+
