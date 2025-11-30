@@ -44,3 +44,8 @@
     "startCommand": "node server.js"
   }
 }
+
+{
+  "@paypal/checkout-server-sdk": "^1.0.3",
+  }
+
