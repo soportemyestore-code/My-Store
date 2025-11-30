@@ -15,6 +15,7 @@ import db from "./db.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import SibApiV3Sdk from "@sendinblue/client";
+import paypal from '@paypal/checkout-server-sdk';
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const router = express.Router();
-const paypal = require('@paypal/checkout-server-sdk');
+//const paypal = require('@paypal/checkout-server-sdk');
 
 const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
 if (process.env.BREVO_API_KEY) {
@@ -416,7 +417,7 @@ app.get("/api/apps/:id", async (req, res) => {
 function environment() {
   const clientId = process.env.PAYPAL_CLIENT_ID;
   const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-  
+
   if (process.env.PAYPAL_MODE === 'live') {
     return new paypal.core.LiveEnvironment(clientId, clientSecret);
   } else {
@@ -487,14 +488,12 @@ router.post('/capture-order', async (req, res) => {
     const capture = await client().execute(request);
     const captureData = capture.result;
 
-    // Verificar que el pago fue exitoso
     if (captureData.status === 'COMPLETED') {
       const purchaseUnit = captureData.purchase_units[0];
       const captureId = purchaseUnit.payments.captures[0].id;
       const amount = parseFloat(purchaseUnit.payments.captures[0].amount.value);
       const payerEmail = captureData.payer.email_address;
 
-      // Obtener user_id desde la base de datos
       const userResult = await req.db.query(
         'SELECT id FROM users WHERE username = $1',
         [username]
@@ -506,7 +505,6 @@ router.post('/capture-order', async (req, res) => {
 
       const userId = userResult.rows[0].id;
 
-      // Verificar si ya existe una compra con este transaction_id
       const existingPurchase = await req.db.query(
         'SELECT id FROM purchases WHERE transaction_id = $1',
         [captureId]
@@ -516,7 +514,6 @@ router.post('/capture-order', async (req, res) => {
         return res.status(400).json({ error: 'Esta transacción ya fue registrada' });
       }
 
-      // Registrar la compra en la base de datos
       await req.db.query(
         `INSERT INTO purchases (user_id, app_id, transaction_id, amount, currency, payer_email, status)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -601,7 +598,6 @@ router.post('/register-download', async (req, res) => {
 
     const userId = userResult.rows[0].id;
 
-    // Verificar que el usuario compró la app y no la ha descargado
     const purchaseResult = await req.db.query(
       `SELECT id, downloaded FROM purchases 
        WHERE user_id = $1 AND app_id = $2 AND status = 'completed'
@@ -616,13 +612,12 @@ router.post('/register-download', async (req, res) => {
     const purchase = purchaseResult.rows[0];
 
     if (purchase.downloaded) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         error: 'Ya has descargado esta app anteriormente',
         alreadyDownloaded: true
       });
     }
 
-    // Marcar como descargada
     await req.db.query(
       `UPDATE purchases 
        SET downloaded = true, download_date = CURRENT_TIMESTAMP
@@ -637,11 +632,15 @@ router.post('/register-download', async (req, res) => {
   }
 });
 
-module.exports = router;
+// En ES Modules, exportación:
+export default router;
+
+
 
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
+
 
 
