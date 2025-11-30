@@ -5,11 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Detalles de la App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="/styles/styles.css">
+  
+  <!-- PayPal SDK -->
+  <script src="https://www.paypal.com/sdk/js?client-id=TU_CLIENT_ID_AQUI&currency=USD"></script>
+  
   <style>
+    /* Estilos específicos de esta página */
     body {
       margin: 0;
       font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #e0e7ff, #ede9fe);
     }
 
     header {
@@ -28,9 +33,14 @@
     .back-btn {
       background: none;
       border: none;
-      color: #4f46e5;
+      color: var(--primary);
       font-size: 1rem;
       cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .back-btn:hover {
+      transform: translateX(-5px);
     }
 
     .app-container {
@@ -41,6 +51,8 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.1);
       overflow: hidden;
       padding: 2rem;
+      position: relative;
+      z-index: 10;
     }
 
     .app-header {
@@ -68,13 +80,32 @@
       color: #111;
     }
 
+    .price-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      color: var(--text-light);
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 600;
+      margin: 10px 0;
+      font-size: 1.1rem;
+    }
+
+    .price-badge.free {
+      background: linear-gradient(135deg, #00c853, #43a047);
+    }
+
     .stars {
       color: #fbbf24;
       margin: 0.5rem 0;
     }
 
+    .download-section {
+      margin-top: 1rem;
+    }
+
     .download-btn {
-      background: #4f46e5;
+      background: var(--primary);
       color: white;
       border: none;
       padding: 0.7rem 1.5rem;
@@ -82,9 +113,40 @@
       font-size: 1rem;
       cursor: pointer;
       transition: 0.3s;
+      display: inline-block;
     }
-    .download-btn:hover {
-      background: #3730a3;
+
+    .download-btn:hover:not(:disabled) {
+      background: var(--accent);
+      transform: scale(1.05);
+    }
+
+    .download-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    #paypal-button-container {
+      margin-top: 1rem;
+      max-width: 300px;
+    }
+
+    .purchase-status {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 10px 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+      display: inline-block;
+    }
+
+    .warning-message {
+      background: #fff3cd;
+      color: #856404;
+      padding: 10px 15px;
+      border-radius: 10px;
+      margin-top: 10px;
+      display: inline-block;
     }
 
     .reviews {
@@ -148,7 +210,7 @@
 
     .submit-btn {
       margin-top: 1rem;
-      background: #4f46e5;
+      background: var(--primary);
       color: white;
       border: none;
       padding: 0.6rem 1.2rem;
@@ -156,17 +218,52 @@
       cursor: pointer;
       transition: 0.3s;
     }
+
     .submit-btn:hover {
-      background: #3730a3;
+      background: var(--accent);
+      transform: scale(1.05);
     }
 
     .no-reviews {
       color: #555;
       font-style: italic;
     }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--primary);
+    }
+
+    @media (max-width: 768px) {
+      .app-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .app-header img {
+        width: 150px;
+        height: 150px;
+      }
+
+      .app-container {
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Fondo animado -->
+  <div class="background">
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+    <div class="bubble"></div>
+  </div>
+
   <header>
     <button class="back-btn" onclick="window.location.href='index.html'">
       <i class="fa fa-arrow-left"></i> Volver
@@ -175,34 +272,48 @@
   </header>
 
   <main class="app-container">
-    <div class="app-header">
-      <img id="appImage" src="" alt="App Image">
-      <div class="app-info">
-        <h2 id="appName">Cargando...</h2>
-        <p id="appCategory"></p>
-        <div class="stars" id="appStars"></div>
-        <p id="appDescription"></p>
-        <button id="downloadBtn" class="download-btn">Descargar APK</button>
-      </div>
+    <div id="loadingMessage" class="loading">
+      <i class="fas fa-spinner fa-spin"></i> Cargando detalles...
     </div>
 
-    <section class="reviews">
-      <h3>Reseñas</h3>
-      <div id="reviewsList"></div>
-    </section>
-
-    <form id="reviewForm">
-      <h3>Deja tu reseña</h3>
-      <div class="stars-input" id="starsInput">
-        <i class="fa-regular fa-star" data-value="1"></i>
-        <i class="fa-regular fa-star" data-value="2"></i>
-        <i class="fa-regular fa-star" data-value="3"></i>
-        <i class="fa-regular fa-star" data-value="4"></i>
-        <i class="fa-regular fa-star" data-value="5"></i>
+    <div id="appContent" style="display: none;">
+      <div class="app-header">
+        <img id="appImage" src="" alt="App Image">
+        <div class="app-info">
+          <h2 id="appName">Cargando...</h2>
+          <p id="appCategory"></p>
+          <div id="priceContainer"></div>
+          <div class="stars" id="appStars"></div>
+          <p id="appDescription"></p>
+          
+          <div class="download-section">
+            <div id="purchaseStatus"></div>
+            <div id="paypal-button-container" style="display: none;"></div>
+            <button id="downloadBtn" class="download-btn" style="display: none;">
+              <i class="fas fa-download"></i> Descargar APK
+            </button>
+          </div>
+        </div>
       </div>
-      <textarea id="comment" placeholder="Escribe tu reseña..."></textarea>
-      <button type="submit" class="submit-btn">Enviar reseña</button>
-    </form>
+
+      <section class="reviews">
+        <h3>Reseñas</h3>
+        <div id="reviewsList"></div>
+      </section>
+
+      <form id="reviewForm">
+        <h3>Deja tu reseña</h3>
+        <div class="stars-input" id="starsInput">
+          <i class="fa-regular fa-star" data-value="1"></i>
+          <i class="fa-regular fa-star" data-value="2"></i>
+          <i class="fa-regular fa-star" data-value="3"></i>
+          <i class="fa-regular fa-star" data-value="4"></i>
+          <i class="fa-regular fa-star" data-value="5"></i>
+        </div>
+        <textarea id="comment" placeholder="Escribe tu reseña..."></textarea>
+        <button type="submit" class="submit-btn">Enviar reseña</button>
+      </form>
+    </div>
   </main>
 
   <script>
@@ -210,36 +321,216 @@
     const appId = urlParams.get("id");
     const username = sessionStorage.getItem("username");
     const downloadBtn = document.getElementById("downloadBtn");
+    const paypalContainer = document.getElementById("paypal-button-container");
+    const purchaseStatus = document.getElementById("purchaseStatus");
 
     let selectedRating = 0;
+    let currentApp = null;
+    let hasPurchased = false;
+    let hasDownloaded = false;
 
     async function loadAppDetails() {
-      const res = await fetch("/api/apps");
-      const apps = await res.json();
-      const app = apps.find(a => a.id == appId);
+      try {
+        const res = await fetch("/api/apps");
+        const apps = await res.json();
+        const app = apps.find(a => a.id == appId);
 
-      if (!app) {
-        document.body.innerHTML = "<h2 style='text-align:center'>App no encontrada</h2>";
+        if (!app) {
+          document.body.innerHTML = "<h2 style='text-align:center'>App no encontrada</h2>";
+          return;
+        }
+
+        currentApp = app;
+
+        document.getElementById("appImage").src = app.image;
+        document.getElementById("appName").textContent = app.name;
+        document.getElementById("appCategory").textContent = app.category || "Sin categoría";
+        document.getElementById("appDescription").textContent = app.description;
+        document.getElementById("appStars").innerHTML = renderStars(app.average_rating || 0);
+
+        // Mostrar precio o "Gratis"
+        const priceContainer = document.getElementById("priceContainer");
+        const price = parseFloat(app.price || 0);
+        
+        if (price > 0) {
+          priceContainer.innerHTML = `<span class="price-badge">$${price.toFixed(2)} USD</span>`;
+        } else {
+          priceContainer.innerHTML = `<span class="price-badge free">GRATIS</span>`;
+        }
+
+        // Ocultar loading y mostrar contenido
+        document.getElementById("loadingMessage").style.display = "none";
+        document.getElementById("appContent").style.display = "block";
+
+        // Verificar estado de compra y descarga
+        await checkPurchaseStatus();
+        loadReviews();
+      } catch (error) {
+        console.error("Error al cargar app:", error);
+        document.getElementById("loadingMessage").innerHTML = 
+          '<p style="color: red;">Error al cargar la aplicación</p>';
+      }
+    }
+
+    async function checkPurchaseStatus() {
+      const price = parseFloat(currentApp.price || 0);
+
+      if (!username) {
+        purchaseStatus.innerHTML = `
+          <div class="warning-message">
+            <i class="fas fa-info-circle"></i> Debes iniciar sesión para descargar esta app
+          </div>
+        `;
         return;
       }
 
-      document.getElementById("appImage").src = app.image;
-      document.getElementById("appName").textContent = app.name;
-      document.getElementById("appCategory").textContent = app.category || "Sin categoría";
-      document.getElementById("appDescription").textContent = app.description;
-      document.getElementById("appStars").innerHTML = renderStars(app.average_rating || 0);
-
-      // Descargar bloqueado si no está logueado
-      if (!username) {
-        downloadBtn.textContent = "Inicia sesión para descargar";
-        downloadBtn.disabled = true;
-        downloadBtn.style.background = "#ccc";
-        downloadBtn.style.cursor = "not-allowed";
-      } else {
-        downloadBtn.onclick = () => window.location.href = app.apk;
+      // Si la app es gratis
+      if (price === 0) {
+        downloadBtn.style.display = "inline-block";
+        downloadBtn.onclick = () => downloadApp(currentApp.apk);
+        return;
       }
 
-      loadReviews();
+      // Si la app es de pago, verificar si ya la compró
+      try {
+        const res = await fetch(`/api/paypal/check-purchase/${appId}?username=${username}`);
+        const data = await res.json();
+
+        hasPurchased = data.purchased;
+        hasDownloaded = data.downloaded;
+
+        if (hasPurchased) {
+          if (hasDownloaded) {
+            purchaseStatus.innerHTML = `
+              <div class="warning-message">
+                <i class="fas fa-check-circle"></i> Ya has descargado esta app anteriormente
+              </div>
+            `;
+          } else {
+            purchaseStatus.innerHTML = `
+              <div class="purchase-status">
+                <i class="fas fa-check-circle"></i> ¡Compra verificada! Puedes descargar
+              </div>
+            `;
+            downloadBtn.style.display = "inline-block";
+            downloadBtn.onclick = () => downloadApp(currentApp.apk);
+          }
+        } else {
+          // Mostrar botón de PayPal
+          initPayPalButton(price);
+        }
+      } catch (error) {
+        console.error("Error al verificar compra:", error);
+      }
+    }
+
+    function initPayPalButton(amount) {
+      paypalContainer.style.display = "block";
+
+      paypal.Buttons({
+        createOrder: async function(data, actions) {
+          try {
+            const response = await fetch('/api/paypal/create-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                appId: appId,
+                amount: amount,
+                username: username
+              })
+            });
+
+            const order = await response.json();
+            return order.orderID;
+          } catch (error) {
+            console.error('Error al crear orden:', error);
+            alert('Error al iniciar el pago');
+          }
+        },
+
+        onApprove: async function(data, actions) {
+          try {
+            const response = await fetch('/api/paypal/capture-order', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderID: data.orderID,
+                appId: appId,
+                username: username
+              })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              alert('¡Pago completado exitosamente! ✅');
+              // Recargar para actualizar el estado
+              window.location.reload();
+            } else {
+              alert('Error al procesar el pago: ' + result.error);
+            }
+          } catch (error) {
+            console.error('Error al capturar pago:', error);
+            alert('Error al completar el pago');
+          }
+        },
+
+        onError: function(err) {
+          console.error('Error de PayPal:', err);
+          alert('Hubo un error con el pago. Por favor intenta nuevamente.');
+        }
+      }).render('#paypal-button-container');
+    }
+
+    async function downloadApp(apkUrl) {
+      if (!username) {
+        alert("Debes iniciar sesión para descargar");
+        return;
+      }
+
+      const price = parseFloat(currentApp.price || 0);
+
+      // Si es de pago, registrar la descarga
+      if (price > 0 && !hasDownloaded) {
+        try {
+          const res = await fetch('/api/paypal/register-download', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              appId: appId,
+              username: username
+            })
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            if (data.alreadyDownloaded) {
+              alert('Ya has descargado esta app anteriormente. Solo se permite una descarga por compra.');
+              return;
+            }
+            alert('Error: ' + data.error);
+            return;
+          }
+        } catch (error) {
+          console.error('Error al registrar descarga:', error);
+          alert('Error al procesar la descarga');
+          return;
+        }
+      }
+
+      // Proceder con la descarga
+      window.location.href = apkUrl;
+      
+      // Actualizar estado en la página
+      if (price > 0) {
+        purchaseStatus.innerHTML = `
+          <div class="warning-message">
+            <i class="fas fa-check-circle"></i> Descarga completada. No se permiten más descargas.
+          </div>
+        `;
+        downloadBtn.style.display = "none";
+      }
     }
 
     async function loadReviews() {
@@ -320,6 +611,7 @@
       }
     });
 
+    // Cargar detalles al iniciar
     loadAppDetails();
   </script>
 </body>
