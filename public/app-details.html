@@ -612,6 +612,22 @@
       }
     });
 
+    /* ==== Sesión (login/logout/admin) ==== */
+  async function checkSession() {
+    try {
+      const res = await fetch("/api/session", { credentials: "include" });
+      const data = await res.json();
+      
+    } 
+  }
+
+  function goTo(url) {
+    document.body.classList.add("page-transition");
+    setTimeout(() => (window.location.href = url), 500);
+  }
+
+  checkSession();
+
     // Cargar detalles al iniciar
     loadAppDetails();
   </script>
