@@ -281,54 +281,17 @@
   loadApps();
 
   /* ==== Sesión (login/logout/admin) ==== */
-  async function checkSession(){
+  async function checkSession() {
     try {
-      const res = await fetch('/api/session');
-      if (!res.ok) {
-        console.warn('checkSession: respuesta no OK', res.status);
-        // no bloqueamos la UI; dejamos botones en modo no-login
-        setAuthUINotLogged();
-        return;
-      }
+      const res = await fetch("/api/session", { credentials: "include" });
       const data = await res.json();
-      const role = data.role || (data.user && data.user.role);
-      if (data.loggedIn) setAuthUILogged(role, data);
-      else setAuthUINotLogged();
-    } catch (err) {
-      console.error('Error en checkSession:', err);
-      setAuthUINotLogged();
-    }
+      
+    } 
   }
 
-  function setAuthUILogged(role, data){
-    const authBtn = document.getElementById('authBtn');
-    authBtn.title = 'Cerrar sesión';
-    authBtn.innerHTML = `<i class="fa-solid fa-right-from-bracket"></i>`;
-    authBtn.onclick = () => document.getElementById('logoutModal').classList.add('active');
-
-    if (role === 'admin') {
-      adminPanelBtn.style.display = 'inline';
-      adminPanelBtn.onclick = () => window.location.href = '/admin.html';
-    } else {
-      adminPanelBtn.style.display = 'none';
-    }
-
-    document.getElementById('confirmLogout').onclick = async () => {
-      try {
-        const logout = await fetch('/logout', { method: 'POST' });
-        if (logout.ok) window.location.reload();
-        else alert('Error al cerrar sesión.'); 
-      } catch (e) { console.error('Logout error', e); alert('Error al cerrar sesión.'); }
-    };
-    document.getElementById('cancelLogout').onclick = () => document.getElementById('logoutModal').classList.remove('active');
-  }
-
-  function setAuthUINotLogged(){
-    const authBtn = document.getElementById('authBtn');
-    authBtn.title = 'Iniciar sesión';
-    authBtn.innerHTML = `<i class="fa-solid fa-right-to-bracket"></i>`;
-    authBtn.onclick = () => window.location.href = 'login.html';
-    adminPanelBtn.style.display = 'none';
+  function goTo(url) {
+    document.body.classList.add("page-transition");
+    setTimeout(() => (window.location.href = url), 500);
   }
 
   checkSession();
@@ -383,3 +346,4 @@
   </script>
 </body>
 </html>
+
