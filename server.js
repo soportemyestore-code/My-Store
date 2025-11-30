@@ -410,7 +410,7 @@ app.get("/api/apps/:id", async (req, res) => {
   }
 });
 
------------------------------------------
+//-----------------------------------------
 
 // Configuración del cliente PayPal (LIVE)
 function environment() {
@@ -643,4 +643,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
+
 
