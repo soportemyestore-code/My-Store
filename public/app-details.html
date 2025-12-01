@@ -340,11 +340,11 @@
     // Agregar esta función ANTES de loadAppDetails()
     function requireLogin() {
       if (!username) {
-        alert("Debes iniciar sesión primero");
-        window.location.href = "/login.html";
+      alert("Debes iniciar sesión primero");
+      window.location.href = "/login.html";
       return false;
-      }
-      return true;
+    }
+    return true;
     }
 
     async function loadAppDetails() {
@@ -390,68 +390,77 @@
       }
     }
 
-    async function checkPurchaseStatus() {
-      const price = parseFloat(currentApp.price || 0);
+  async function checkPurchaseStatus() {
+    const price = parseFloat(currentApp.price || 0);
 
-      if (!username) {
-        purchaseStatus.innerHTML = `
-          <div class="warning-message">
-            <i class="fas fa-info-circle"></i> Debes iniciar sesión para descargar esta app
-          </div>
-        `;
-        return;
-      }
+  // Si la app es gratis, permitir descarga sin login
+    if (price === 0) {
+      downloadBtn.style.display = "inline-block";
+      downloadBtn.onclick = () => downloadApp(currentApp.apk);
+    
+    if (!username) {
+      purchaseStatus.innerHTML = `
+        <div class="purchase-status">
+          <i class="fas fa-gift"></i> Esta app es gratuita
+        </div>
+      `;
+    }
+    return;
+  }
 
-      // Si la app es gratis
-      if (price === 0) {
-        downloadBtn.style.display = "inline-block";
-        downloadBtn.onclick = () => downloadApp(currentApp.apk);
-        return;
-      }
+  // A partir de aquí, solo apps de pago
+    if (!username) {
+      purchaseStatus.innerHTML = `
+        <div class="warning-message">
+          <i class="fas fa-info-circle"></i> Debes iniciar sesión para comprar esta app
+        </div>
+      `;
+    return;
+    }
 
-      // Si la app es de pago, verificar si ya la compró
-      try {
-        const res = await fetch(`/api/paypal/check-purchase/${appId}?username=${username}`);
-        const data = await res.json();
+  // Si la app es de pago y hay sesión, verificar si ya la compró
+    try {
+      const res = await fetch(`/api/paypal/check-purchase/${appId}?username=${username}`);
+      const data = await res.json();
 
-        hasPurchased = data.purchased;
-        hasDownloaded = data.downloaded;
+      hasPurchased = data.purchased;
+      hasDownloaded = data.downloaded;
 
-        if (hasPurchased) {
-          if (hasDownloaded) {
-            purchaseStatus.innerHTML = `
-              <div class="warning-message">
-                <i class="fas fa-check-circle"></i> Ya has descargado esta app anteriormente
-              </div>
-            `;
-          } else {
+      if (hasPurchased) {
+        if (hasDownloaded) {
+          purchaseStatus.innerHTML = `
+            <div class="warning-message">
+              <i class="fas fa-check-circle"></i> Ya has descargado esta app anteriormente
+            </div>
+          `;
+        } else {
             purchaseStatus.innerHTML = `
               <div class="purchase-status">
                 <i class="fas fa-check-circle"></i> ¡Compra verificada! Puedes descargar
               </div>
             `;
             downloadBtn.style.display = "inline-block";
-            downloadBtn.onclick = () => {
-            if (!requireLogin()) return;
-            downloadApp(currentApp.apk);
-            };
-
+            downloadBtn.onclick = () => downloadApp(currentApp.apk);
           }
-        } else {
-          // Mostrar botón de PayPal
+      } else {
+// Mostrar botón de PayPal (usuario logueado, app de pago, no comprada)
           initPayPalButton(price);
         }
-      } catch (error) {
-        console.error("Error al verificar compra:", error);
+        } catch (error) {
+            console.error("Error al verificar compra:", error);
+            purchaseStatus.innerHTML = `
+              <div class="warning-message">
+              <i class="fas fa-exclamation-triangle"></i> Error al verificar el estado de compra
+              </div>
+            `;
+          }
       }
-    }
 
     function initPayPalButton(amount) {
       paypalContainer.style.display = "block";
 
       paypal.Buttons({
         createOrder: async function(data, actions) {
-        if (!requireLogin()) return; // ✅ Validación ANTES del fetch
         try {
           const response = await fetch('/api/paypal/create-order', {
             method: 'POST',
@@ -506,55 +515,62 @@
     }
 
     async function downloadApp(apkUrl) {
-      if (!username) {
-        alert("Debes iniciar sesión para descargar");
-        return;
-      }
-
       const price = parseFloat(currentApp.price || 0);
 
-      // Si es de pago, registrar la descarga
-      if (price > 0 && !hasDownloaded) {
-        try {
-          const res = await fetch('/api/paypal/register-download', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              appId: appId,
-              username: username
-            })
-          });
+  // Si es gratis, descargar directamente sin validaciones
+  if (price === 0) {
+    window.location.href = apkUrl;
+    return;
+  }
 
-          const data = await res.json();
+  // A partir de aquí, solo apps de pago
+  if (!username) {
+    alert("Debes iniciar sesión para descargar apps de pago");
+    window.location.href = "/login.html";
+    return;
+  }
 
-          if (!res.ok) {
-            if (data.alreadyDownloaded) {
-              alert('Ya has descargado esta app anteriormente. Solo se permite una descarga por compra.');
-              return;
-            }
-            alert('Error: ' + data.error);
-            return;
-          }
-        } catch (error) {
-          console.error('Error al registrar descarga:', error);
-          alert('Error al procesar la descarga');
+  // Si es de pago, registrar la descarga
+  if (!hasDownloaded) {
+    try {
+      const res = await fetch('/api/paypal/register-download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          appId: appId,
+          username: username
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.alreadyDownloaded) {
+          alert('Ya has descargado esta app anteriormente. Solo se permite una descarga por compra.');
           return;
         }
+        alert('Error: ' + data.error);
+        return;
       }
-
-      // Proceder con la descarga
-      window.location.href = apkUrl;
-      
-      // Actualizar estado en la página
-      if (price > 0) {
-        purchaseStatus.innerHTML = `
-          <div class="warning-message">
-            <i class="fas fa-check-circle"></i> Descarga completada. No se permiten más descargas.
-          </div>
-        `;
-        downloadBtn.style.display = "none";
-      }
+    } catch (error) {
+      console.error('Error al registrar descarga:', error);
+      alert('Error al procesar la descarga');
+      return;
     }
+  }
+
+  // Proceder con la descarga
+  window.location.href = apkUrl;
+  
+  // Actualizar estado en la página
+  purchaseStatus.innerHTML = `
+    <div class="warning-message">
+      <i class="fas fa-check-circle"></i> Descarga completada. No se permiten más descargas.
+    </div>
+  `;
+  downloadBtn.style.display = "none";
+}
+    
 async function loadReviews() {
   try {
     const res = await fetch(`/api/apps/${appId}/reviews`);
@@ -612,15 +628,20 @@ async function loadReviews() {
     });
 
     // Enviar reseña
-    document.getElementById("reviewForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!requireLogin()) return;
+  document.getElementById("reviewForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  // ✅ Solo validar login para reseñas
+  if (!username) {
+    alert("Debes iniciar sesión para dejar una reseña.");
+    window.location.href = "/login.html";
+    return;
+  }
 
-      if (selectedRating === 0) {
-        alert("Selecciona una calificación con estrellas.");
-        return;
-      }
-
+  if (selectedRating === 0) {
+    alert("Selecciona una calificación con estrellas.");
+    return;
+  }
       const comment = document.getElementById("comment").value.trim();
       const payload = { username, rating: selectedRating, comment };
 
