@@ -421,7 +421,7 @@
   // Si la app es de pago y hay sesión, verificar si ya la compró
     try {
       //const res = await fetch(`/api/paypal/check-purchase/${appId}?username=${username}`);
-      const res = await fetch(`/check-purchase/${appId}?username=${username}`)
+      const res = await fetch(`/check-purchase/${appId}?username=${username}`);
 
       const data = await res.json();
 
