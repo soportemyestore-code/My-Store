@@ -420,8 +420,7 @@
 
   // Si la app es de pago y hay sesión, verificar si ya la compró
     try {
-      //const res = await fetch(`/api/paypal/check-purchase/${appId}?username=${username}`);
-      const res = await fetch(`/check-purchase/${appId}?username=${username}`);
+      const res = await fetch(`/api/paypal/check-purchase/${appId}?username=${username}`);
       const data = await res.json();
 
       hasPurchased = data.purchased;
@@ -456,6 +455,21 @@
             `;
           }
       }
+
+    fetch(`/api/paypal/check-purchase/1?username=soportemyestore`)
+  .then(async res => {
+    const text = await res.text();
+    console.log("Respuesta cruda:", text);  // <- Aquí verás si es HTML
+    
+    try {
+      const json = JSON.parse(text);
+      console.log("JSON:", json);
+    } catch (err) {
+      console.error("Error al parsear JSON:", err);
+    }
+  })
+  .catch(err => console.error("Fetch error:", err));
+
 
     function initPayPalButton(amount) {
       paypalContainer.style.display = "block";
