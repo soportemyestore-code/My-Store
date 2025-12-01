@@ -420,7 +420,6 @@
 
   // Si la app es de pago y hay sesión, verificar si ya la compró
     try {
-      //const res = await fetch(`/api/paypal/check-purchase/${appId}?username=${username}`);
       const res = await fetch(`/check-purchase/${appId}?username=${username}`);
 
       const data = await res.json();
@@ -479,7 +478,7 @@
       paypal.Buttons({
         createOrder: async function(data, actions) {
         try {
-          const response = await fetch('/api/paypal/create-order', {
+          const response = await fetch('/create-order', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -499,7 +498,7 @@
 
         onApprove: async function(data, actions) {
           try {
-            const response = await fetch('/api/paypal/capture-order', {
+            const response = await fetch('/capture-order', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -550,7 +549,7 @@
   // Si es de pago, registrar la descarga
   if (!hasDownloaded) {
     try {
-      const res = await fetch('/api/paypal/register-download', {
+      const res = await fetch('/register-download', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
