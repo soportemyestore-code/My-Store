@@ -555,32 +555,42 @@
         downloadBtn.style.display = "none";
       }
     }
-
-    async function loadReviews() {
-      const res = await fetch(`/api/apps/${appId}/reviews`);
-      const reviews = await res.json();
-      const container = document.getElementById("reviewsList");
-
-      container.innerHTML = "";
-      if (reviews.length === 0) {
-        container.innerHTML = "<p class='no-reviews'>No hay reseñas aún. ¡Sé el primero en opinar!</p>";
-        return;
-      }
-
-      reviews.forEach(r => {
-        const div = document.createElement("div");
-        div.classList.add("review-card");
-        div.innerHTML = `
-          <div class="review-header">
-            <strong>${r.username}</strong>
-            <div class="review-stars">${renderStars(r.rating)}</div>
-          </div>
-          <p>${r.comment || ""}</p>
-          <small>${new Date(r.created_at).toLocaleString()}</small>
-        `;
-        container.appendChild(div);
-      });
+async function loadReviews() {
+  try {
+    const res = await fetch(`/api/apps/${appId}/reviews`);
+    
+    if (!res.ok) {
+      throw new Error(`Error ${res.status}: ${res.statusText}`);
     }
+    
+    const reviews = await res.json();
+    const container = document.getElementById("reviewsList");
+
+    container.innerHTML = "";
+    if (reviews.length === 0) {
+      container.innerHTML = "<p class='no-reviews'>No hay reseñas aún. ¡Sé el primero en opinar!</p>";
+      return;
+    }
+
+    reviews.forEach(r => {
+      const div = document.createElement("div");
+      div.classList.add("review-card");
+      div.innerHTML = `
+        <div class="review-header">
+          <strong>${r.username}</strong>
+          <div class="review-stars">${renderStars(r.rating)}</div>
+        </div>
+        <p>${r.comment || ""}</p>
+        <small>${new Date(r.created_at).toLocaleString()}</small>
+      `;
+      container.appendChild(div);
+    });
+  } catch (error) {
+    console.error("Error al cargar reviews:", error);
+    document.getElementById("reviewsList").innerHTML = 
+      "<p class='no-reviews'>Error al cargar las reseñas</p>";
+  }
+}
 
     function renderStars(rating) {
       const rounded = Math.round(rating);
