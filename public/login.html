@@ -165,6 +165,11 @@
           const popup = document.getElementById("welcomePopup");
           popup.style.display = "flex";
 
+          // ✅ GUARDAR EN SESSION STORAGE
+          sessionStorage.setItem('username', data.user.username);
+          sessionStorage.setItem('userId', data.user.id);
+          sessionStorage.setItem('userRole', data.user.role);
+
           // 🔁 Redirigir después de 2 segundos
           setTimeout(() => {
             window.location.href = data.redirect;
