@@ -426,7 +426,7 @@ function client() {
 }
 
 //crear una orden de pago
-router.post('/create-order', async (req, res) => {
+app.post('/create-order', async (req, res) => {
   const { appId, amount, currency = 'USD' } = req.body;
   const username = req.session?.username || req.body.username;
 
@@ -467,7 +467,7 @@ router.post('/create-order', async (req, res) => {
 });
 
 //capturar el pago
-router.post('/capture-order', async (req, res) => {
+app.post('/capture-order', async (req, res) => {
   const { orderID, appId } = req.body;
   const username = req.session?.username || req.body.username;
 
@@ -527,7 +527,7 @@ router.post('/capture-order', async (req, res) => {
 });
 
 //verificar si el usuario ya compró una app
-router.get('/check-purchase/:appId', async (req, res) => {
+app.get('/check-purchase/:appId', async (req, res) => {
   const { appId } = req.params;
   const username = req.session?.username || req.query.username;
 
@@ -570,7 +570,7 @@ router.get('/check-purchase/:appId', async (req, res) => {
 });
 
 //registrar la descarga
-router.post('/register-download', async (req, res) => {
+app.post('/register-download', async (req, res) => {
   const { appId } = req.body;
   const username = req.session?.username || req.body.username;
 
@@ -699,3 +699,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
+
