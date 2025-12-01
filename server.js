@@ -15,6 +15,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import SibApiV3Sdk from "@sendinblue/client";
 import paypal from '@paypal/checkout-server-sdk';
+import pool from './db.js'; 
 
 dotenv.config();
 
@@ -34,6 +35,10 @@ app.set("trust proxy", 1);
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use((req, res, next) => {
+  req.db = pool;
+  next();
+});
 
 const allowedOrigin = process.env.FRONTEND_ORIGIN || process.env.BASE_URL || true;
 app.use(cors({
@@ -699,4 +704,5 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
+
 
