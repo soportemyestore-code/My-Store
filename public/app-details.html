@@ -458,7 +458,7 @@
           }
       }
 
-    fetch(`/api/paypal/check-purchase/1?username=soportemyestore`)
+    fetch(`/check-purchase/1?username=soportemyestore`)
   .then(async res => {
     const text = await res.text();
     console.log("Respuesta cruda:", text);  // <- Aquí verás si es HTML
