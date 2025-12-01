@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Detalles de la App</title>
-  <link rel="icon" href"img/logo.png" type="icon/png">
+  <link rel="icon" href="img/logo.png" type="img/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <link rel="stylesheet" href="/styles/styles.css">
   
@@ -337,6 +337,16 @@
     let hasPurchased = false;
     let hasDownloaded = false;
 
+    // Agregar esta función ANTES de loadAppDetails()
+    function requireLogin() {
+      if (!username) {
+        alert("Debes iniciar sesión primero");
+        window.location.href = "/login.html";
+      return false;
+      }
+      return true;
+    }
+
     async function loadAppDetails() {
       try {
         const res = await fetch("/api/apps");
@@ -441,18 +451,17 @@
 
       paypal.Buttons({
         createOrder: async function(data, actions) {
-          try {
-            const response = await fetch('/api/paypal/create-order', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              if (!requireLogin()) return;
-              body: JSON.stringify({
-              appId,
-              amount,
-              username
-              })
-
-            });
+        if (!requireLogin()) return; // ✅ Validación ANTES del fetch
+        try {
+          const response = await fetch('/api/paypal/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+            appId,
+            amount,
+            username
+        })
+      });
 
             const order = await response.json();
             return order.orderID;
