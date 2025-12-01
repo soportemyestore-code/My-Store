@@ -1,4 +1,3 @@
-// server.js - merged and corrected version
 import express from "express";
 import fetch from "node-fetch";
 import session from "express-session";
@@ -25,9 +24,8 @@ const app = express();
 const PORT = Number(process.env.PORT) || 4000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const router = express.Router();
-//const paypal = require('@paypal/checkout-server-sdk');
-
 const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
+
 if (process.env.BREVO_API_KEY) {
   brevo.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
 }
@@ -221,7 +219,7 @@ app.post("/api/orders/:orderID/capture", async (req, res) => {
   }
 });
 
-// CATEGORIES CRUD (copied from original)
+// CATEGORIES CRUD 
 app.get("/api/categories", async (req, res) => {
   try {
     const result = await db.query("SELECT id, name, description FROM categories ORDER BY name ASC");
@@ -270,7 +268,7 @@ app.delete("/api/categories/:id", requireAdmin, async (req, res) => {
   }
 });
 
-// UPLOADS / APPS HANDLERS (carried from original)
+// UPLOADS / APPS HANDLERS 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "./uploads"),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname.replace(/\s+/g, "_")}`),
@@ -411,8 +409,6 @@ app.get("/api/apps/:id", async (req, res) => {
   }
 });
 
-//-----------------------------------------
-
 // Configuración del cliente PayPal (LIVE)
 function environment() {
   const clientId = process.env.PAYPAL_CLIENT_ID;
@@ -429,7 +425,7 @@ function client() {
   return new paypal.core.PayPalHttpClient(environment());
 }
 
-// Ruta para crear una orden de pago
+//crear una orden de pago
 router.post('/create-order', async (req, res) => {
   const { appId, amount, currency = 'USD' } = req.body;
   const username = req.session?.username || req.body.username;
@@ -437,11 +433,9 @@ router.post('/create-order', async (req, res) => {
   if (!username) {
     return res.status(401).json({ error: 'Usuario no autenticado' });
   }
-
   if (!appId || !amount) {
     return res.status(400).json({ error: 'Faltan datos requeridos' });
   }
-
   try {
     const request = new paypal.orders.OrdersCreateRequest();
     request.prefer("return=representation");
@@ -472,7 +466,7 @@ router.post('/create-order', async (req, res) => {
   }
 });
 
-// Ruta para capturar el pago
+//capturar el pago
 router.post('/capture-order', async (req, res) => {
   const { orderID, appId } = req.body;
   const username = req.session?.username || req.body.username;
@@ -480,7 +474,6 @@ router.post('/capture-order', async (req, res) => {
   if (!username) {
     return res.status(401).json({ error: 'Usuario no autenticado' });
   }
-
   try {
     const request = new paypal.orders.OrdersCaptureRequest(orderID);
     request.requestBody({});
@@ -493,7 +486,6 @@ router.post('/capture-order', async (req, res) => {
       const captureId = purchaseUnit.payments.captures[0].id;
       const amount = parseFloat(purchaseUnit.payments.captures[0].amount.value);
       const payerEmail = captureData.payer.email_address;
-
       const userResult = await req.db.query(
         'SELECT id FROM users WHERE username = $1',
         [username]
@@ -534,7 +526,7 @@ router.post('/capture-order', async (req, res) => {
   }
 });
 
-// Ruta para verificar si el usuario ya compró una app
+//verificar si el usuario ya compró una app
 router.get('/check-purchase/:appId', async (req, res) => {
   const { appId } = req.params;
   const username = req.session?.username || req.query.username;
@@ -577,7 +569,7 @@ router.get('/check-purchase/:appId', async (req, res) => {
   }
 });
 
-// Ruta para registrar la descarga
+//registrar la descarga
 router.post('/register-download', async (req, res) => {
   const { appId } = req.body;
   const username = req.session?.username || req.body.username;
@@ -632,15 +624,78 @@ router.post('/register-download', async (req, res) => {
   }
 });
 
-// En ES Modules, exportación:
+//ES Modules, exportación:
 export default router;
 
+// RUTAS DE REVIEWS (agregar antes de app.listen)
+// Obtener todas las reseñas de una app
+app.get("/api/apps/:id/reviews", async (req, res) => {
+  try {
+    const appId = req.params.id;
+    const result = await db.query(
+      `SELECT r.*, u.username 
+       FROM ratings r 
+       JOIN users u ON r.user_id = u.id 
+       WHERE r.app_id = $1 
+       ORDER BY r.created_at DESC`,
+      [appId]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("❌ Error al obtener reviews:", err);
+    res.status(500).json({ message: "Error al obtener las reseñas" });
+  }
+});
 
+// Crear una nueva reseña
+app.post("/api/apps/:id/reviews", requireLogin, async (req, res) => {
+  try {
+    const appId = req.params.id;
+    const { username, rating, comment } = req.body;
 
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "La calificación debe estar entre 1 y 5" });
+    }
+
+    // Obtener user_id del username
+    const userResult = await db.query("SELECT id FROM users WHERE username = $1", [username]);
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const userId = userResult.rows[0].id;
+
+    // Verificar si ya dejó una reseña
+    const existingReview = await db.query(
+      "SELECT id FROM ratings WHERE user_id = $1 AND app_id = $2",
+      [userId, appId]
+    );
+
+    if (existingReview.rows.length > 0) {
+      // Actualizar reseña existente
+      await db.query(
+        "UPDATE ratings SET rating = $1, comment = $2, created_at = NOW() WHERE user_id = $3 AND app_id = $4",
+        [rating, comment, userId, appId]
+      );
+      return res.json({ message: "Reseña actualizada" });
+    }
+
+    // Crear nueva reseña
+    await db.query(
+      "INSERT INTO ratings (user_id, app_id, rating, comment, created_at) VALUES ($1, $2, $3, $4, NOW())",
+      [userId, appId, rating, comment]
+    );
+
+    res.status(201).json({ message: "Reseña creada exitosamente" });
+  } catch (err) {
+    console.error("❌ Error al crear review:", err);
+    res.status(500).json({ message: "Error al crear la reseña" });
+  }
+});
+
+//listar apps
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
   console.log(`→ BASE_URL: ${BASE_URL}`);
 });
-
-
-
